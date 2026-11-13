@@ -122,6 +122,16 @@
           เข้าสู่ระบบ
         </button>
       </form>
+      <p style="text-align:center; margin-top:16px;">
+        <a href="#" id="forgotPassword"
+           style="color:#123d5a; font-size:14px;">
+          ลืมรหัสผ่าน?
+        </a>
+      </p>
+      
+      <p id="resetMessage"
+         style="text-align:center; font-size:13px; line-height:1.6;">
+      </p>
 
       <p class="notice">
         สำหรับบุคลากรที่ได้รับอนุญาตเท่านั้น<br>
@@ -131,12 +141,16 @@
   </main>
 
   
-<script type="module">
+
+  <script type="module">
     import { supabase } from './supabase.js';
   
     const form = document.getElementById('adminLoginForm');
     const loginButton = form.querySelector('button[type="submit"]');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const resetMessage = document.getElementById('resetMessage');
   
+    // เข้าสู่ระบบ
     form.addEventListener('submit', async function(event) {
       event.preventDefault();
   
@@ -148,7 +162,6 @@
       loginButton.textContent = 'กำลังตรวจสอบ...';
   
       try {
-        // ตรวจสอบอีเมลและรหัสผ่าน
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
@@ -158,7 +171,6 @@
           throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
         }
   
-        // ตรวจสอบข้อมูลเจ้าหน้าที่ใน profiles
         const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role, is_active, full_name')
@@ -170,19 +182,16 @@
           throw new Error('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาติดต่อผู้ดูแลระบบ');
         }
   
-        // ตรวจสอบสถานะบัญชี
         if (profile.is_active !== true) {
           await supabase.auth.signOut();
           throw new Error('บัญชีนี้ถูกระงับการใช้งาน');
         }
   
-        // ตรวจสอบบทบาท
         if (profile.role !== role) {
           await supabase.auth.signOut();
           throw new Error('ประเภทผู้ใช้งานไม่ตรงกับสิทธิ์ของบัญชี');
         }
   
-        // เข้าสู่หน้า Dashboard
         window.location.href = './admin.html';
   
       } catch (error) {
@@ -192,7 +201,46 @@
         loginButton.textContent = 'เข้าสู่ระบบ';
       }
     });
+  
+    // ส่งอีเมลสำหรับตั้งรหัสผ่านใหม่
+    forgotPassword.addEventListener('click', async function(event) {
+      event.preventDefault();
+  
+      const email = document.getElementById('staffEmail').value.trim();
+  
+      if (!email) {
+        resetMessage.textContent = 'กรุณากรอกอีเมลก่อนกดลืมรหัสผ่าน';
+        return;
+      }
+  
+      forgotPassword.style.pointerEvents = 'none';
+      resetMessage.textContent = 'กำลังส่งอีเมล...';
+  
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin +
+            window.location.pathname.replace(
+              'admin-login.html',
+              'set-password.html'
+            )
+        });
+  
+        if (error) throw error;
+  
+        resetMessage.textContent =
+          'ส่งคำขอเรียบร้อยแล้ว หากอีเมลนี้ลงทะเบียนไว้ในระบบ กรุณาตรวจสอบกล่องอีเมล';
+  
+      } catch (error) {
+        resetMessage.textContent =
+          'ไม่สามารถส่งอีเมลได้ กรุณาลองใหม่อีกครั้ง';
+        console.error('Password reset error:', error);
+  
+      } finally {
+        forgotPassword.style.pointerEvents = 'auto';
+      }
+    });
   </script>
+  
   
 </body>
 </html>
