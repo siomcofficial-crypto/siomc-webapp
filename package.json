@@ -1,6 +1,13 @@
+
 {
-  "name": "js-atafxq",
-  "version": "0.0.0",
+  "name": "siomc-webapp",
+  "version": "2.0.0",
   "private": true,
-  "dependencies": {}
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "*"
+  }
 }

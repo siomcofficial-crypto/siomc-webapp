@@ -1,5 +1,8 @@
 <!doctype html>
 <html lang="th">
+
+<script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -27,6 +30,9 @@ table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;p
 .hidden{display:none!important}
 @media(max-width:760px){.top{align-items:flex-start;flex-direction:column}.mode{width:100%}.mode button{flex:1}.span8,.span4,.span6{grid-column:span 12}.hero{align-items:flex-start;flex-direction:column}.quick{grid-template-columns:repeat(2,1fr)}.wrap{margin:18px auto}}
 </style>
+<script charset="utf-8"
+  src="https://static.line-scdn.net/liff/edge/2/sdk.js">
+</script>
 </head>
 <body>
 <header class="top">
@@ -122,10 +128,37 @@ function submitAppointment(){if(!$('firstName').value||!$('lastName').value||!$(
 function submitFollowup(){$('followMsg').textContent='บันทึกแบบประเมินตัวอย่างบนหน้าจอแล้ว — ยังไม่ได้ส่งให้ทีมรักษา'}
 renderWeights();
 </script>
-<!-- LINE LIFF integration placeholder:
-1) Create a LIFF app in LINE Developers Console.
-2) Add your deployed HTTPS URL as the LIFF Endpoint URL.
-3) Replace YOUR_LIFF_ID and initialize LIFF using the official SDK.
-4) Add authentication, server-side authorization, consent, and secure backend before handling real patient data.
--->
+
+<script>
+  async function initSiOMCLine() {
+    const status = document.createElement("div");
+  
+    status.style.cssText =
+      "position:fixed;bottom:10px;left:10px;right:10px;" +
+      "padding:12px;text-align:center;border-radius:10px;" +
+      "background:#e8f5e9;color:#246b36;z-index:9999;";
+  
+    status.textContent = "กำลังเชื่อมต่อ LINE...";
+    document.body.appendChild(status);
+  
+    try {
+      await liff.init({
+        liffId: "2012571121-sJssLsyF"
+      });
+  
+      status.textContent = liff.isInClient()
+        ? "เชื่อมต่อ LINE สำเร็จ"
+        : "เชื่อมต่อ LIFF สำเร็จ (เปิดผ่าน Browser)";
+  
+    } catch (error) {
+      status.style.background = "#ffebee";
+      status.style.color = "#b71c1c";
+      status.textContent = "เชื่อมต่อ LINE ไม่สำเร็จ";
+      console.error(error);
+    }
+  }
+  
+  initSiOMCLine();
+  </script>
+  
 </body></html>
