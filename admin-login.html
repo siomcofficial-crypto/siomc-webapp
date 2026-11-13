@@ -95,11 +95,12 @@
       <form id="adminLoginForm">
         <label for="staffRole">ประเภทผู้ใช้งาน</label>
         <select id="staffRole" required>
-          <option value="">เลือกประเภทผู้ใช้งาน</option>
-          <option value="doctor">แพทย์</option>
-          <option value="nurse">พยาบาล</option>
-          <option value="dietitian">นักกำหนดอาหาร</option>
-        </select>
+            <option value="">เลือกประเภทผู้ใช้งาน</option>
+            <option value="admin">ผู้ดูแลระบบ</option>
+            <option value="doctor">แพทย์</option>
+            <option value="nurse">พยาบาล</option>
+            <option value="dietitian">นักกำหนดอาหาร</option>
+          </select>
 
         <label for="staffEmail">อีเมลเจ้าหน้าที่</label>
         <input
@@ -129,12 +130,69 @@
     </section>
   </main>
 
-  <script>
-    document.getElementById('adminLoginForm')
-      .addEventListener('submit', function(event) {
-        event.preventDefault();
-        alert('หน้านี้เป็นต้นแบบ ยังไม่ได้เชื่อมต่อระบบยืนยันตัวตน');
-      });
+  
+<script type="module">
+    import { supabase } from './supabase.js';
+  
+    const form = document.getElementById('adminLoginForm');
+    const loginButton = form.querySelector('button[type="submit"]');
+  
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+  
+      const role = document.getElementById('staffRole').value;
+      const email = document.getElementById('staffEmail').value.trim();
+      const password = document.getElementById('staffPassword').value;
+  
+      loginButton.disabled = true;
+      loginButton.textContent = 'กำลังตรวจสอบ...';
+  
+      try {
+        // ตรวจสอบอีเมลและรหัสผ่าน
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+  
+        if (error) {
+          throw new Error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        }
+  
+        // ตรวจสอบข้อมูลเจ้าหน้าที่ใน profiles
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, is_active, full_name')
+          .eq('id', data.user.id)
+          .maybeSingle();
+  
+        if (profileError || !profile) {
+          await supabase.auth.signOut();
+          throw new Error('ไม่พบข้อมูลเจ้าหน้าที่ กรุณาติดต่อผู้ดูแลระบบ');
+        }
+  
+        // ตรวจสอบสถานะบัญชี
+        if (profile.is_active !== true) {
+          await supabase.auth.signOut();
+          throw new Error('บัญชีนี้ถูกระงับการใช้งาน');
+        }
+  
+        // ตรวจสอบบทบาท
+        if (profile.role !== role) {
+          await supabase.auth.signOut();
+          throw new Error('ประเภทผู้ใช้งานไม่ตรงกับสิทธิ์ของบัญชี');
+        }
+  
+        // เข้าสู่หน้า Dashboard
+        window.location.href = './admin.html';
+  
+      } catch (error) {
+        alert(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+  
+        loginButton.disabled = false;
+        loginButton.textContent = 'เข้าสู่ระบบ';
+      }
+    });
   </script>
+  
 </body>
 </html>
