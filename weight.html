@@ -1,0 +1,300 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiOMC | Weight Monitoring</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f6f9;
+  color: #173b52;
+}
+header {
+  background: #123d5a;
+  color: white;
+  padding: 22px 30px;
+}
+header h2 { margin: 0 0 5px; }
+header p { margin: 0; color: #d2e1eb; font-size: 13px; }
+main { max-width: 1150px; margin: auto; padding: 28px; }
+.topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+h1 { font-size: 24px; margin: 0; }
+.back { color: #17618a; text-decoration: none; font-size: 14px; }
+.panel {
+  background: white;
+  border: 1px solid #e5ebef;
+  border-radius: 13px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: bold; }
+select, input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d6e1e8;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+}
+.member-select { max-width: 400px; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.stat {
+  background: #f8fbfd;
+  border: 1px solid #e8eef2;
+  border-radius: 10px;
+  padding: 18px;
+}
+.stat p { color: #718596; font-size: 13px; margin: 0 0 12px; }
+.stat strong { font-size: 25px; color: #123d5a; }
+.unit { font-size: 12px; color: #718596; }
+.chart { width: 100%; overflow-x: auto; }
+.chart svg { display: block; min-width: 500px; width: 100%; height: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 450px; }
+th, td {
+  text-align: left;
+  padding: 13px 10px;
+  border-bottom: 1px solid #edf1f4;
+  font-size: 13px;
+}
+th { color: #718596; }
+.table-wrap { overflow-x: auto; }
+.notice {
+  background: #fff7e5;
+  color: #80601c;
+  border-radius: 9px;
+  padding: 13px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+@media(max-width: 800px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media(max-width: 500px) {
+  main { padding: 16px; }
+  .panel { padding: 15px; }
+  .stats { gap: 9px; }
+  .stat { padding: 13px; }
+  .stat strong { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h2>SiOMC Admin Portal</h2>
+  <p>Weight Monitoring</p>
+</header>
+
+<main>
+  <div class="topline">
+    <h1>ติดตามน้ำหนักสมาชิก</h1>
+    <a class="back" href="admin.html">← กลับ Dashboard</a>
+  </div>
+
+  <section class="panel">
+    <label for="memberSelect">เลือกสมาชิก</label>
+    <select id="memberSelect" class="member-select">
+      <option value="0">SIOMC-00001 | ตัวอย่าง สมาชิก 1</option>
+      <option value="1">SIOMC-00002 | ตัวอย่าง สมาชิก 2</option>
+      <option value="2">SIOMC-00003 | ตัวอย่าง สมาชิก 3</option>
+    </select>
+  </section>
+
+  <section class="panel">
+    <h3 id="memberTitle">ข้อมูลน้ำหนัก: SIOMC-00001</h3>
+    <div class="stats">
+      <div class="stat">
+        <p>น้ำหนักเริ่มต้น</p>
+        <strong id="startWeight">90</strong>
+        <span class="unit">กก.</span>
+      </div>
+      <div class="stat">
+        <p>น้ำหนักล่าสุด</p>
+        <strong id="currentWeight">85</strong>
+        <span class="unit">กก.</span>
+      </div>
+      <div class="stat">
+        <p>น้ำหนักที่เปลี่ยนแปลง</p>
+        <strong id="weightChange">-5</strong>
+        <span class="unit">กก.</span>
+      </div>
+      <div class="stat">
+        <p>เป้าหมาย</p>
+        <strong id="goalWeight">75</strong>
+        <span class="unit">กก.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>แนวโน้มน้ำหนัก</h3>
+    <div class="chart">
+      <svg viewBox="0 0 700 280" role="img"
+        aria-label="กราฟตัวอย่างแนวโน้มน้ำหนัก">
+        <g stroke="#e8eef2" stroke-width="1">
+          <line x1="65" y1="35" x2="660" y2="35"/>
+          <line x1="65" y1="85" x2="660" y2="85"/>
+          <line x1="65" y1="135" x2="660" y2="135"/>
+          <line x1="65" y1="185" x2="660" y2="185"/>
+          <line x1="65" y1="235" x2="660" y2="235"/>
+        </g>
+        <g fill="#718596" font-size="12">
+          <text x="25" y="39">100</text>
+          <text x="32" y="89">90</text>
+          <text x="32" y="139">80</text>
+          <text x="32" y="189">70</text>
+          <text x="32" y="239">60</text>
+        </g>
+        <polyline id="weightLine"
+          points="90,85 200,100 310,115 420,125 530,140 640,160"
+          fill="none" stroke="#2386a8" stroke-width="3"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <g id="weightDots" fill="#2386a8">
+          <circle cx="90" cy="85" r="5"/>
+          <circle cx="200" cy="100" r="5"/>
+          <circle cx="310" cy="115" r="5"/>
+          <circle cx="420" cy="125" r="5"/>
+          <circle cx="530" cy="140" r="5"/>
+          <circle cx="640" cy="160" r="5"/>
+        </g>
+        <g fill="#718596" font-size="11" text-anchor="middle">
+          <text x="90" y="260">ม.ค.</text>
+          <text x="200" y="260">ก.พ.</text>
+          <text x="310" y="260">มี.ค.</text>
+          <text x="420" y="260">เม.ย.</text>
+          <text x="530" y="260">พ.ค.</text>
+          <text x="640" y="260">มิ.ย.</text>
+        </g>
+      </svg>
+    </div>
+    <p class="unit">กราฟตัวอย่างเพื่อแสดงรูปแบบการติดตามน้ำหนัก</p>
+  </section>
+
+  <section class="panel">
+    <h3>ประวัติการบันทึกน้ำหนัก</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>วันที่</th>
+            <th>น้ำหนัก</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notice">
+    ข้อมูลทั้งหมดเป็นข้อมูลสมมติสำหรับทดสอบหน้าจอ
+    ยังไม่ได้เชื่อมต่อฐานข้อมูลสมาชิกจริง
+  </div>
+</main>
+
+<script>
+const data = [
+  {
+    id: 'SIOMC-00001',
+    name: 'ตัวอย่าง สมาชิก 1',
+    start: 90, current: 85, goal: 75,
+    history: [
+      ['1 ม.ค. 2026', 90],
+      ['1 ก.พ. 2026', 88],
+      ['1 มี.ค. 2026', 86],
+      ['1 เม.ย. 2026', 87],
+      ['1 พ.ค. 2026', 86],
+      ['1 มิ.ย. 2026', 85]
+    ]
+  },
+  {
+    id: 'SIOMC-00002',
+    name: 'ตัวอย่าง สมาชิก 2',
+    start: 100, current: 94, goal: 85,
+    history: [
+      ['1 ม.ค. 2026', 100],
+      ['1 ก.พ. 2026', 99],
+      ['1 มี.ค. 2026', 97],
+      ['1 เม.ย. 2026', 96],
+      ['1 พ.ค. 2026', 95],
+      ['1 มิ.ย. 2026', 94]
+    ]
+  },
+  {
+    id: 'SIOMC-00003',
+    name: 'ตัวอย่าง สมาชิก 3',
+    start: 80, current: 82, goal: 70,
+    history: [
+      ['1 ม.ค. 2026', 80],
+      ['1 ก.พ. 2026', 81],
+      ['1 มี.ค. 2026', 79],
+      ['1 เม.ย. 2026', 80],
+      ['1 พ.ค. 2026', 81],
+      ['1 มิ.ย. 2026', 82]
+    ]
+  }
+];
+
+const select = document.getElementById('memberSelect');
+
+function render() {
+  const member = data[Number(select.value)];
+  const change = member.current - member.start;
+
+  document.getElementById('memberTitle').textContent =
+    `ข้อมูลน้ำหนัก: ${member.id}`;
+  document.getElementById('startWeight').textContent = member.start;
+  document.getElementById('currentWeight').textContent = member.current;
+  document.getElementById('weightChange').textContent =
+    change > 0 ? `+${change}` : change;
+  document.getElementById('goalWeight').textContent = member.goal;
+
+  document.getElementById('historyTable').innerHTML =
+    member.history.slice().reverse().map(item => `
+      <tr>
+        <td>${item[0]}</td>
+        <td>${item[1]} กก.</td>
+        <td>ข้อมูลตัวอย่าง</td>
+      </tr>
+    `).join('');
+
+  const points = member.history.map((item, index) => {
+    const x = 90 + index * 110;
+    const y = 235 - (item[1] - 60) * 5;
+    return `${x},${y}`;
+  });
+
+  document.getElementById('weightLine')
+    .setAttribute('points', points.join(' '));
+
+  document.getElementById('weightDots').innerHTML =
+    points.map(point => {
+      const [x, y] = point.split(',');
+      return `<circle cx="${x}" cy="${y}" r="5"/>`;
+    }).join('');
+}
+
+select.addEventListener('change', render);
+render();
+</script>
+<script type="module">
+    import { renderAdminSidebar } from './admin-layout.js';
+  
+    renderAdminSidebar('weight');
+  </script>
+</body>
+</html>

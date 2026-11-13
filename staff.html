@@ -1,0 +1,338 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#123d5a">
+<title>SiOMC | Staff Management</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6fa;color:#173b52;font-family:Arial,Tahoma,sans-serif}
+header{background:white;padding:22px 30px;border-bottom:1px solid #e5ebef}
+header h2{margin:0 0 6px;font-size:21px}
+header p{margin:0;color:#718596;font-size:13px}
+.container{max-width:1200px;margin:auto;padding:25px 20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:22px}
+.stat,.panel{background:white;border:1px solid #e8edf1;border-radius:13px;padding:20px}
+.stat small{color:#718596}
+.stat h2{color:#123d5a;font-size:27px;margin:9px 0 0}
+.panel{margin-bottom:20px}
+.panel h3{margin:0 0 17px;color:#123d5a;font-size:17px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-size:13px;font-weight:bold;color:#526b7e}
+input,select{width:100%;padding:11px 12px;border:1px solid #d8e1e8;border-radius:9px;background:white;color:#173b52;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
+button{border:0;border-radius:8px;padding:10px 15px;font-size:13px;font-weight:bold;cursor:pointer}
+button:hover{opacity:.9}
+.primary{background:#123d5a;color:white}
+.secondary{background:#edf2f6;color:#38586d}
+.edit{background:#eaf1f7;color:#285875}
+.status-active{background:#e8f3ed;color:#28734b}
+.status-suspended{background:#fff3df;color:#855d19}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1f5;font-size:13px;vertical-align:middle}
+th{background:#f8fafc;color:#718596}
+.tag{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px}
+.row-actions{display:flex;gap:7px;flex-wrap:wrap}
+.notice{background:#fff8e9;border:1px solid #f2dfb5;border-radius:9px;padding:13px;color:#785c27;font-size:13px;line-height:1.6;margin-bottom:20px}
+.message{display:none;background:#e8f3ed;color:#28734b;padding:12px;border-radius:9px;margin-top:14px;font-size:13px}
+.empty{text-align:center;color:#718596;padding:24px}
+@media(max-width:700px){
+.container{padding:16px 12px}
+.stats{grid-template-columns:1fr}
+.form-grid{grid-template-columns:1fr}
+.field.full{grid-column:auto}
+.panel{padding:15px}
+header{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h2>SiOMC Admin Portal</h2>
+<p>Staff Management | ระบบจัดการเจ้าหน้าที่</p>
+</header>
+
+<main class="container">
+
+<section class="stats">
+<div class="stat">
+<small>เจ้าหน้าที่ทั้งหมด</small>
+<h2 id="totalCount">3</h2>
+</div>
+<div class="stat">
+<small>บัญชีที่เปิดใช้งาน</small>
+<h2 id="activeCount">3</h2>
+</div>
+<div class="stat">
+<small>บัญชีที่ระงับ</small>
+<h2 id="suspendedCount">0</h2>
+</div>
+</section>
+
+<div class="notice">
+<strong>ระบบต้นแบบ:</strong> ข้อมูลเจ้าหน้าที่ด้านล่างเป็นข้อมูลจำลอง การเพิ่มหรือแก้ไขยังไม่สร้างบัญชีเข้าสู่ระบบจริง และยังไม่ได้กำหนดสิทธิ์เข้าถึงข้อมูลจริง ห้ามใช้ข้อมูลส่วนบุคคลหรือบัญชีเจ้าหน้าที่จริงในระยะนี้
+</div>
+
+<section class="panel">
+<h3 id="formTitle">เพิ่มเจ้าหน้าที่</h3>
+
+<form id="staffForm">
+<div class="form-grid">
+
+<div class="field">
+<label for="staffName">ชื่อ-นามสกุล</label>
+<input id="staffName" type="text" placeholder="ระบุชื่อและนามสกุล" required>
+</div>
+
+<div class="field">
+<label for="staffEmail">อีเมล</label>
+<input id="staffEmail" type="email" placeholder="staff@example.com" required>
+</div>
+
+<div class="field">
+<label for="staffRole">ตำแหน่ง / บทบาท</label>
+
+<select id="staffRole" required>
+    <option value="">เลือกบทบาท</option>
+    <option value="doctor">แพทย์</option>
+    <option value="nurse">พยาบาล</option>
+    <option value="dietitian">นักกำหนดอาหาร</option>
+  </select>
+  
+</div>
+
+<div class="field">
+<label for="staffStatus">สถานะบัญชี</label>
+<select id="staffStatus" required>
+<option value="ใช้งาน">เปิดใช้งาน</option>
+<option value="ระงับ">ระงับบัญชี</option>
+</select>
+</div>
+
+</div>
+
+<div class="actions">
+<button class="primary" type="submit" id="saveButton">เพิ่มเจ้าหน้าที่</button>
+<button class="secondary" type="reset">ล้างข้อมูล</button>
+<button class="secondary" type="button" id="cancelEdit" hidden>ยกเลิกการแก้ไข</button>
+</div>
+
+<div class="message" id="message"></div>
+</form>
+</section>
+
+<section class="panel">
+<h3>รายชื่อเจ้าหน้าที่</h3>
+
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>รหัสเจ้าหน้าที่</th>
+<th>ชื่อ-นามสกุล</th>
+<th>อีเมล</th>
+<th>บทบาท</th>
+<th>สถานะ</th>
+<th>จัดการ</th>
+</tr>
+</thead>
+<tbody id="staffRows"></tbody>
+</table>
+</div>
+</section>
+
+</main>
+
+<script>
+let nextId=4;
+let editingId=null;
+
+let 
+let staffList = [
+  {
+    id: 1,
+    code: "SIOMC-ST001",
+    name: "ตัวอย่าง แพทย์ 1",
+    email: "doctor@example.com",
+    role: "doctor",
+    status: "ใช้งาน"
+  },
+  {
+    id: 2,
+    code: "SIOMC-ST002",
+    name: "ตัวอย่าง พยาบาล 1",
+    email: "nurse@example.com",
+    role: "nurse",
+    status: "ใช้งาน"
+  },
+  {
+    id: 3,
+    code: "SIOMC-ST003",
+    name: "ตัวอย่าง นักกำหนดอาหาร 1",
+    email: "dietitian@example.com",
+    role: "dietitian",
+    status: "ใช้งาน"
+  }
+];
+
+
+const form=document.getElementById("staffForm");
+
+function updateStats(){
+document.getElementById("totalCount").textContent=staffList.length;
+document.getElementById("activeCount").textContent=staffList.filter(s=>s.status==="ใช้งาน").length;
+document.getElementById("suspendedCount").textContent=staffList.filter(s=>s.status==="ระงับ").length;
+}
+
+function cell(text){
+const td=document.createElement("td");
+td.textContent=text;
+return td;
+}
+
+function renderStaff(){
+const tbody=document.getElementById("staffRows");
+tbody.replaceChildren();
+
+if(staffList.length===0){
+const tr=document.createElement("tr");
+const td=cell("ยังไม่มีรายชื่อเจ้าหน้าที่");
+td.colSpan=6;
+td.className="empty";
+tr.appendChild(td);
+tbody.appendChild(tr);
+}
+
+staffList.forEach(staff=>{
+const tr=document.createElement("tr");
+tr.appendChild(cell(staff.code));
+tr.appendChild(cell(staff.name));
+tr.appendChild(cell(staff.email));
+const roleLabels = {
+  doctor: "แพทย์",
+  nurse: "พยาบาล",
+  dietitian: "นักกำหนดอาหาร"
+};
+
+tr.appendChild(cell(roleLabels[staff.role] || staff.role));
+
+const statusCell=document.createElement("td");
+const tag=document.createElement("span");
+tag.className="tag "+(staff.status==="ใช้งาน"?"status-active":"status-suspended");
+tag.textContent=staff.status==="ใช้งาน"?"เปิดใช้งาน":"ระงับบัญชี";
+statusCell.appendChild(tag);
+tr.appendChild(statusCell);
+
+const actionCell=document.createElement("td");
+const actions=document.createElement("div");
+actions.className="row-actions";
+
+const editButton=document.createElement("button");
+editButton.className="edit";
+editButton.textContent="แก้ไข";
+editButton.addEventListener("click",()=>editStaff(staff.id));
+
+const toggleButton=document.createElement("button");
+toggleButton.className=staff.status==="ใช้งาน"?"status-suspended":"status-active";
+toggleButton.textContent=staff.status==="ใช้งาน"?"ระงับบัญชี":"เปิดใช้งาน";
+toggleButton.addEventListener("click",()=>toggleStatus(staff.id));
+
+actions.append(editButton,toggleButton);
+actionCell.appendChild(actions);
+tr.appendChild(actionCell);
+tbody.appendChild(tr);
+});
+
+updateStats();
+}
+
+function resetForm(){
+form.reset();
+editingId=null;
+document.getElementById("formTitle").textContent="เพิ่มเจ้าหน้าที่";
+document.getElementById("saveButton").textContent="เพิ่มเจ้าหน้าที่";
+document.getElementById("cancelEdit").hidden=true;
+}
+
+function editStaff(id){
+const staff=staffList.find(s=>s.id===id);
+if(!staff)return;
+
+editingId=id;
+document.getElementById("staffName").value=staff.name;
+document.getElementById("staffEmail").value=staff.email;
+document.getElementById("staffRole").value=staff.role;
+document.getElementById("staffStatus").value=staff.status;
+
+document.getElementById("formTitle").textContent="แก้ไขข้อมูลเจ้าหน้าที่";
+document.getElementById("saveButton").textContent="บันทึกการแก้ไข";
+document.getElementById("cancelEdit").hidden=false;
+document.getElementById("message").style.display="none";
+document.getElementById("formTitle").scrollIntoView({behavior:"smooth"});
+}
+
+function toggleStatus(id){
+const staff=staffList.find(s=>s.id===id);
+if(!staff)return;
+
+staff.status=staff.status==="ใช้งาน"?"ระงับ":"ใช้งาน";
+renderStaff();
+}
+
+form.addEventListener("submit",event=>{
+event.preventDefault();
+
+const data={
+name:document.getElementById("staffName").value.trim(),
+email:document.getElementById("staffEmail").value.trim(),
+role:document.getElementById("staffRole").value,
+status:document.getElementById("staffStatus").value
+};
+
+if(editingId!==null){
+const staff=staffList.find(s=>s.id===editingId);
+if(staff)Object.assign(staff,data);
+}else{
+staffList.unshift({
+id:nextId,
+code:"SIOMC-ST"+String(nextId).padStart(3,"0"),
+...data
+});
+nextId++;
+}
+
+document.getElementById("message").textContent=
+editingId!==null?"แก้ไขข้อมูลตัวอย่างเรียบร้อยแล้ว":"เพิ่มเจ้าหน้าที่ตัวอย่างเรียบร้อยแล้ว";
+
+document.getElementById("message").style.display="block";
+
+resetForm();
+renderStaff();
+});
+
+document.getElementById("cancelEdit").addEventListener("click",()=>{
+resetForm();
+document.getElementById("message").style.display="none";
+});
+
+form.addEventListener("reset",()=>{
+document.getElementById("message").style.display="none";
+});
+
+renderStaff();
+</script>
+
+<script type="module">
+import { renderAdminSidebar } from './admin-layout.js';
+
+renderAdminSidebar('staff');
+</script>
+
+</body>
+</html>

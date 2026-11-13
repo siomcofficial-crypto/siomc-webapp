@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC Admin Portal</title>
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f3f7fa;
+      color: #173b52;
+    }
+    .admin-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 36px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(18,61,90,.10);
+      box-sizing: border-box;
+    }
+    .brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .brand h1 {
+      margin: 0 0 8px;
+      color: #123d5a;
+      font-size: 28px;
+    }
+    .brand p {
+      margin: 0;
+      color: #688092;
+      font-size: 14px;
+    }
+    .login-card label {
+      display: block;
+      margin: 18px 0 8px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .login-card input,
+    .login-card select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d6e1e8;
+      border-radius: 9px;
+      box-sizing: border-box;
+      font-size: 15px;
+      background: white;
+    }
+    .login-button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border: 0;
+      border-radius: 9px;
+      background: #123d5a;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .notice {
+      margin-top: 20px;
+      text-align: center;
+      color: #8193a0;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-container">
+    <section class="login-card">
+      <div class="brand">
+        <h1>SiOMC</h1>
+        <p>Admin Portal</p>
+        <p>Clinical Care Management System</p>
+      </div>
+
+      <form id="adminLoginForm">
+        <label for="staffRole">ประเภทผู้ใช้งาน</label>
+        <select id="staffRole" required>
+          <option value="">เลือกประเภทผู้ใช้งาน</option>
+          <option value="doctor">แพทย์</option>
+          <option value="nurse">พยาบาล</option>
+          <option value="dietitian">นักกำหนดอาหาร</option>
+        </select>
+
+        <label for="staffEmail">อีเมลเจ้าหน้าที่</label>
+        <input
+          type="email"
+          id="staffEmail"
+          placeholder="กรอกอีเมล"
+          required
+        >
+
+        <label for="staffPassword">รหัสผ่าน</label>
+        <input
+          type="password"
+          id="staffPassword"
+          placeholder="กรอกรหัสผ่าน"
+          required
+        >
+
+        <button class="login-button" type="submit">
+          เข้าสู่ระบบ
+        </button>
+      </form>
+
+      <p class="notice">
+        สำหรับบุคลากรที่ได้รับอนุญาตเท่านั้น<br>
+        Siriraj Obesity and Metabolic Center
+      </p>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById('adminLoginForm')
+      .addEventListener('submit', function(event) {
+        event.preventDefault();
+        alert('หน้านี้เป็นต้นแบบ ยังไม่ได้เชื่อมต่อระบบยืนยันตัวตน');
+      });
+  </script>
+</body>
+</html>

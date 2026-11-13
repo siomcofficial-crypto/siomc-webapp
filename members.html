@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiOMC | Member Management</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6f9;
+      color: #173b52;
+    }
+    header {
+      background: #123d5a;
+      color: white;
+      padding: 22px 30px;
+    }
+    header h2 { margin: 0 0 5px; }
+    header p { margin: 0; color: #d2e1eb; font-size: 13px; }
+    main { padding: 28px; max-width: 1200px; margin: auto; }
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 22px;
+    }
+    .topline h1 { margin: 0; font-size: 24px; }
+    .back {
+      color: #17618a;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .panel {
+      background: white;
+      border: 1px solid #e5ebef;
+      border-radius: 13px;
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+    .filters {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+    input, select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d6e1e8;
+      border-radius: 8px;
+      font-size: 14px;
+      background: white;
+    }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th, td {
+      padding: 14px 10px;
+      text-align: left;
+      border-bottom: 1px solid #edf1f4;
+      font-size: 13px;
+    }
+    th { color: #718596; }
+    .status {
+      display: inline-block;
+      background: #e8f3ed;
+      color: #28734b;
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+    .view-button {
+      border: 0;
+      background: #e8f1f7;
+      color: #123d5a;
+      border-radius: 7px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .count { color: #718596; font-size: 13px; margin-top: 15px; }
+    @media(max-width: 650px) {
+      main { padding: 16px; }
+      .filters { grid-template-columns: 1fr; }
+      .panel { padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>SiOMC Admin Portal</h2>
+    <p>Member Management</p>
+  </header>
+
+  <main>
+    <div class="topline">
+      <h1>จัดการสมาชิก</h1>
+      <a class="back" href="admin.html">← กลับ Dashboard</a>
+    </div>
+
+    <section class="panel">
+      <div class="filters">
+        <input
+          type="search"
+          id="searchInput"
+          placeholder="ค้นหารหัสสมาชิกหรือชื่อ..."
+        >
+        <select id="typeFilter">
+          <option value="">สมาชิกทุกประเภท</option>
+          <option value="general">สมาชิกทั่วไป</option>
+          <option value="patient">ผู้รับบริการศิริราช</option>
+        </select>
+      </div>
+      <p class="count" id="memberCount">สมาชิกตัวอย่าง 4 รายการ</p>
+    </section>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>รหัสสมาชิก</th>
+              <th>ชื่อสมาชิก</th>
+              <th>ประเภท</th>
+              <th>สถานะ</th>
+              <th>ข้อมูล</th>
+            </tr>
+          </thead>
+          <tbody id="memberTable"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ข้อมูลสมมติสำหรับทดสอบหน้าจอเท่านั้น
+    const members = [
+      { id: 'SIOMC-00001', name: 'ตัวอย่าง สมาชิก 1', type: 'general', typeName: 'สมาชิกทั่วไป' },
+      { id: 'SIOMC-00002', name: 'ตัวอย่าง สมาชิก 2', type: 'general', typeName: 'สมาชิกทั่วไป' },
+      { id: 'SIOMC-00003', name: 'ตัวอย่าง สมาชิก 3', type: 'patient', typeName: 'ผู้รับบริการศิริราช' },
+      { id: 'SIOMC-00004', name: 'ตัวอย่าง สมาชิก 4', type: 'patient', typeName: 'ผู้รับบริการศิริราช' }
+    ];
+
+    const table = document.getElementById('memberTable');
+    const search = document.getElementById('searchInput');
+    const filter = document.getElementById('typeFilter');
+    const count = document.getElementById('memberCount');
+
+    function renderMembers() {
+      const keyword = search.value.trim().toLowerCase();
+      const type = filter.value;
+
+      const results = members.filter(member => {
+        const matchesSearch =
+          member.id.toLowerCase().includes(keyword) ||
+          member.name.toLowerCase().includes(keyword);
+        const matchesType = !type || member.type === type;
+        return matchesSearch && matchesType;
+      });
+
+      table.innerHTML = results.map(member => `
+        <tr>
+          <td>${member.id}</td>
+          <td>${member.name}</td>
+          <td>${member.typeName}</td>
+          <td><span class="status">ตัวอย่าง</span></td>
+          <td><button class="view-button" type="button"
+            onclick="alert('ข้อมูลนี้เป็นข้อมูลสมมติสำหรับทดสอบ')">
+            ดูข้อมูล
+          </button></td>
+        </tr>
+      `).join('');
+
+      if (results.length === 0) {
+        table.innerHTML = '<tr><td colspan="5">ไม่พบสมาชิก</td></tr>';
+      }
+
+      count.textContent = `พบสมาชิก ${results.length} รายการ (ข้อมูลสมมติ)`;
+    }
+
+    search.addEventListener('input', renderMembers);
+    filter.addEventListener('change', renderMembers);
+    renderMembers();
+  </script>
+  <script type="module">
+    import { renderAdminSidebar } from './admin-layout.js';
+  
+    console.log('SiOMC Members: Module loaded');
+  
+    renderAdminSidebar('members');
+  
+    console.log(
+      'SiOMC Members: Sidebar status',
+      document.querySelector('.siomc-shared-sidebar')
+    );
+  </script>
+</body>
+</html>

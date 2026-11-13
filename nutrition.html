@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiOMC | Nutrition Monitoring</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Tahoma",sans-serif;background:#f3f6fa;color:#20364a}
+header{background:#123d5a;color:white;padding:22px 30px}
+header h2{margin:0 0 6px}
+header p{margin:0;color:#d8e8f1;font-size:14px}
+.container{max-width:1200px;margin:auto;padding:25px 20px}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+select,input{padding:11px 13px;border:1px solid #d4dee7;border-radius:9px;background:white;font-size:14px}
+select{min-width:230px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:22px}
+.card{background:white;border-radius:13px;padding:19px;box-shadow:0 2px 9px #18344a0c}
+.card small{color:#718398}
+.card h2{font-size:27px;color:#123d5a;margin:10px 0 0}
+.panel{background:white;border-radius:13px;padding:20px;margin-bottom:20px;box-shadow:0 2px 9px #18344a0c}
+.panel h3{margin:0 0 16px;color:#123d5a}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1f5;font-size:14px}
+th{color:#60758a;background:#f8fafc}
+.tag{background:#e5f4ed;color:#23734c;padding:5px 9px;border-radius:20px;font-size:12px}
+.food{display:flex;align-items:center;gap:12px}
+.food img{width:58px;height:48px;object-fit:cover;border-radius:8px;background:#edf2f6}
+.note{background:#fff8e9;border:1px solid #f2dfb5;padding:13px;border-radius:9px;color:#785c27;font-size:13px}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.cards{grid-template-columns:1fr 1fr}.container{padding:15px 10px}th,td{font-size:12px;padding:9px 6px}}
+</style>
+</head>
+<body>
+<header>
+<h2>SiOMC Admin Portal</h2>
+<p>Nutrition Monitoring | ระบบติดตามโภชนาการ</p>
+</header>
+
+<div class="container">
+<div class="toolbar">
+<select id="member" onchange="updateMember()">
+<option value="0">SIOMC-00001 | ตัวอย่าง สมาชิก 1</option>
+<option value="1">SIOMC-00002 | ตัวอย่าง สมาชิก 2</option>
+<option value="2">SIOMC-00003 | ตัวอย่าง สมาชิก 3</option>
+</select>
+<input type="date" id="recordDate" onchange="updateMember()">
+</div>
+
+<div class="cards">
+<div class="card"><small>จำนวนมื้ออาหารที่บันทึก</small><h2 id="meals">3 มื้อ</h2></div>
+<div class="card"><small>พลังงานรวมวันนี้</small><h2 id="calories">1,450</h2></div>
+<div class="card"><small>เป้าหมายพลังงาน</small><h2 id="target">1,800</h2></div>
+<div class="card"><small>พลังงานคงเหลือ</small><h2 id="remaining">350</h2></div>
+</div>
+
+<div class="panel">
+<h3>ประวัติการบันทึกอาหาร</h3>
+<div style="overflow-x:auto">
+<table>
+<thead>
+<tr><th>มื้ออาหาร</th><th>รายการอาหาร</th><th>ปริมาณ</th><th>พลังงาน</th><th>สถานะ</th></tr>
+</thead>
+<tbody id="foodRows"></tbody>
+</table>
+</div>
+</div>
+
+<div class="panel">
+<h3>ข้อสังเกตด้านโภชนาการ</h3>
+<p id="summary">สมาชิกมีการบันทึกอาหารครบ 3 มื้อ ควรติดตามปริมาณพลังงานและสัดส่วนอาหารอย่างต่อเนื่อง</p>
+<div class="note">หมายเหตุ: ข้อมูลทั้งหมดในหน้านี้เป็นข้อมูลจำลอง เพื่อทดสอบหน้าจอเท่านั้น ไม่ใช่ข้อมูลผู้ป่วยจริง และค่าพลังงานเป็นตัวอย่าง ไม่ใช่ผลวิเคราะห์จาก AI</div>
+</div>
+
+<div style="margin:20px 0">
+<a href="admin.html" style="color:#17648a;text-decoration:none">← กลับหน้า Admin Dashboard</a>
+</div>
+</div>
+
+<script>
+const data=[
+[
+{meal:"เช้า",food:"ข้าวต้มปลา",portion:"1 ชาม",kcal:280},
+{meal:"กลางวัน",food:"ข้าวกะเพราไก่",portion:"1 จาน",kcal:550},
+{meal:"เย็น",food:"สลัดอกไก่",portion:"1 จาน",kcal:620}
+],
+[
+{meal:"เช้า",food:"ไข่ต้มและขนมปัง",portion:"1 ชุด",kcal:320},
+{meal:"กลางวัน",food:"ข้าวมันไก่",portion:"1 จาน",kcal:650},
+{meal:"เย็น",food:"แกงจืดเต้าหู้",portion:"1 ถ้วย",kcal:250}
+],
+[
+{meal:"เช้า",food:"โยเกิร์ตและผลไม้",portion:"1 ชุด",kcal:220},
+{meal:"กลางวัน",food:"ข้าวปลาอบ",portion:"1 จาน",kcal:480},
+{meal:"เย็น",food:"ก๋วยเตี๋ยวน้ำ",portion:"1 ชาม",kcal:400}
+]
+];
+
+function updateMember(){
+const i=Number(document.getElementById("member").value);
+const rows=data[i];
+const total=rows.reduce((sum,item)=>sum+item.kcal,0);
+const target=1800;
+document.getElementById("meals").textContent=rows.length+" มื้อ";
+document.getElementById("calories").textContent=total.toLocaleString("th-TH");
+document.getElementById("target").textContent=target.toLocaleString("th-TH");
+document.getElementById("remaining").textContent=(target-total).toLocaleString("th-TH");
+document.getElementById("foodRows").innerHTML=rows.map(item=>`
+<tr>
+<td>${item.meal}</td>
+<td>${item.food}</td>
+<td>${item.portion}</td>
+<td>${item.kcal.toLocaleString("th-TH")} kcal</td>
+<td><span class="tag">บันทึกแล้ว</span></td>
+</tr>`).join("");
+document.getElementById("summary").textContent=
+"สมาชิกบันทึกอาหาร "+rows.length+" มื้อ รวม "+total.toLocaleString("th-TH")+" kcal ควรติดตามปริมาณพลังงานและสัดส่วนอาหารอย่างต่อเนื่อง";
+}
+document.getElementById("recordDate").value=new Date().toISOString().slice(0,10);
+updateMember();
+</script>
+<script type="module">
+    import { renderAdminSidebar } from './admin-layout.js';
+  
+    renderAdminSidebar('nutrition');
+  </script>
+</body>
+</html>
