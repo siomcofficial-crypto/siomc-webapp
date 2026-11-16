@@ -3,13 +3,40 @@
 
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
+
 :root {
-  --siomc-font: 'IBM Plex Sans Thai', sans-serif;
-  --siomc-primary: #123d5a;
-  --siomc-primary-light: #285875;
-  --siomc-background: #f3f6f9;
-  --siomc-text: #173b52;
-}
+    /* SiOMC Brand Colors */
+    --siomc-font: 'IBM Plex Sans Thai', sans-serif;
+    --siomc-primary: #123d5a;
+    --siomc-primary-light: #285875;
+    --siomc-sidebar: #163e58;
+  
+    /* Background & Surface */
+    --siomc-background: #f3f6f9;
+    --siomc-surface: #ffffff;
+    --siomc-surface-soft: #f8fafc;
+  
+    /* Text */
+    --siomc-text: #173b52;
+    --siomc-text-muted: #71869a;
+  
+    /* Borders */
+    --siomc-border: #e1eaf1;
+  
+    /* Status Colors */
+    --siomc-success: #198754;
+    --siomc-success-bg: #e8f4ee;
+    --siomc-warning: #b7791f;
+    --siomc-warning-bg: #fff5df;
+    --siomc-danger: #dc3545;
+    --siomc-danger-bg: #fcebed;
+  
+    /* Shape & Shadow */
+    --siomc-radius: 10px;
+    --siomc-radius-small: 7px;
+    --siomc-shadow: 0 2px 8px rgba(18, 61, 90, 0.05);
+  }
+  
 
 *,
 *::before,
@@ -26,4 +53,152 @@ input,
 select,
 textarea {
   font-size: inherit;
+}
+
+/* =================================
+   SiOMC Buttons & Form Controls
+================================= */
+
+/* Buttons */
+button {
+    font-family: var(--siomc-font) !important;
+    border-radius: var(--siomc-radius-small);
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    filter: brightness(0.95);
+  }
+  
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  
+  /* Form Controls */
+  input,
+  select,
+  textarea {
+    font-family: var(--siomc-font) !important;
+    color: var(--siomc-text);
+    background-color: var(--siomc-surface);
+    border: 1px solid var(--siomc-border);
+    border-radius: var(--siomc-radius-small);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Focus */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--siomc-primary-light);
+    box-shadow: 0 0 0 3px rgba(40, 88, 117, 0.12);
+  }
+  
+  /* Placeholder */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--siomc-text-muted);
+    opacity: 0.8;
+  }
+  
+/* =================================
+   SiOMC Standard Tables
+================================= */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: var(--siomc-surface);
+    color: var(--siomc-text);
+    font-family: var(--siomc-font) !important;
+  }
+  
+  /* Table Header */
+  table thead th {
+    background: var(--siomc-surface-soft);
+    color: var(--siomc-primary);
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 1px solid var(--siomc-border);
+    padding: 13px 14px;
+  }
+  
+  /* Table Body */
+  table tbody td {
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--siomc-border);
+    vertical-align: middle;
+  }
+  
+  /* Row Hover */
+  table tbody tr:hover {
+    background-color: var(--siomc-surface-soft);
+  }
+  
+  /* Last Row */
+  table tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Table Responsive */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+/* =================================
+   SiOMC Cards & Headings
+================================= */
+
+/* Heading */
+h1,
+h2,
+h3,
+h4 {
+  color: var(--siomc-primary);
+  font-family: var(--siomc-font) !important;
+  font-weight: 600;
+}
+
+/* Card Components */
+.card,
+.stat-card,
+.dashboard-card,
+.panel {
+  background: var(--siomc-surface);
+  border: 1px solid var(--siomc-border);
+  border-radius: var(--siomc-radius);
+  box-shadow: var(--siomc-shadow);
+}
+
+/* Card Headings */
+.card h2,
+.card h3,
+.stat-card h2,
+.stat-card h3,
+.dashboard-card h2,
+.dashboard-card h3,
+.panel h2,
+.panel h3 {
+  color: var(--siomc-primary);
+}
+
+/* Consistent Text */
+small,
+.text-muted {
+  color: var(--siomc-text-muted);
+}
+
+/* Consistent Links */
+a {
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--siomc-primary-light);
 }
