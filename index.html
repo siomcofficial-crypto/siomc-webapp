@@ -528,6 +528,27 @@ const idToken = liff.getIDToken();
 console.log("LIFF SCOPES:", liff.getContext()?.scope);
 console.log("OPENID PERMISSION:", openidPermission.state);
 console.log("ID TOKEN AVAILABLE:", !!idToken);
+const lineDebugBox = document.createElement("div");
+
+lineDebugBox.style.cssText = `
+  margin: 12px;
+  padding: 14px;
+  background: #e8f5e9;
+  color: #123d5a;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.8;
+  word-break: break-word;
+`;
+
+lineDebugBox.innerHTML = `
+  <strong>SiOMC LINE Diagnostics</strong><br>
+  LIFF initialized: สำเร็จ<br>
+  OpenID permission: ${openidPermission.state}<br>
+  ID Token available: ${idToken ? "YES" : "NO"}
+`;
+
+document.body.prepend(lineDebugBox);
 
     if(!liff.isLoggedIn()){
       setLineStatus(
