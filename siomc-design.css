@@ -1,0 +1,29 @@
+
+/* SiOMC Global Design System */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --siomc-font: 'IBM Plex Sans Thai', sans-serif;
+  --siomc-primary: #123d5a;
+  --siomc-primary-light: #285875;
+  --siomc-background: #f3f6f9;
+  --siomc-text: #173b52;
+}
+
+*,
+*::before,
+*::after {
+  font-family: 'IBM Plex Sans Thai', sans-serif !important;
+}
+
+body {
+  color: var(--siomc-text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: inherit;
+}
