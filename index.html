@@ -522,6 +522,12 @@ async function initSiOMCLine(){
 
   try{
     await liff.init({liffId:LIFF_ID});
+    const openidPermission = await liff.permission.query("openid");
+const idToken = liff.getIDToken();
+
+console.log("LIFF SCOPES:", liff.getContext()?.scope);
+console.log("OPENID PERMISSION:", openidPermission.state);
+console.log("ID TOKEN AVAILABLE:", !!idToken);
 
     if(!liff.isLoggedIn()){
       setLineStatus(
