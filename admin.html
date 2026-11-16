@@ -235,12 +235,15 @@
     import { supabase } from './supabase.js';
     import { renderAdminSidebar } from './admin-layout.js';
   
-    const roleLabels = {
-      admin: 'ผู้ดูแลระบบ',
-      doctor: 'แพทย์',
-      nurse: 'พยาบาล',
-      dietitian: 'นักกำหนดอาหาร'
-    };
+    
+const roleLabels = {
+  admin: 'Super Admin',
+  system_admin: 'System Admin',
+  doctor: 'แพทย์',
+  nurse: 'พยาบาล',
+  dietitian: 'นักกำหนดอาหาร'
+};
+
   
     async function checkAccess() {
       try {
@@ -261,12 +264,15 @@
             .eq('id', user.id)
             .maybeSingle();
   
-        const allowedRoles = [
-          'admin',
-          'doctor',
-          'nurse',
-          'dietitian'
-        ];
+        
+const allowedRoles = [
+  'admin',
+  'system_admin',
+  'doctor',
+  'nurse',
+  'dietitian'
+];
+
   
         if (
           profileError ||
