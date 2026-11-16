@@ -148,6 +148,7 @@ async function initLiff() {
 console.log("LIFF URL:", window.location.href);
 console.log("LINE Logged In:", liff.isLoggedIn());
 console.log("LINE URL after init:", window.location.href);
+alert("สถานะ LINE หลัง init = " + liff.isLoggedIn());
 
     if (liff.isLoggedIn()) {
       const profile = await liff.getProfile();
