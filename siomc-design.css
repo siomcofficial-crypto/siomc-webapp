@@ -202,3 +202,24 @@ a {
 a:hover {
   color: var(--siomc-primary-light);
 }
+
+/* Mobile Responsive Table */
+.siomc-table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+  }
+  
+  .siomc-table-scroll table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+  }
+  
+  .siomc-table-scroll th,
+  .siomc-table-scroll td {
+    white-space: nowrap;
+  }
+  

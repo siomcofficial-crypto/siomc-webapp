@@ -1,3 +1,195 @@
-<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#153f5b"><title>SiOMC Login Preview</title><link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>
-    :root{--n:#153f5b;--b:#177da5;--p:#eaf5f9;--i:#18384c;--m:#6d8797;--l:#dce8ee}*{box-sizing:border-box}body{margin:0;background:#f3f8fa;font-family:Prompt,Arial,sans-serif;color:var(--i);min-height:100vh;display:grid;place-items:center;padding:20px}.shell{width:min(100%,950px);display:grid;grid-template-columns:.9fr 1.1fr;background:#fff;border:1px solid var(--l);border-radius:25px;overflow:hidden;box-shadow:0 18px 55px #153f5b18}.brand{background:linear-gradient(150deg,#153f5b,#19789b);color:white;padding:40px 32px;display:flex;flex-direction:column;justify-content:space-between;min-height:580px}.logo{display:flex;align-items:center;gap:12px}.butterfly{width:52px;height:52px;background:white;color:var(--b);border-radius:16px;display:grid;place-items:center;font-size:28px}.logo strong{font-size:25px}.logo small{display:block;font-size:11px;color:#d5eaf2}.brand h1{font-size:30px;line-height:1.35;margin:48px 0 10px}.brand p{color:#d5eaf2;font-size:14px;line-height:1.8}.slogan{font-size:12px;letter-spacing:1px;font-weight:600;color:#c7e9f5}.foot{font-size:11px;color:#c6e0ea;line-height:1.7}.main{padding:40px}.eyebrow{font-size:11px;letter-spacing:1px;color:var(--b);font-weight:600}.main h2{font-size:23px;color:var(--n);margin:7px 0 4px}.sub{font-size:13px;color:var(--m);margin:0 0 22px}.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}.tab{border:1px solid var(--l);background:white;border-radius:14px;padding:13px 10px;text-align:left;color:var(--i);cursor:pointer}.tab.active{border:1.5px solid var(--b);background:var(--p);box-shadow:0 0 0 3px #177da510}.ico{font-size:22px;display:block;margin-bottom:5px}.tab b{font-size:14px;display:block}.tab small{font-size:11px;color:var(--m)}.field{margin:13px 0}.field label{display:block;font-size:12px;color:#536f80;margin-bottom:6px}.field input,.field select{width:100%;border:1px solid var(--l);border-radius:11px;padding:12px;font:inherit;font-size:13px;outline-color:var(--b)}.btn{width:100%;border:0;background:var(--n);color:white;border-radius:12px;padding:13px;font:600 14px Prompt;cursor:pointer;margin-top:9px}.btn.alt{background:#e9f4f8;color:var(--n);border:1px solid #d5e9f1}.hint{background:#f5fafc;border:1px solid var(--l);padding:12px;border-radius:12px;font-size:11px;color:var(--m);line-height:1.7;margin-top:15px}.notice{display:none;margin-top:13px;padding:12px;border-radius:11px;background:#fff7e8;border:1px solid #f0dfbd;color:#76551e;font-size:12px;line-height:1.65}.notice.show{display:block}.hidden{display:none!important}.bottom{text-align:center;color:#91a3ad;font-size:10px;margin-top:18px}@media(max-width:740px){.shell{grid-template-columns:1fr}.brand{min-height:0;padding:24px}.brand h1{font-size:23px;margin:25px 0 6px}.foot{display:none}.main{padding:25px 20px}}
-    </style><link rel="stylesheet" href="./siomc-design.css"></head><body><div class="shell"><aside class="brand"><div><div class="logo"><div class="butterfly">🦋</div><div><strong>SiOMC</strong><small>Siriraj Obesity and Metabolic Center</small></div></div><h1>Lose weight,<br>Change lives</h1><p>แพลตฟอร์มดิจิทัลเพื่อสนับสนุนการดูแลผู้ป่วยโรคอ้วนอย่างต่อเนื่อง โดยทีมสหสาขาวิชาชีพ</p><div class="slogan">CARE • CONNECT • TRANSFORM</div></div><div class="foot">ระบบต้นแบบหน้าจอเข้าสู่ระบบ<br>ยังไม่เชื่อมต่อระบบยืนยันตัวตนหรือฐานข้อมูลจริง</div></aside><main class="main"><div class="eyebrow">SIOMC DIGITAL HEALTH PLATFORM</div><h2>เข้าสู่ระบบ</h2><p class="sub">กรุณาเลือกประเภทบัญชีเพื่อดำเนินการต่อ</p><div class="tabs"><button class="tab active" id="pt" onclick="choose('patient')"><span class="ico">👤</span><b>ผู้ป่วย</b><small>Patient Portal</small></button><button class="tab" id="st" onclick="choose('staff')"><span class="ico">🩺</span><b>เจ้าหน้าที่</b><small>Staff Portal</small></button></div><section id="pf"><div class="field"><label>อีเมลหรือบัญชีที่ลงทะเบียน</label><input autocomplete="username" placeholder="กรอกอีเมลที่ลงทะเบียน"></div><div class="field"><label>รหัสผ่าน</label><input type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน"></div><button class="btn" onclick="previewOnly()">เข้าสู่ระบบผู้ป่วย</button><button class="btn alt" onclick="previewOnly()">เข้าสู่ระบบผ่าน LINE (เตรียมเชื่อม LIFF)</button><div class="hint">ระบบจริงต้องยืนยันตัวตนและเชื่อมบัญชีกับระเบียนผู้ป่วยผ่านกระบวนการที่โรงพยาบาลอนุมัติ ไม่ใช้ HN เพียงอย่างเดียวเป็นรหัสผ่าน</div></section><section id="sf" class="hidden"><div class="field"><label>บัญชีบุคลากร / อีเมลหน่วยงาน</label><input autocomplete="username" placeholder="กรอกบัญชีที่ได้รับอนุมัติ"></div><div class="field"><label>รหัสผ่าน</label><input type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน"></div><div class="field"><label>กลุ่มสิทธิ์การใช้งาน (กำหนดโดย Admin)</label><select><option>กำหนดโดยผู้ดูแลระบบ</option><option>แพทย์</option><option>พยาบาล</option><option>นักโภชนาการ</option><option>Care Coordinator</option><option>Admin</option></select></div><button class="btn" onclick="previewOnly()">เข้าสู่ระบบเจ้าหน้าที่</button><div class="hint">ระบบจริงต้องกำหนดบทบาทจากระบบหลังบ้าน ไม่ให้ผู้ใช้เลือกหรือเปลี่ยนสิทธิ์ของตนเอง และควรใช้ MFA/บัญชีหน่วยงานตามนโยบายโรงพยาบาล</div></section><div id="notice" class="notice">นี่คือหน้าจอ Preview เท่านั้น ยังไม่มีระบบตรวจสอบบัญชีหรือรหัสผ่าน จึงไม่ได้เข้าสู่ระบบและไม่มีการส่งข้อมูลไปที่ใด</div><div class="bottom">© SiOMC • Siriraj Obesity and Metabolic Center</div></main></div><script>function choose(t){let p=t==='patient';document.getElementById('pt').classList.toggle('active',p);document.getElementById('st').classList.toggle('active',!p);document.getElementById('pf').classList.toggle('hidden',!p);document.getElementById('sf').classList.toggle('hidden',p);document.getElementById('notice').classList.remove('show')}function previewOnly(){document.getElementById('notice').classList.add('show')}</script></body></html>
+
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#153f5b">
+<title>SiOMC Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{--n:#153f5b;--b:#177da5;--p:#eaf5f9;--i:#18384c;--m:#6d8797;--l:#dce8ee}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f8fa;font-family:Prompt,Arial,sans-serif;color:var(--i);min-height:100vh;display:grid;place-items:center;padding:20px}
+.shell{width:min(100%,950px);display:grid;grid-template-columns:.9fr 1.1fr;background:#fff;border:1px solid var(--l);border-radius:25px;overflow:hidden;box-shadow:0 18px 55px #153f5b18}
+.brand{background:linear-gradient(150deg,#153f5b,#19789b);color:white;padding:40px 32px;display:flex;flex-direction:column;justify-content:space-between;min-height:580px}
+.logo{display:flex;align-items:center;gap:12px}
+.butterfly{width:52px;height:52px;background:white;color:var(--b);border-radius:16px;display:grid;place-items:center;font-size:28px}
+.logo strong{font-size:25px}
+.logo small{display:block;font-size:11px;color:#d5eaf2}
+.brand h1{font-size:30px;line-height:1.35;margin:48px 0 10px}
+.brand p{color:#d5eaf2;font-size:14px;line-height:1.8}
+.slogan{font-size:12px;letter-spacing:1px;font-weight:600;color:#c7e9f5}
+.foot{font-size:11px;color:#c6e0ea;line-height:1.7}
+.main{padding:40px}
+.eyebrow{font-size:11px;letter-spacing:1px;color:var(--b);font-weight:600}
+.main h2{font-size:23px;color:var(--n);margin:7px 0 4px}
+.sub{font-size:13px;color:var(--m);margin:0 0 22px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.tab{border:1px solid var(--l);background:white;border-radius:14px;padding:13px 10px;text-align:left;color:var(--i);cursor:pointer}
+.tab.active{border:1.5px solid var(--b);background:var(--p);box-shadow:0 0 0 3px #177da510}
+.ico{font-size:22px;display:block;margin-bottom:5px}
+.tab b{font-size:14px;display:block}
+.tab small{font-size:11px;color:var(--m)}
+.field{margin:13px 0}
+.field label{display:block;font-size:12px;color:#536f80;margin-bottom:6px}
+.field input,.field select{width:100%;border:1px solid var(--l);border-radius:11px;padding:12px;font:inherit;font-size:13px;outline-color:var(--b)}
+.btn{width:100%;border:0;background:var(--n);color:white;border-radius:12px;padding:13px;font:600 14px Prompt;cursor:pointer;margin-top:9px}
+.btn.alt{background:#e9f4f8;color:var(--n);border:1px solid #d5e9f1}
+.hint{background:#f5fafc;border:1px solid var(--l);padding:12px;border-radius:12px;font-size:11px;color:var(--m);line-height:1.7;margin-top:15px}
+.notice{display:none;margin-top:13px;padding:12px;border-radius:11px;background:#fff7e8;border:1px solid #f0dfbd;color:#76551e;font-size:12px;line-height:1.65}
+.notice.show{display:block}
+.hidden{display:none!important}
+.bottom{text-align:center;color:#91a3ad;font-size:10px;margin-top:18px}
+@media(max-width:740px){.shell{grid-template-columns:1fr}.brand{min-height:0;padding:24px}.brand h1{font-size:23px;margin:25px 0 6px}.foot{display:none}.main{padding:25px 20px}}
+</style>
+<link rel="stylesheet" href="./siomc-design.css">
+</head>
+
+<body>
+<div class="shell">
+<aside class="brand">
+<div>
+<div class="logo">
+<div class="butterfly">🦋</div>
+<div><strong>SiOMC</strong><small>Siriraj Obesity and Metabolic Center</small></div>
+</div>
+<h1>Lose weight,<br>Change lives</h1>
+<p>แพลตฟอร์มดิจิทัลเพื่อสนับสนุนการดูแลผู้ป่วยโรคอ้วนอย่างต่อเนื่อง โดยทีมสหสาขาวิชาชีพ</p>
+<div class="slogan">CARE • CONNECT • TRANSFORM</div>
+</div>
+<div class="foot">ระบบเข้าสู่ระบบ SiOMC<br>LINE Mini App</div>
+</aside>
+
+<main class="main">
+<div class="eyebrow">SIOMC DIGITAL HEALTH PLATFORM</div>
+<h2>เข้าสู่ระบบ</h2>
+<p class="sub">กรุณาเลือกประเภทบัญชีเพื่อดำเนินการต่อ</p>
+
+<div class="tabs">
+<button class="tab active" id="pt" onclick="choose('patient')">
+<span class="ico">👤</span><b>ผู้ป่วย</b><small>Patient Portal</small>
+</button>
+<button class="tab" id="st" onclick="choose('staff')">
+<span class="ico">🩺</span><b>เจ้าหน้าที่</b><small>Staff Portal</small>
+</button>
+</div>
+
+<section id="pf">
+<button class="btn alt" id="lineLoginBtn" onclick="loginWithLine()">
+เข้าสู่ระบบผ่าน LINE
+</button>
+<div class="hint">
+ผู้ป่วยสามารถเข้าสู่ระบบผ่าน LINE ได้ การเชื่อมโยงกับระเบียนผู้ป่วยเดิมจะต้องผ่านกระบวนการยืนยันตัวตนแยกต่างหาก
+</div>
+</section>
+
+<section id="sf" class="hidden">
+<div class="field">
+<label>บัญชีบุคลากร / อีเมลหน่วยงาน</label>
+<input autocomplete="username" placeholder="กรอกบัญชีที่ได้รับอนุมัติ">
+</div>
+<div class="field">
+<label>รหัสผ่าน</label>
+<input type="password" autocomplete="current-password" placeholder="กรอกรหัสผ่าน">
+</div>
+<div class="field">
+<label>กลุ่มสิทธิ์การใช้งาน (กำหนดโดย Admin)</label>
+<select>
+<option>กำหนดโดยผู้ดูแลระบบ</option>
+<option>แพทย์</option>
+<option>พยาบาล</option>
+<option>นักโภชนาการ</option>
+<option>Care Coordinator</option>
+<option>Admin</option>
+</select>
+</div>
+<button class="btn" onclick="previewOnly()">เข้าสู่ระบบเจ้าหน้าที่</button>
+<div class="hint">
+ระบบเจ้าหน้าที่จะต้องกำหนดบทบาทจากระบบหลังบ้าน ไม่ให้ผู้ใช้เลือกหรือเปลี่ยนสิทธิ์ของตนเอง
+</div>
+</section>
+
+<div id="notice" class="notice" role="status" aria-live="polite"></div>
+<div class="bottom">© SiOMC • Siriraj Obesity and Metabolic Center</div>
+</main>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+const LIFF_ID = "2012571121-sJssLsyF";
+
+let liffReady = false;
+
+function showNotice(message) {
+  const notice = document.getElementById("notice");
+  notice.textContent = message;
+  notice.classList.add("show");
+}
+
+function choose(type) {
+  const isPatient = type === "patient";
+
+  document.getElementById("pt").classList.toggle("active", isPatient);
+  document.getElementById("st").classList.toggle("active", !isPatient);
+  document.getElementById("pf").classList.toggle("hidden", !isPatient);
+  document.getElementById("sf").classList.toggle("hidden", isPatient);
+  document.getElementById("notice").classList.remove("show");
+}
+
+async function initLiff() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    liffReady = true;
+
+    console.log("SiOMC LIFF initialized");
+    console.log("LIFF Context:", liff.getContext());
+console.log("LIFF URL:", window.location.href);
+console.log("LINE Logged In:", liff.isLoggedIn());
+
+    if (liff.isLoggedIn()) {
+      const profile = await liff.getProfile();
+      showNotice("เชื่อมต่อ LINE สำเร็จ: " + profile.displayName);
+    }
+  } catch (error) {
+    console.error("LIFF initialization failed:", error);
+    showNotice("ยังเชื่อมต่อ LINE ไม่สำเร็จ กรุณาเปิดผ่าน LINE Mini App");
+  }
+}
+
+
+async function loginWithLine() {
+    alert("LIFF READY = " + liffReady);
+    alert("LINE LOGGED IN = " + liff.isLoggedIn());
+  if (!liffReady) {
+    showNotice("กำลังเชื่อมต่อ LINE กรุณารอสักครู่แล้วลองใหม่");
+    return;
+  }
+
+  if (!liff.isLoggedIn()) {
+    liff.login();
+  return;
+}
+
+  try {
+    const idToken = liff.getIDToken();
+
+    if (!idToken) {
+      showNotice("ยังไม่ได้รับ LINE ID Token กรุณาตรวจสอบ OpenID Scope");
+      return;
+    }
+
+    showNotice("ยืนยันแล้ว: LINE ID Token พร้อมสำหรับส่งตรวจสอบกับ Server");
+
+  } catch (error) {
+    console.error("LINE ID Token check failed:", error);
+    showNotice("ไม่สามารถรับ LINE ID Token ได้ กรุณาลองใหม่");
+  }
+}
+
+
+window.addEventListener("load", initLiff);
+</script>
+</body>
+</html>
