@@ -522,12 +522,10 @@ async function initSiOMCLine(){
 
   try{
     await liff.init({liffId:LIFF_ID});
-    const openidPermission = await liff.permission.query("openid");
+    const grantedScopes = await liff.permission.getGrantedAll();
+const contextScopes = liff.getContext()?.scope || [];
 const idToken = liff.getIDToken();
 
-console.log("LIFF SCOPES:", liff.getContext()?.scope);
-console.log("OPENID PERMISSION:", openidPermission.state);
-console.log("ID TOKEN AVAILABLE:", !!idToken);
 const lineDebugBox = document.createElement("div");
 
 lineDebugBox.style.cssText = `
@@ -544,7 +542,8 @@ lineDebugBox.style.cssText = `
 lineDebugBox.innerHTML = `
   <strong>SiOMC LINE Diagnostics</strong><br>
   LIFF initialized: สำเร็จ<br>
-  OpenID permission: ${openidPermission.state}<br>
+  LIFF scopes: ${contextScopes.join(", ")}<br>
+  Granted scopes: ${grantedScopes.join(", ")}<br>
   ID Token available: ${idToken ? "YES" : "NO"}
 `;
 
