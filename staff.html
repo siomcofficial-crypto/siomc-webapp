@@ -6,49 +6,343 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#123d5a">
 <title>SiOMC | Staff Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f6fa;color:#173b52;font-family:Arial,Tahoma,sans-serif}
-header{background:white;padding:22px 30px;border-bottom:1px solid #e5ebef}
-header h2{margin:0 0 6px;font-size:21px}
-header p{margin:0;color:#718596;font-size:13px}
-.container{max-width:1200px;margin:auto;padding:25px 20px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:22px}
-.stat,.panel{background:white;border:1px solid #e8edf1;border-radius:13px;padding:20px}
-.stat small{color:#718596}
-.stat h2{color:#123d5a;font-size:27px;margin:9px 0 0}
-.panel{margin-bottom:20px}
-.panel h3{margin:0 0 17px;color:#123d5a;font-size:17px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.field{display:flex;flex-direction:column;gap:7px}
-.field.full{grid-column:1/-1}
-label{font-size:13px;font-weight:bold;color:#526b7e}
-input,select{width:100%;padding:11px 12px;border:1px solid #d8e1e8;border-radius:9px;background:white;color:#173b52;font-size:14px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}
-button{border:0;border-radius:8px;padding:10px 15px;font-size:13px;font-weight:bold;cursor:pointer}
-button:hover{opacity:.9}
-.primary{background:#123d5a;color:white}
-.secondary{background:#edf2f6;color:#38586d}
-.edit{background:#eaf1f7;color:#285875}
-.status-active{background:#e8f3ed;color:#28734b}
-.status-suspended{background:#fff3df;color:#855d19}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:700px}
-th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1f5;font-size:13px;vertical-align:middle}
-th{background:#f8fafc;color:#718596}
-.tag{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px}
-.row-actions{display:flex;gap:7px;flex-wrap:wrap}
-.notice{background:#fff8e9;border:1px solid #f2dfb5;border-radius:9px;padding:13px;color:#785c27;font-size:13px;line-height:1.6;margin-bottom:20px}
-.message{display:none;background:#e8f3ed;color:#28734b;padding:12px;border-radius:9px;margin-top:14px;font-size:13px}
-.empty{text-align:center;color:#718596;padding:24px}
-@media(max-width:700px){
-.container{padding:16px 12px}
-.stats{grid-template-columns:1fr}
-.form-grid{grid-template-columns:1fr}
-.field.full{grid-column:auto}
-.panel{padding:15px}
-header{padding:18px}
+
+* {
+  box-sizing: border-box;
 }
+
+:root {
+  --navy: #123d5a;
+  --blue: #2676a5;
+  --blue-light: #eaf4fa;
+  --text: #203b50;
+  --muted: #8293a1;
+  --border: #e8eef3;
+  --bg: #f4f7fa;
+  --green: #25845d;
+  --red: #bd5960;
+  --shadow: 0 5px 22px rgba(24, 61, 88, .045);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 14px;
+}
+
+header {
+  background: linear-gradient(120deg, #123d5a, #1d6488);
+  padding: 27px 35px;
+  color: white;
+  box-shadow: 0 4px 18px rgba(18, 61, 90, .12);
+}
+
+header h2 {
+  margin: 0 0 5px;
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -.3px;
+}
+
+header p {
+  margin: 0;
+  color: #d5e7f1;
+  font-size: 13px;
+}
+
+.container {
+  max-width: 1250px;
+  margin: auto;
+  padding: 30px 25px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.stat,
+.panel {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+}
+
+.stat {
+  padding: 22px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #4d91b5;
+}
+
+.stat small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stat h2 {
+  color: var(--navy);
+  font-size: 32px;
+  font-weight: 600;
+  margin: 8px 0 0;
+}
+
+.panel {
+  padding: 25px;
+  margin-bottom: 22px;
+}
+
+.panel h3 {
+  margin: 0 0 21px;
+  color: var(--navy);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 19px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #526b7e;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dce5ec;
+  border-radius: 9px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: .2s;
+}
+
+input::placeholder {
+  color: #aab7c1;
+}
+
+input:focus,
+select:focus {
+  border-color: #4d91b5;
+  box-shadow: 0 0 0 3px rgba(77, 145, 181, .12);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+button {
+  border: 0;
+  border-radius: 9px;
+  padding: 11px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: .2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  filter: brightness(.97);
+}
+
+.primary {
+  background: var(--navy);
+  color: white;
+}
+
+.secondary {
+  background: #eef3f6;
+  color: #496477;
+}
+
+.edit {
+  background: #eaf3f9;
+  color: #27678e;
+}
+
+.status-active {
+  background: #e8f5ee;
+  color: #28734b;
+}
+
+.status-suspended {
+  background: #fff3e8;
+  color: #a56b2c;
+}
+
+.notice {
+  background: #fff9ed;
+  border: 1px solid #f1dfb9;
+  border-radius: 11px;
+  padding: 15px 17px;
+  color: #785c27;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 22px;
+}
+
+.message {
+  display: none;
+  background: #e8f5ee;
+  color: #28734b;
+  padding: 13px 15px;
+  border-radius: 9px;
+  margin-top: 15px;
+  font-size: 13px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+  background: white;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 15px 13px;
+  border-bottom: 1px solid #edf1f5;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+th {
+  background: #f7fafc;
+  color: #647c8d;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+td {
+  color: #38556a;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: #fafcfd;
+}
+
+.tag {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.row-actions button {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 28px;
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 18px 12px;
+  }
+
+  header {
+    padding: 21px 18px;
+  }
+
+  header h2 {
+    font-size: 20px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .stat {
+    padding: 18px 20px;
+  }
+
+  .stat h2 {
+    font-size: 27px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+
+  .panel {
+    padding: 17px;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -60,24 +354,28 @@ header{padding:18px}
 
 <main class="container">
 
-<section class="stats">
-<div class="stat">
-<small>เจ้าหน้าที่ทั้งหมด</small>
-<h2 id="totalCount">3</h2>
-</div>
-<div class="stat">
-<small>บัญชีที่เปิดใช้งาน</small>
-<h2 id="activeCount">3</h2>
-</div>
-<div class="stat">
-<small>บัญชีที่ระงับ</small>
-<h2 id="suspendedCount">0</h2>
-</div>
-</section>
+  <section class="stats">
+    <div class="stat">
+      <small>เจ้าหน้าที่ทั้งหมด</small>
+      <h2 id="totalCount">0</h2>
+    </div>
+  
+    <div class="stat">
+      <small>บัญชีที่เปิดใช้งาน</small>
+      <h2 id="activeCount">0</h2>
+    </div>
+  
+    <div class="stat">
+      <small>บัญชีที่ระงับ</small>
+      <h2 id="suspendedCount">0</h2>
+    </div>
+  </section>
 
 <div class="notice">
-<strong>ระบบต้นแบบ:</strong> ข้อมูลเจ้าหน้าที่ด้านล่างเป็นข้อมูลจำลอง การเพิ่มหรือแก้ไขยังไม่สร้างบัญชีเข้าสู่ระบบจริง และยังไม่ได้กำหนดสิทธิ์เข้าถึงข้อมูลจริง ห้ามใช้ข้อมูลส่วนบุคคลหรือบัญชีเจ้าหน้าที่จริงในระยะนี้
-</div>
+    <strong>ระบบจัดการบุคลากร:</strong>
+    ข้อมูลรายชื่อเชื่อมต่อกับฐานข้อมูล SiOMC แล้ว
+    การเพิ่มเจ้าหน้าที่จะส่งคำเชิญไปยังอีเมลที่ระบุ
+  </div>
 
 <section class="panel">
 <h3 id="formTitle">เพิ่มเจ้าหน้าที่</h3>
@@ -99,28 +397,23 @@ header{padding:18px}
 <label for="staffRole">ตำแหน่ง / บทบาท</label>
 
 <select id="staffRole" required>
-    <option value="">เลือกบทบาท</option>
-    <option value="doctor">แพทย์</option>
-    <option value="nurse">พยาบาล</option>
-    <option value="dietitian">นักกำหนดอาหาร</option>
-  </select>
+  <option value="">เลือกบทบาท</option>
+  <option value="doctor">แพทย์</option>
+  <option value="nurse">พยาบาล</option>
+  <option value="dietitian">นักกำหนดอาหาร</option>
+  <option value="system_admin">System Admin</option>
+</select>
   
 </div>
 
-<div class="field">
-<label for="staffStatus">สถานะบัญชี</label>
-<select id="staffStatus" required>
-<option value="ใช้งาน">เปิดใช้งาน</option>
-<option value="ระงับ">ระงับบัญชี</option>
-</select>
-</div>
+
 
 </div>
 
 <div class="actions">
 <button class="primary" type="submit" id="saveButton">เพิ่มเจ้าหน้าที่</button>
 <button class="secondary" type="reset">ล้างข้อมูล</button>
-<button class="secondary" type="button" id="cancelEdit" hidden>ยกเลิกการแก้ไข</button>
+
 </div>
 
 <div class="message" id="message"></div>
@@ -149,188 +442,430 @@ header{padding:18px}
 
 </main>
 
-<script>
-let nextId=4;
-let editingId=null;
-
-let staffList = [
-  {
-    id: 1,
-    code: "SIOMC-ST001",
-    name: "ตัวอย่าง แพทย์ 1",
-    email: "doctor@example.com",
-    role: "doctor",
-    status: "ใช้งาน"
-  },
-  {
-    id: 2,
-    code: "SIOMC-ST002",
-    name: "ตัวอย่าง พยาบาล 1",
-    email: "nurse@example.com",
-    role: "nurse",
-    status: "ใช้งาน"
-  },
-  {
-    id: 3,
-    code: "SIOMC-ST003",
-    name: "ตัวอย่าง นักกำหนดอาหาร 1",
-    email: "dietitian@example.com",
-    role: "dietitian",
-    status: "ใช้งาน"
-  }
-];
-
-
-const form=document.getElementById("staffForm");
-
-function updateStats(){
-document.getElementById("totalCount").textContent=staffList.length;
-document.getElementById("activeCount").textContent=staffList.filter(s=>s.status==="ใช้งาน").length;
-document.getElementById("suspendedCount").textContent=staffList.filter(s=>s.status==="ระงับ").length;
-}
-
-function cell(text){
-const td=document.createElement("td");
-td.textContent=text;
-return td;
-}
-
-function renderStaff(){
-const tbody=document.getElementById("staffRows");
-tbody.replaceChildren();
-
-if(staffList.length===0){
-const tr=document.createElement("tr");
-const td=cell("ยังไม่มีรายชื่อเจ้าหน้าที่");
-td.colSpan=6;
-td.className="empty";
-tr.appendChild(td);
-tbody.appendChild(tr);
-}
-
-staffList.forEach(staff=>{
-const tr=document.createElement("tr");
-tr.appendChild(cell(staff.code));
-tr.appendChild(cell(staff.name));
-tr.appendChild(cell(staff.email));
-const roleLabels = {
-  doctor: "แพทย์",
-  nurse: "พยาบาล",
-  dietitian: "นักกำหนดอาหาร"
-};
-
-tr.appendChild(cell(roleLabels[staff.role] || staff.role));
-
-const statusCell=document.createElement("td");
-const tag=document.createElement("span");
-tag.className="tag "+(staff.status==="ใช้งาน"?"status-active":"status-suspended");
-tag.textContent=staff.status==="ใช้งาน"?"เปิดใช้งาน":"ระงับบัญชี";
-statusCell.appendChild(tag);
-tr.appendChild(statusCell);
-
-const actionCell=document.createElement("td");
-const actions=document.createElement("div");
-actions.className="row-actions";
-
-const editButton=document.createElement("button");
-editButton.className="edit";
-editButton.textContent="แก้ไข";
-editButton.addEventListener("click",()=>editStaff(staff.id));
-
-const toggleButton=document.createElement("button");
-toggleButton.className=staff.status==="ใช้งาน"?"status-suspended":"status-active";
-toggleButton.textContent=staff.status==="ใช้งาน"?"ระงับบัญชี":"เปิดใช้งาน";
-toggleButton.addEventListener("click",()=>toggleStatus(staff.id));
-
-actions.append(editButton,toggleButton);
-actionCell.appendChild(actions);
-tr.appendChild(actionCell);
-tbody.appendChild(tr);
-});
-
-updateStats();
-}
-
-function resetForm(){
-form.reset();
-editingId=null;
-document.getElementById("formTitle").textContent="เพิ่มเจ้าหน้าที่";
-document.getElementById("saveButton").textContent="เพิ่มเจ้าหน้าที่";
-document.getElementById("cancelEdit").hidden=true;
-}
-
-function editStaff(id){
-const staff=staffList.find(s=>s.id===id);
-if(!staff)return;
-
-editingId=id;
-document.getElementById("staffName").value=staff.name;
-document.getElementById("staffEmail").value=staff.email;
-document.getElementById("staffRole").value=staff.role;
-document.getElementById("staffStatus").value=staff.status;
-
-document.getElementById("formTitle").textContent="แก้ไขข้อมูลเจ้าหน้าที่";
-document.getElementById("saveButton").textContent="บันทึกการแก้ไข";
-document.getElementById("cancelEdit").hidden=false;
-document.getElementById("message").style.display="none";
-document.getElementById("formTitle").scrollIntoView({behavior:"smooth"});
-}
-
-function toggleStatus(id){
-const staff=staffList.find(s=>s.id===id);
-if(!staff)return;
-
-staff.status=staff.status==="ใช้งาน"?"ระงับ":"ใช้งาน";
-renderStaff();
-}
-
-form.addEventListener("submit",event=>{
-event.preventDefault();
-
-const data={
-name:document.getElementById("staffName").value.trim(),
-email:document.getElementById("staffEmail").value.trim(),
-role:document.getElementById("staffRole").value,
-status:document.getElementById("staffStatus").value
-};
-
-if(editingId!==null){
-const staff=staffList.find(s=>s.id===editingId);
-if(staff)Object.assign(staff,data);
-}else{
-staffList.unshift({
-id:nextId,
-code:"SIOMC-ST"+String(nextId).padStart(3,"0"),
-...data
-});
-nextId++;
-}
-
-document.getElementById("message").textContent=
-editingId!==null?"แก้ไขข้อมูลตัวอย่างเรียบร้อยแล้ว":"เพิ่มเจ้าหน้าที่ตัวอย่างเรียบร้อยแล้ว";
-
-document.getElementById("message").style.display="block";
-
-resetForm();
-renderStaff();
-});
-
-document.getElementById("cancelEdit").addEventListener("click",()=>{
-resetForm();
-document.getElementById("message").style.display="none";
-});
-
-form.addEventListener("reset",()=>{
-document.getElementById("message").style.display="none";
-});
-
-renderStaff();
-</script>
-
 <script type="module">
+
+import { supabase } from './supabase.js';
 import { renderAdminSidebar } from './admin-layout.js';
 
 renderAdminSidebar('staff');
+
+const form = document.getElementById('staffForm');
+const message = document.getElementById('message');
+const saveButton = document.getElementById('saveButton');
+const staffRole = document.getElementById('staffRole');
+
+let currentRole = null;
+let staffList = [];
+
+const roleLabels = {
+  admin: 'Super Admin',
+  system_admin: 'System Admin',
+  doctor: 'แพทย์',
+  nurse: 'พยาบาล',
+  dietitian: 'นักกำหนดอาหาร'
+};
+
+function showMessage(text, success = true) {
+  message.textContent = text;
+  message.style.display = 'block';
+  message.style.background = success ? '#e8f5ee' : '#fff0f0';
+  message.style.color = success ? '#28734b' : '#bd4141';
+}
+
+function updateStats() {
+  document.getElementById('totalCount').textContent =
+    staffList.length;
+
+  document.getElementById('activeCount').textContent =
+    staffList.filter(s => s.is_active).length;
+
+  document.getElementById('suspendedCount').textContent =
+    staffList.filter(s => !s.is_active).length;
+}
+
+function addCell(row, value) {
+  const td = document.createElement('td');
+  td.textContent = value ?? '-';
+  row.appendChild(td);
+}
+
+
+function renderStaff() {
+  const tbody = document.getElementById('staffRows');
+  tbody.replaceChildren();
+
+  if (staffList.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+
+    td.colSpan = 6;
+    td.className = 'empty';
+    td.textContent = 'ยังไม่มีรายชื่อเจ้าหน้าที่';
+
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  }
+
+  staffList.forEach(staff => {
+    const tr = document.createElement('tr');
+
+    addCell(tr, staff.id.slice(0, 8));
+    addCell(tr, staff.full_name);
+    addCell(tr, staff.email);
+    addCell(tr, roleLabels[staff.role] || staff.role);
+
+    const statusCell = document.createElement('td');
+    const tag = document.createElement('span');
+
+    tag.className = 'tag ' +
+      (staff.is_active ? 'status-active' : 'status-suspended');
+
+    tag.textContent = staff.is_active
+      ? 'เปิดใช้งาน'
+      : 'ระงับบัญชี';
+
+    statusCell.appendChild(tag);
+    tr.appendChild(statusCell);
+
+    // คอลัมน์จัดการ
+    const actionCell = document.createElement('td');
+
+    if (currentRole === 'admin' && staff.role !== 'admin') {
+      const actions = document.createElement('div');
+      actions.className = 'row-actions';
+
+      if (staff.is_active) {
+        const editButton = document.createElement('button');
+        editButton.className = 'edit';
+        editButton.textContent = 'เปลี่ยนบทบาท';
+        editButton.addEventListener('click', () => {
+          changeStaffRole(staff);
+        });
+
+        actions.appendChild(editButton);
+
+        const deactivateButton = document.createElement('button');
+        deactivateButton.className = 'secondary';
+        deactivateButton.textContent = 'ปิดใช้งาน';
+        deactivateButton.addEventListener('click', () => {
+          deactivateStaff(staff);
+        });
+
+        actions.appendChild(deactivateButton);
+      } else {
+        const inactiveText = document.createElement('span');
+        inactiveText.textContent = 'ปิดใช้งานแล้ว';
+        inactiveText.style.color = '#a56b2c';
+        actions.appendChild(inactiveText);
+      }
+
+      actionCell.appendChild(actions);
+    } else {
+      actionCell.textContent = '-';
+    }
+
+    tr.appendChild(actionCell);
+    tbody.appendChild(tr);
+  });
+
+  updateStats();
+}
+
+
+async function manageStaff(action, staff, newRole = null) {
+  const actionText = action === 'deactivate'
+    ? 'ปิดใช้งานบัญชี'
+    : 'เปลี่ยนบทบาท';
+
+  const confirmed = confirm(
+    `ยืนยัน${actionText}ของ ${staff.full_name} หรือไม่?`
+  );
+
+  if (!confirmed) return;
+
+  const { data, error } = await supabase.functions.invoke(
+    'manage-staff',
+    {
+      body: {
+        action,
+        target_user_id: staff.id,
+        ...(newRole ? { new_role: newRole } : {})
+      }
+    }
+  );
+
+  if (error) {
+    console.error('manage-staff error:', error);
+    showMessage(
+      `ไม่สามารถ${actionText}ได้: ${error.message}`,
+      false
+    );
+    return;
+  }
+
+  if (!data?.success) {
+    showMessage(
+      data?.error || `ไม่สามารถ${actionText}ได้`,
+      false
+    );
+    return;
+  }
+
+  showMessage(data.message || `${actionText}สำเร็จ`);
+  await loadStaff();
+}
+
+async function changeStaffRole(staff) {
+  const availableRoles = {
+    doctor: 'แพทย์',
+    nurse: 'พยาบาล',
+    dietitian: 'นักกำหนดอาหาร',
+    system_admin: 'System Admin'
+  };
+
+  const roleOptions = Object.entries(availableRoles)
+    .filter(([value]) => value !== staff.role)
+    .map(([value, label]) => `${value} = ${label}`)
+    .join('\n');
+
+  const selectedRole = prompt(
+    `เลือกบทบาทใหม่สำหรับ ${staff.full_name}\n\n${roleOptions}\n\nกรอกชื่อบทบาทภาษาอังกฤษ เช่น nurse`
+  );
+
+  if (selectedRole === null) return;
+
+  if (!Object.keys(availableRoles).includes(selectedRole)) {
+    showMessage('กรุณากรอกชื่อบทบาทให้ถูกต้อง', false);
+    return;
+  }
+
+  if (selectedRole === staff.role) {
+    showMessage('เจ้าหน้าที่มีบทบาทนี้อยู่แล้ว', false);
+    return;
+  }
+
+  await manageStaff('change_role', staff, selectedRole);
+}
+
+async function deactivateStaff(staff) {
+  await manageStaff('deactivate', staff);
+}
+
+async function loadStaff() {
+  const tbody = document.getElementById('staffRows');
+
+  tbody.innerHTML =
+    '<tr><td colspan="6" class="empty">กำลังโหลดข้อมูล...</td></tr>';
+
+  const { data, error } = await supabase.functions.invoke(
+    'list-staff',
+    { body: {} }
+  );
+
+  if (error) {
+    console.error('list-staff error:', error);
+    showMessage('ไม่สามารถโหลดรายชื่อเจ้าหน้าที่ได้ กรุณาตรวจสอบสิทธิ์หรือการเชื่อมต่อ', false);
+    tbody.innerHTML =
+      '<tr><td colspan="6" class="empty">โหลดข้อมูลไม่สำเร็จ</td></tr>';
+    return;
+  }
+
+  if (!data || !data.success) {
+    showMessage('ไม่สามารถอ่านข้อมูลเจ้าหน้าที่ได้', false);
+    return;
+  }
+
+  staffList = data.staff || [];
+  renderStaff();
+}
+
+async function initializePage() {
+  const { data: authData, error: authError } =
+    await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    window.location.href = './admin-login.html';
+    return;
+  }
+
+  const { data: profile, error: profileError } =
+    await supabase
+      .from('profiles')
+      .select('role, is_active')
+      .eq('id', authData.user.id)
+      .single();
+
+  if (
+    profileError ||
+    !profile ||
+    profile.is_active !== true ||
+    !['admin', 'system_admin'].includes(profile.role)
+  ) {
+    document.querySelector('main').innerHTML =
+      '<div class="panel">คุณไม่มีสิทธิ์เข้าถึงระบบจัดการบุคลากร</div>';
+    return;
+  }
+
+  currentRole = profile.role;
+
+  // System Admin ไม่สามารถเชิญ System Admin คนอื่นได้
+  const systemAdminOption =
+    staffRole.querySelector('option[value="system_admin"]');
+
+  if (systemAdminOption) {
+    systemAdminOption.hidden = currentRole !== 'admin';
+  }
+
+  await loadStaff();
+}
+
+
+form.addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const full_name =
+    document.getElementById('staffName').value.trim();
+
+  const email =
+    document.getElementById('staffEmail').value.trim().toLowerCase();
+
+  const role = staffRole.value;
+
+  if (!full_name || !email || !role) {
+    showMessage('กรุณากรอกข้อมูลให้ครบถ้วน', false);
+    return;
+  }
+
+  if (
+    currentRole === 'system_admin' &&
+    role === 'system_admin'
+  ) {
+    showMessage('คุณไม่มีสิทธิ์เชิญ System Admin', false);
+    return;
+  }
+
+  saveButton.disabled = true;
+  saveButton.textContent = 'กำลังสร้างบัญชี...';
+
+  try {
+    const { data, error } = await supabase.functions.invoke(
+      'invite-staff',
+      {
+        body: {
+          full_name,
+          email,
+          role
+        }
+      }
+    );
+
+    if (error) {
+      console.error('invite-staff error:', error);
+
+      let detail = '';
+      try {
+        detail = await error.context?.clone().text();
+      } catch (_) {}
+
+      console.error('รายละเอียด Response:', detail);
+
+      showMessage(
+        error.message || 'ไม่สามารถสร้างบัญชีได้ กรุณาลองใหม่',
+        false
+      );
+      return;
+    }
+
+    if (data?.error || !data?.success) {
+      showMessage(
+        data?.error || 'ไม่สามารถสร้างบัญชีเจ้าหน้าที่ได้',
+        false
+      );
+      return;
+    }
+
+    if (!data.setup_link) {
+      showMessage(
+        'สร้างบัญชีแล้ว แต่ระบบไม่ได้รับลิงก์ตั้งรหัสผ่าน กรุณาตรวจสอบ Edge Function',
+        false
+      );
+      return;
+    }
+
+    // โหลดรายชื่อเจ้าหน้าที่ใหม่
+await loadStaff();
+
+// ล้างข้อมูลในฟอร์มก่อนสร้างช่องลิงก์
+form.reset();
+
+// แสดงข้อความตามประเภทบัญชี
+showMessage(
+  data.account_exists
+    ? 'พบบัญชีเจ้าหน้าที่เดิมแล้ว สร้างลิงก์ตั้งรหัสผ่านใหม่สำเร็จ กรุณาคัดลอกลิงก์นี้'
+    : 'สร้างบัญชีเจ้าหน้าที่สำเร็จ กรุณาคัดลอกลิงก์นี้ส่งให้เจ้าหน้าที่'
+);
+
+    const linkLabel = document.createElement('p');
+    linkLabel.textContent = 'ลิงก์สำหรับตั้งรหัสผ่าน:';
+    linkLabel.style.marginTop = '12px';
+    linkLabel.style.fontWeight = '600';
+
+    const linkInput = document.createElement('input');
+    linkInput.type = 'text';
+    linkInput.value = data.setup_link;
+    linkInput.readOnly = true;
+    linkInput.style.marginTop = '5px';
+
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.className = 'primary';
+    copyButton.textContent = 'คัดลอกลิงก์';
+
+    const copyStatus = document.createElement('p');
+    copyStatus.style.marginTop = '8px';
+
+    copyButton.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(data.setup_link);
+        copyStatus.textContent = 'คัดลอกลิงก์เรียบร้อยแล้ว';
+        copyStatus.style.color = '#28734b';
+      } catch (copyError) {
+        linkInput.focus();
+        linkInput.select();
+
+        const copied = document.execCommand('copy');
+
+        copyStatus.textContent = copied
+          ? 'คัดลอกลิงก์เรียบร้อยแล้ว'
+          : 'ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกจากช่องลิงก์';
+        copyStatus.style.color = copied ? '#28734b' : '#bd4141';
+      }
+    });
+
+    message.append(
+      linkLabel,
+      linkInput,
+      copyButton,
+      copyStatus
+    );
+
+  
+
+  } catch (error) {
+    console.error('Unexpected invite error:', error);
+
+    showMessage(
+      'เกิดข้อผิดพลาดในการสร้างบัญชี: ' + error.message,
+      false
+    );
+
+  } finally {
+    saveButton.disabled = false;
+    saveButton.textContent = 'เพิ่มเจ้าหน้าที่';
+  }
+});
+
+initializePage();
 </script>
 
 </body>
