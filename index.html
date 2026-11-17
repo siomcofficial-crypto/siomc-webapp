@@ -555,6 +555,23 @@ if (idToken) {
           "LINE verification failed:",
           error.message
         );
+        const verificationStatus = document.createElement("div");
+
+verificationStatus.textContent =
+  data?.verified === true
+    ? "SiOMC: LINE identity verified successfully"
+    : "SiOMC: LINE identity verification failed";
+
+verificationStatus.style.cssText = `
+  padding: 12px;
+  margin: 12px;
+  border-radius: 10px;
+  background: #eef4f8;
+  color: #123d5a;
+  font-size: 14px;
+`;
+
+document.body.prepend(verificationStatus);
       } else {
         console.log(
           "LINE verification result:",
