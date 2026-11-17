@@ -24,7 +24,18 @@
     button { display: block; width: 100%; background: #123d5a; color: #fff; border: 0; border-radius: 10px; padding: 13px; margin-top: 18px; font-weight: 600; cursor: pointer; }
     button:disabled { opacity: .6; cursor: wait; }
     .status { margin-bottom: 16px; border-radius: 10px; padding: 12px 14px; background: #e7f2f8; }
-    .status.error { background: #ffefed; color: #8b2620; }
+    .status.error { background: #ffefed; color: #8b2620; border: 1px solid #f4b5af; }
+    .status.success { background: #e5f6e9; color: #166534; border: 1px solid #8bd3a0; font-weight: 600; }
+    .status.warning { background: #fff7df; color: #815500; border: 1px solid #f2d48a; }
+    .date-hint { margin: 12px 0 0; font-size: 14px; line-height: 1.6; padding: 10px 12px; border-radius: 9px; background: #f0f7fc; color: #23536a; }
+    .date-hint.warning { background: #fff7df; color: #815500; border: 1px solid #f2d48a; }
+    .form-actions { display: flex; gap: 10px; align-items: center; }
+    .form-actions button { flex: 1; }
+    button.secondary { background: #e8eef2; color: #173b52; }
+    button.action { display: inline-block; width: auto; font-size: 13px; margin: 2px; padding: 7px 11px; border-radius: 8px; }
+    button.action.danger { background: #9e3131; }
+    .actions-cell { min-width: 150px; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #54a5ca; outline-offset: 2px; }
     .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .stat { background: #f5f9fc; border-radius: 10px; padding: 14px; }
     .stat small { display: block; color: #657c8a; margin-bottom: 6px; }
@@ -55,9 +66,13 @@
           <input id="weightKg" name="weightKg" type="number" min="10" max="500" step="0.1" inputmode="decimal" placeholder="เช่น 85.5" required>
           <label for="note">หมายเหตุ (ไม่จำเป็น)</label>
           <textarea id="note" name="note" maxlength="500" placeholder="เช่น ชั่งตอนเช้าก่อนอาหาร"></textarea>
-          <button id="saveButton" type="submit">บันทึกน้ำหนัก</button>
+          <p id="dateHint" class="date-hint" aria-live="polite">บันทึกน้ำหนักได้วันละ 1 รายการ หากลงผิดสามารถแก้ไขจากประวัติได้</p>
+          <div class="form-actions">
+            <button id="saveButton" type="submit">บันทึกน้ำหนัก</button>
+            <button id="cancelButton" class="secondary" type="button" hidden>ยกเลิกการแก้ไข</button>
+          </div>
         </form>
-        <p class="muted">หากชั่งหลายครั้งในวันเดียวกัน ระบบจะบันทึกเป็นคนละรายการ ขณะนี้ยังไม่มีปุ่มแก้ไขหรือลบรายการ</p>
+        <p class="muted">บันทึกได้ไม่เกิน 1 รายการต่อวันที่ชั่ง หากลงผิดให้กด “แก้ไข” ในประวัติ หรือกด “ลบ” และบันทึกใหม่ได้ การลบจะถูกเก็บร่องรอยไว้สำหรับตรวจสอบ</p>
       </section>
       <section class="card">
         <h2>น้ำหนักของฉัน</h2>
@@ -74,7 +89,7 @@
         <h2>ประวัติการบันทึก</h2>
         <div class="scroll">
           <table>
-            <thead><tr><th>วันที่</th><th>น้ำหนัก</th><th>หมายเหตุ</th></tr></thead>
+            <thead><tr><th>วันที่</th><th>น้ำหนัก</th><th>หมายเหตุ</th><th>จัดการ</th></tr></thead>
             <tbody id="history"></tbody>
           </table>
         </div>
@@ -89,51 +104,66 @@
     const $ = (id) => document.getElementById(id);
     let memberId = null;
     let userId = null;
+    let records = [];
+    let editingId = null;
     let saving = false;
 
-    function showStatus(message, isError = false) {
+    function showStatus(message, type = 'info') {
       $('status').textContent = message;
-      $('status').classList.toggle('error', isError);
+      $('status').className = 'status';
+      if (type !== 'info') $('status').classList.add(type);
       $('status').hidden = false;
+      if (type === 'success' || type === 'error') {
+        $('status').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+
+    function bangkokToday() {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      const part = (name) => parts.find(p => p.type === name)?.value;
+      return `${part('year')}-${part('month')}-${part('day')}`;
     }
 
     function dateLabel(value) {
       const [y, m, d] = String(value).split('-').map(Number);
       if (!y || !m || !d) return String(value);
-      return new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
-        .format(new Date(y, m - 1, d));
+      return new Intl.DateTimeFormat('th-TH', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      }).format(new Date(y, m - 1, d));
     }
 
-    function renderChart(records) {
-      const entries = records.slice(0, 14).reverse()
+    function renderChart(rows) {
+      const entries = rows.slice(0, 14).reverse()
         .map(r => ({ day: r.recorded_at, kg: Number(r.weight_kg) }))
         .filter(r => Number.isFinite(r.kg));
       if (entries.length < 2) {
-        $('chart').textContent = 'บันทึกน้ำหนักอย่างน้อย 2 ครั้งเพื่อดูกราฟ';
+        $('chart').textContent = 'บันทึกน้ำหนักอย่างน้อย 2 วันเพื่อดูกราฟ';
         return;
       }
       const values = entries.map(r => r.kg);
       const min = Math.min(...values) - 1;
       const max = Math.max(...values) + 1;
-      const points = entries.map((r, i) => {
+      const coords = entries.map((r, i) => {
         const x = 48 + i * 544 / (entries.length - 1);
         const y = 176 - (r.kg - min) / (max - min) * 144;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(' ');
+        return { x, y };
+      });
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.setAttribute('viewBox', '0 0 640 230');
       svg.setAttribute('role', 'img');
       svg.setAttribute('aria-label', 'กราฟแนวโน้มน้ำหนักล่าสุด');
       const line = document.createElementNS(svg.namespaceURI, 'polyline');
-      line.setAttribute('points', points);
+      line.setAttribute('points', coords.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' '));
       line.setAttribute('fill', 'none');
       line.setAttribute('stroke', '#2386a8');
       line.setAttribute('stroke-width', '3');
       svg.append(line);
-      entries.forEach((r, i) => {
+      coords.forEach(p => {
         const dot = document.createElementNS(svg.namespaceURI, 'circle');
-        dot.setAttribute('cx', String(48 + i * 544 / (entries.length - 1)));
-        dot.setAttribute('cy', String(176 - (r.kg - min) / (max - min) * 144));
+        dot.setAttribute('cx', String(p.x));
+        dot.setAttribute('cy', String(p.y));
         dot.setAttribute('r', '4');
         dot.setAttribute('fill', '#2386a8');
         svg.append(dot);
@@ -144,24 +174,44 @@
       $('chart').replaceChildren(svg, hint);
     }
 
-    function renderHistory(records) {
+    function makeAction(label, className, handler) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `action ${className}`;
+      button.textContent = label;
+      button.addEventListener('click', handler);
+      return button;
+    }
+
+    function renderHistory(rows) {
       const tbody = $('history');
       tbody.replaceChildren();
-      $('emptyHistory').hidden = records.length > 0;
-      for (const r of records) {
+      $('emptyHistory').hidden = rows.length > 0;
+      for (const r of rows) {
         const tr = document.createElement('tr');
         for (const value of [dateLabel(r.recorded_at), `${Number(r.weight_kg)} กก.`, r.note || '—']) {
           const td = document.createElement('td');
           td.textContent = value;
           tr.appendChild(td);
         }
+        const actionCell = document.createElement('td');
+        actionCell.className = 'actions-cell';
+        if (r.recorded_by === userId) {
+          actionCell.append(
+            makeAction('แก้ไข', '', () => startEdit(r)),
+            makeAction('ลบ', 'danger', () => deleteRecord(r))
+          );
+        } else {
+          actionCell.textContent = 'เจ้าหน้าที่บันทึก';
+        }
+        tr.appendChild(actionCell);
         tbody.appendChild(tr);
       }
-      if (records.length) {
-        const latest = Number(records[0].weight_kg);
+      if (rows.length) {
+        const latest = Number(rows[0].weight_kg);
         $('latestWeight').textContent = `${latest.toFixed(1)} กก.`;
-        if (records.length > 1) {
-          const change = latest - Number(records[1].weight_kg);
+        if (rows.length > 1) {
+          const change = latest - Number(rows[1].weight_kg);
           $('weightChange').textContent = `${change > 0 ? '+' : ''}${change.toFixed(1)} กก.`;
         } else {
           $('weightChange').textContent = '—';
@@ -170,19 +220,97 @@
         $('latestWeight').textContent = '—';
         $('weightChange').textContent = '—';
       }
-      renderChart(records);
+      renderChart(rows);
+    }
+
+    function updateFormState() {
+      const day = $('recordedAt').value;
+      const alreadyRecorded = records.find(r => r.recorded_at === day);
+      const hint = $('dateHint');
+      hint.className = 'date-hint';
+      if (editingId) {
+        hint.textContent = 'กำลังแก้ไขข้อมูลเดิม (ไม่ถือเป็นการบันทึกรายการใหม่)';
+        $('saveButton').textContent = 'บันทึกการแก้ไข';
+        $('saveButton').disabled = saving;
+        return;
+      }
+      $('saveButton').textContent = 'บันทึกน้ำหนัก';
+      if (alreadyRecorded) {
+        hint.textContent = `วันที่ ${dateLabel(day)} มีการบันทึกน้ำหนักแล้ว สามารถบันทึกได้วันละ 1 รายการเท่านั้น หากลงผิดให้กด “แก้ไข” หรือ “ลบ” จากประวัติ`;
+        hint.classList.add('warning');
+      } else {
+        hint.textContent = 'บันทึกน้ำหนักได้วันละ 1 รายการ หากลงผิดสามารถแก้ไขจากประวัติได้';
+      }
+      $('saveButton').disabled = saving || Boolean(alreadyRecorded) || !day;
+    }
+
+    function cancelEdit() {
+      editingId = null;
+      $('recordedAt').disabled = false;
+      $('recordedAt').value = bangkokToday();
+      $('weightKg').value = '';
+      $('note').value = '';
+      $('cancelButton').hidden = true;
+      updateFormState();
+    }
+
+    function startEdit(record) {
+      if (saving) return;
+      editingId = record.id;
+      $('recordedAt').value = record.recorded_at;
+      $('recordedAt').disabled = true;
+      $('weightKg').value = record.weight_kg;
+      $('note').value = record.note || '';
+      $('cancelButton').hidden = false;
+      $('status').hidden = true;
+      updateFormState();
+      $('weightForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('weightKg').focus({ preventScroll: true });
     }
 
     async function loadWeights() {
       const { data, error } = await supabase
         .from('weight_records')
-        .select('recorded_at, weight_kg, note, created_at')
+        .select('id, recorded_at, weight_kg, note, recorded_by, created_at')
         .eq('member_id', memberId)
         .order('recorded_at', { ascending: false })
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(500);
       if (error) throw error;
-      renderHistory(data || []);
+      records = data || [];
+      renderHistory(records);
+      updateFormState();
+    }
+
+    async function deleteRecord(record) {
+      if (saving || record.recorded_by !== userId) return;
+      const confirmed = window.confirm(
+        `ต้องการลบน้ำหนักวันที่ ${dateLabel(record.recorded_at)} (${Number(record.weight_kg)} กก.) หรือไม่?\n` +
+        'รายการจะหายจากประวัติ แต่ระบบจะเก็บบันทึกการลบไว้สำหรับตรวจสอบ'
+      );
+      if (!confirmed) return;
+      saving = true;
+      $('saveButton').disabled = true;
+      try {
+        const { data, error } = await supabase
+          .from('weight_records')
+          .delete()
+          .eq('id', record.id)
+          .eq('member_id', memberId)
+          .eq('recorded_by', userId)
+          .select('id');
+        if (error) throw error;
+        if (!data?.length) throw new Error('ไม่พบรายการหรือไม่มีสิทธิ์ลบ');
+        cancelEdit();
+        await loadWeights();
+        showStatus('ลบรายการน้ำหนักเรียบร้อยแล้ว', 'success');
+      } catch (error) {
+        console.error('SiOMC weight delete failed:', error?.code || error?.message || 'Unknown');
+        showStatus('ไม่สามารถลบรายการได้ กรุณาลองใหม่หรือติดต่อเจ้าหน้าที่', 'error');
+      } finally {
+        saving = false;
+        updateFormState();
+      }
     }
 
     async function initialize() {
@@ -201,13 +329,11 @@
         if (authError) throw authError;
         if (!auth?.user) throw new Error('ไม่พบบัญชี Supabase');
         userId = auth.user.id;
-
         const { data: registration, error: registrationError } =
           await supabase.rpc('register_line_member');
         if (registrationError || registration?.success !== true) {
           throw registrationError || new Error('ไม่สามารถตรวจสอบสมาชิกได้');
         }
-
         const { data: member, error: memberError } = await supabase
           .from('members')
           .select('id, status')
@@ -216,52 +342,76 @@
         if (memberError) throw memberError;
         if (member?.status !== 'active') throw new Error('บัญชีสมาชิกไม่พร้อมใช้งาน');
         memberId = member.id;
-
-        const today = new Date();
-        const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
-          .toISOString().slice(0, 10);
-        $('recordedAt').value = localToday;
-        $('recordedAt').max = localToday;
+        $('recordedAt').value = bangkokToday();
+        $('recordedAt').max = bangkokToday();
         await loadWeights();
         $('content').hidden = false;
         $('status').hidden = true;
       } catch (error) {
-        console.error('SiOMC weight initialization failed:', error?.message || 'Unknown');
-        showStatus(`ไม่สามารถเปิดหน้าบันทึกน้ำหนักได้ (รหัส: ${error?.code || 'LOGIN'}) กรุณาเปิดผ่าน LINE Mini App อีกครั้ง`, true);
+        console.error('SiOMC weight initialization failed:', error?.code || error?.message || 'Unknown');
+        showStatus('ไม่สามารถเปิดหน้าบันทึกน้ำหนักได้ กรุณาเปิดผ่าน LINE Mini App อีกครั้ง', 'error');
       }
     }
+
+    $('cancelButton').addEventListener('click', cancelEdit);
+    $('recordedAt').addEventListener('change', updateFormState);
 
     $('weightForm').addEventListener('submit', async (event) => {
       event.preventDefault();
       if (saving || !memberId || !userId) return;
-      const date = $('recordedAt').value;
+      const day = $('recordedAt').value;
       const weight = Number($('weightKg').value);
       const note = $('note').value.trim();
-      if (!date || !Number.isFinite(weight) || weight < 10 || weight > 500) {
-        showStatus('กรุณาระบุวันที่และน้ำหนัก 10–500 กก. ให้ถูกต้อง', true);
+      if (!day || !Number.isFinite(weight) || weight < 10 || weight > 500 || !$('weightKg').checkValidity()) {
+        showStatus('กรุณาระบุวันที่และน้ำหนัก 10–500 กก. ให้ถูกต้อง', 'error');
+        return;
+      }
+      if (day > bangkokToday()) {
+        showStatus('ไม่สามารถบันทึกวันที่ในอนาคตได้', 'error');
+        return;
+      }
+      if (!editingId && records.some(r => r.recorded_at === day)) {
+        showStatus('วันนี้บันทึกน้ำหนักแล้ว สามารถลงได้เพียง 1 รายการต่อวัน กรุณาแก้ไขรายการเดิม', 'warning');
+        updateFormState();
         return;
       }
       saving = true;
       $('saveButton').disabled = true;
       try {
-        const { error } = await supabase.from('weight_records').insert({
-          member_id: memberId,
-          recorded_at: date,
-          weight_kg: weight,
-          note,
-          recorded_by: userId
-        });
-        if (error) throw error;
-        $('weightKg').value = '';
-        $('note').value = '';
+        if (editingId) {
+          const { data, error } = await supabase.from('weight_records')
+            .update({ weight_kg: weight, note })
+            .eq('id', editingId)
+            .eq('member_id', memberId)
+            .eq('recorded_by', userId)
+            .select('id');
+          if (error) throw error;
+          if (!data?.length) throw new Error('ไม่พบรายการหรือไม่มีสิทธิ์แก้ไข');
+        } else {
+          const { error } = await supabase.from('weight_records').insert({
+            member_id: memberId,
+            recorded_at: day,
+            weight_kg: weight,
+            note,
+            recorded_by: userId
+          });
+          if (error) throw error;
+        }
+        const wasEditing = Boolean(editingId);
+        cancelEdit();
         await loadWeights();
-        showStatus('บันทึกน้ำหนักเรียบร้อยแล้ว');
+        showStatus(wasEditing ? 'แก้ไขน้ำหนักเรียบร้อยแล้ว' : 'บันทึกน้ำหนักเรียบร้อยแล้ว', 'success');
       } catch (error) {
-        console.error('SiOMC weight save failed:', error?.message || 'Unknown');
-        showStatus(`บันทึกไม่สำเร็จ (รหัส: ${error?.code || 'SAVE'}) กรุณาลองใหม่อีกครั้ง`, true);
+        console.error('SiOMC weight save failed:', error?.code || error?.message || 'Unknown');
+        if (error?.code === '23505') {
+          try { await loadWeights(); } catch (_) {}
+          showStatus('วันที่เลือกมีการบันทึกน้ำหนักแล้ว ลงได้เพียง 1 รายการต่อวัน กรุณาแก้ไขรายการเดิม', 'warning');
+        } else {
+          showStatus('บันทึกหรือแก้ไขไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error');
+        }
       } finally {
         saving = false;
-        $('saveButton').disabled = false;
+        updateFormState();
       }
     });
 
