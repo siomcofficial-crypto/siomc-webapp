@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | บันทึกอาหารของฉัน</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font:15px/1.65 Arial,Tahoma,sans-serif;background:#f3f7fa;color:#173b52}
+    header{background:#123d5a;color:#fff;padding:19px 16px}
+    header .wrap,main{max-width:790px;margin:auto}
+    header h1{margin:0;font-size:23px}header p{margin:1px 0;color:#deebf2}
+    main{padding:16px 14px 50px}
+    a{color:#17618a}a.back{display:inline-block;margin-bottom:14px;text-decoration:none}
+    .panel{border:1px solid #e1eaf0;border-radius:14px;background:#fff;padding:18px;margin-bottom:15px}
+    h2{font-size:18px;margin:0 0 13px}
+    label{display:block;font-weight:600;margin:12px 0 5px}
+    input,select,textarea{font:inherit;color:inherit;width:100%;padding:12px;border:1px solid #cbd9e2;border-radius:9px;background:#fff}
+    textarea{min-height:105px;resize:vertical}
+    button,.pick{font:inherit;cursor:pointer;background:#176d92;color:white;border:0;border-radius:10px;padding:12px 15px;font-weight:600}
+    button:disabled{opacity:.6;cursor:wait}
+    .pick{display:block;text-align:center;background:#e8f2f8;color:#123d5a;border:1px solid #c8deea}
+    .photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+    .photo-actions input{display:none}
+    .status{padding:12px;border-radius:10px;background:#e9f3f9;color:#204f67;margin-bottom:16px}
+    .status.success{background:#e5f6e9;color:#166534;border:1px solid #99d9a9}
+    .status.error{background:#ffefed;color:#8b2620;border:1px solid #f4b5af}
+    .status.warning{background:#fff7df;color:#815500;border:1px solid #f2d48a}
+    .hint{font-size:13px;color:#627786}
+    .note{padding:12px;border-radius:9px;background:#fff7df;color:#815500;font-size:13px}
+    .agree{display:flex;gap:10px;align-items:flex-start;font-weight:normal;line-height:1.6;margin:14px 0}
+    .agree input{width:20px;height:20px;flex:none;margin-top:3px}
+    #preview{width:100%;max-height:330px;object-fit:contain;background:#edf3f6;border-radius:11px;margin:10px 0}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}.actions button{flex:1}
+    .secondary{background:#e7f0f5;color:#123d5a}.danger{background:#a23b39}
+    .ai-result{background:#eef7f9;border:1px solid #d0e6eb;border-radius:11px;padding:13px;margin-top:12px}
+    .ai-result ul{padding-left:22px;margin:8px 0}.ai-result strong{font-size:20px}
+    .diary{display:grid;gap:12px}.entry{border:1px solid #e3eaf0;border-radius:11px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:12px}
+    .entry img{width:72px;height:72px;object-fit:cover;border-radius:9px;background:#e8f0f3}
+    .entry .without-photo{width:72px;height:72px;background:#f2f6f7;border-radius:9px;display:grid;place-items:center}
+    .entry p{margin:4px 0;white-space:pre-line;overflow-wrap:anywhere}
+    .entry small{color:#607a88}.summary{font-weight:bold;margin:10px 0}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    [hidden]{display:none!important}
+    @media(max-width:490px){.row{grid-template-columns:1fr}.panel{padding:14px}}
+  </style>
+  <link rel="stylesheet" href="./siomc-design.css">
+</head>
+<body>
+  <header><div class="wrap"><h1>SiOMC</h1><p>บันทึกอาหารของฉัน · Food Diary</p></div></header>
+  <main>
+    <a href="./index.html" class="back">← กลับหน้าหลัก</a>
+    <div id="status" class="status" role="status" aria-live="polite">กำลังตรวจสอบบัญชี LINE...</div>
+    <div id="content" hidden>
+      <section class="panel">
+        <h2>เพิ่มรายการอาหาร</h2>
+        <p class="note">AI ประมาณแคลอรีจากรูปถ่ายเท่านั้น ไม่สามารถทราบส่วนผสม น้ำมัน และขนาดอาหารจริงได้ กรุณาตรวจสอบและแก้ไขก่อนบันทึก</p>
+        <form id="foodForm">
+          <div class="row">
+            <div><label for="mealDate">วันที่รับประทาน</label><input id="mealDate" type="date" required></div>
+            <div><label for="mealType">มื้ออาหาร</label>
+              <select id="mealType" required>
+                <option value="breakfast">อาหารเช้า</option>
+                <option value="lunch">อาหารกลางวัน</option>
+                <option value="dinner">อาหารเย็น</option>
+                <option value="snack">อาหารว่าง</option>
+              </select>
+            </div>
+          </div>
+          <label>รูปภาพอาหาร (ไม่บังคับ)</label>
+          <div class="photo-actions">
+            <label class="pick" for="cameraInput">📷 ถ่ายรูปอาหาร</label>
+            <label class="pick" for="galleryInput">🖼️ เลือกรูป</label>
+            <input id="cameraInput" type="file" accept="image/*" capture="environment">
+            <input id="galleryInput" type="file" accept="image/*">
+          </div>
+          <img id="preview" alt="ภาพอาหารที่เลือก" hidden>
+          <button id="clearPhoto" class="secondary" type="button" hidden>ล้างรูปที่เลือก</button>
+          <label class="agree" for="aiConsent">
+            <input type="checkbox" id="aiConsent">
+            <span>ฉันยินยอมให้ส่งรูปอาหารนี้ไปยังผู้ให้บริการ AI ภายนอกเพื่อประมาณพลังงาน โดยทราบว่าเป็นเพียงค่าประมาณ และสามารถเลือกบันทึกด้วยตนเองโดยไม่ใช้ AI ได้</span>
+          </label>
+          <button id="analyzeButton" type="button" disabled>✨ ให้ AI ประมาณแคลอรี (สูงสุด 8 ครั้ง/วัน)</button>
+          <div id="aiResult" class="ai-result" hidden></div>
+          <label for="foodDescription">รายละเอียดอาหาร <span class="hint">(ตรวจสอบและแก้ไขได้)</span></label>
+          <textarea id="foodDescription" maxlength="1000" required placeholder="เช่น ข้าวสวย 1 ทัพพี, ต้มยำปลา 1 ถ้วย"></textarea>
+          <label for="calories">พลังงานโดยประมาณ (kcal)</label>
+          <input id="calories" type="number" inputmode="decimal" min="0" max="10000" step="1" placeholder="เช่น 450" required>
+          <p class="hint">คุณสามารถกรอกอาหารและแคลอรีด้วยตนเองได้โดยไม่ต้องถ่ายรูปหรือใช้ AI</p>
+          <button id="saveButton" type="submit">บันทึกอาหาร</button>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>ประวัติอาหารของฉัน</h2>
+        <label for="historyDate">เลือกวันที่ต้องการดู</label>
+        <input id="historyDate" type="date">
+        <p id="dayTotal" class="summary">พลังงานรวมวันนี้: —</p>
+        <div id="history" class="diary"></div>
+        <p id="emptyHistory" class="hint">ยังไม่มีการบันทึกอาหารในวันนี้</p>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { supabase } from './supabase.js';
+
+    const LIFF_ID = '2012571121-sJssLsyF';
+    const BUCKET = 'patient-food-photos';
+    const $ = id => document.getElementById(id);
+    const mealLabels = { breakfast: 'อาหารเช้า', lunch: 'อาหารกลางวัน', dinner: 'อาหารเย็น', snack: 'อาหารว่าง' };
+    let userId = null;
+    let memberId = null;
+    let photoBlob = null;
+    let uploadedPath = null;
+    let previewUrl = null;
+    let busy = false;
+
+    function say(text, kind = 'info') {
+      $('status').textContent = text;
+      $('status').className = `status ${kind}`;
+    }
+    function todayBangkok() {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone:'Asia/Bangkok', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date());
+      const get = t => parts.find(p => p.type === t)?.value;
+      return `${get('year')}-${get('month')}-${get('day')}`;
+    }
+    function formatDate(s) {
+      const [y,m,d] = String(s).split('-').map(Number);
+      return new Intl.DateTimeFormat('th-TH', {day:'numeric',month:'short',year:'numeric'}).format(new Date(y,m-1,d));
+    }
+    function setBusy(value) {
+      busy = value;
+      $('saveButton').disabled = value;
+      $('analyzeButton').disabled = value || !photoBlob;
+    }
+
+    // Re-encode via canvas: shrink size and strip camera EXIF/GPS metadata.
+    async function compressImage(file) {
+      if (!file?.type?.startsWith('image/')) throw new Error('กรุณาเลือกไฟล์รูปภาพ');
+      if (file.size > 12 * 1024 * 1024) throw new Error('รูปต้นฉบับต้องมีขนาดไม่เกิน 12 MB');
+      const localUrl = URL.createObjectURL(file);
+      try {
+        const img = new Image();
+        img.src = localUrl;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = () => reject(new Error('เปิดรูปนี้ไม่ได้ กรุณาใช้ JPG หรือ PNG'));
+        });
+        const max = 1600;
+        const ratio = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.naturalWidth * ratio));
+        canvas.height = Math.max(1, Math.round(img.naturalHeight * ratio));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('ไม่สามารถประมวลผลรูปได้');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const makeBlob = quality => new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+        let out = await makeBlob(.82);
+        if (out && out.size > 4 * 1024 * 1024) out = await makeBlob(.62);
+        if (!out || out.size > 4 * 1024 * 1024) throw new Error('รูปมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');
+        return out;
+      } finally { URL.revokeObjectURL(localUrl); }
+    }
+
+    async function discardUnusedPhoto() {
+      if (!uploadedPath) return;
+      const path = uploadedPath;
+      uploadedPath = null;
+      const {error} = await supabase.storage.from(BUCKET).remove([path]);
+      if (error) console.warn('Could not remove unsaved photo');
+    }
+
+    async function choosePhoto(file) {
+      if (!file || busy) return;
+      setBusy(true);
+      try {
+        const blob = await compressImage(file);
+        await discardUnusedPhoto();
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        photoBlob = blob;
+        previewUrl = URL.createObjectURL(photoBlob);
+        $('preview').src = previewUrl;
+        $('preview').hidden = false;
+        $('clearPhoto').hidden = false;
+        $('aiResult').hidden = true;
+        say('เลือกรูปแล้ว สามารถให้ AI วิเคราะห์ หรือกรอกข้อมูลอาหารเองได้');
+      } catch(err) { say(err.message, 'error'); }
+      finally { setBusy(false); $('cameraInput').value = ''; $('galleryInput').value = ''; }
+    }
+
+    async function uploadPhotoIfNeeded() {
+      if (!photoBlob) return null;
+      if (uploadedPath) return uploadedPath;
+      const path = `${userId}/${$('mealDate').value}/${crypto.randomUUID()}.jpg`;
+      const {error} = await supabase.storage.from(BUCKET).upload(path, photoBlob, {
+        contentType: 'image/jpeg', upsert: false, cacheControl:'300'
+      });
+      if (error) throw new Error('อัปโหลดรูปไม่สำเร็จ: ' + error.message);
+      uploadedPath = path;
+      return path;
+    }
+
+    async function analyzePhoto() {
+      if (busy || !photoBlob) return;
+      if (!$('aiConsent').checked) {
+        say('กรุณาติ๊กยินยอมส่งรูปให้ AI ก่อนกดวิเคราะห์ หรือกรอกอาหารด้วยตนเอง', 'warning');
+        return;
+      }
+      setBusy(true);
+      say('กำลังวิเคราะห์ภาพอาหาร อาจใช้เวลาสักครู่...');
+      try {
+        const photoPath = await uploadPhotoIfNeeded();
+        const {data, error} = await supabase.functions.invoke('analyze-food-photo', {
+          body: {photoPath}
+        });
+        if (error) throw new Error('AI วิเคราะห์ไม่สำเร็จ (ตรวจสอบ Edge Function / โควตา / API Key)');
+        if (!data?.is_food || !Array.isArray(data.foods) || !data.foods.length) {
+          say('AI ไม่สามารถระบุอาหารจากรูปได้ กรุณากรอกเองหรือใช้รูปใหม่', 'warning');
+          return;
+        }
+        const foods = data.foods.slice(0, 15);
+        $('foodDescription').value = foods.map(f => `${f.name} — ${f.portion}`).join('\n');
+        $('calories').value = String(Math.min(10000, Math.max(0, Number(data.total_kcal) || 0)));
+        const result = $('aiResult');
+        result.replaceChildren();
+        const head = document.createElement('strong');
+        head.textContent = `AI ประมาณรวม ${$('calories').value} kcal`;
+        result.append(head);
+        const list = document.createElement('ul');
+        for (const item of foods) {
+          const li = document.createElement('li');
+          li.textContent = `${item.name} (${item.portion}) ประมาณ ${item.estimated_kcal} kcal`;
+          list.append(li);
+        }
+        result.append(list);
+        const note = document.createElement('p');
+        note.className = 'hint';
+        note.textContent = data.uncertainty_note || 'ผลวิเคราะห์เป็นเพียงค่าประมาณ กรุณาตรวจสอบก่อนบันทึก';
+        result.append(note);
+        result.hidden = false;
+        say('AI วิเคราะห์เสร็จแล้ว กรุณาตรวจสอบและแก้ไขค่าก่อนบันทึก', 'success');
+      } catch (err) { say(err.message || 'วิเคราะห์ไม่สำเร็จ', 'error'); }
+      finally { setBusy(false); }
+    }
+
+    async function saveFood(event) {
+      event.preventDefault();
+      if (busy) return;
+      const day = $('mealDate').value;
+      const desc = $('foodDescription').value.trim();
+      const kcal = Number($('calories').value);
+      if (!day || day > todayBangkok() || !desc || desc.length > 1000 ||
+          !$('calories').value || !Number.isFinite(kcal) || kcal < 0 || kcal > 10000) {
+        say('กรุณาตรวจสอบวันที่ รายละเอียดอาหาร และพลังงานอีกครั้ง', 'warning');
+        return;
+      }
+      setBusy(true);
+      say('กำลังบันทึกอาหาร...');
+      try {
+        const photoPath = await uploadPhotoIfNeeded();
+        const {error} = await supabase.from('nutrition_logs').insert({
+          member_id: memberId,
+          recorded_by: userId,
+          log_date: day,
+          meal_type: $('mealType').value,
+          food_description: desc,
+          estimated_calories: kcal,
+          photo_path: photoPath,
+        });
+        if (error) throw new Error('บันทึกอาหารไม่สำเร็จ: ' + error.message);
+        // The photo is now referenced by a nutrition_logs row: don't remove it.
+        uploadedPath = null;
+        photoBlob = null;
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+        previewUrl = null;
+        $('preview').hidden = true;
+        $('preview').removeAttribute('src');
+        $('clearPhoto').hidden = true;
+        $('aiResult').hidden = true;
+        $('aiConsent').checked = false;
+        $('foodDescription').value = '';
+        $('calories').value = '';
+        $('historyDate').value = day;
+        await loadHistory();
+        say('บันทึกอาหารเรียบร้อยแล้ว', 'success');
+      } catch(err) { say(err.message, 'error'); }
+      finally { setBusy(false); }
+    }
+
+    async function loadHistory() {
+      const day = $('historyDate').value;
+      if (!day || !memberId) return;
+      const {data, error} = await supabase.from('nutrition_logs')
+        .select('id,log_date,meal_type,food_description,estimated_calories,photo_path,created_at')
+        .eq('member_id', memberId).eq('log_date', day)
+        .order('created_at', {ascending:false}).limit(100);
+      if (error) { say('โหลดประวัติไม่สำเร็จ: ' + error.message, 'error'); return; }
+      const rows = data || [];
+      $('history').replaceChildren();
+      $('emptyHistory').hidden = rows.length > 0;
+      const total = rows.reduce((sum, r) => sum + (Number(r.estimated_calories) || 0), 0);
+      $('dayTotal').textContent = `รวม ${rows.length} รายการ · พลังงานประมาณ ${total.toLocaleString('th-TH')} kcal`;
+      for (const row of rows) {
+        const card = document.createElement('div');
+        card.className = 'entry';
+        if (row.photo_path) {
+          const img = document.createElement('img');
+          img.alt = 'รูปอาหาร';
+          const {data: signed} = await supabase.storage.from(BUCKET).createSignedUrl(row.photo_path, 120);
+          if (signed?.signedUrl) img.src = signed.signedUrl;
+          card.append(img);
+        } else {
+          const blank = document.createElement('div');
+          blank.className = 'without-photo';
+          blank.textContent = '🍽️';
+          card.append(blank);
+        }
+        const content = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = `${mealLabels[row.meal_type] || row.meal_type} · ${Number(row.estimated_calories || 0).toLocaleString('th-TH')} kcal`;
+        const desc = document.createElement('p');
+        desc.textContent = row.food_description || '—';
+        const date = document.createElement('small');
+        date.textContent = formatDate(row.log_date);
+        content.append(title, desc, date);
+        card.append(content);
+        $('history').append(card);
+      }
+    }
+
+    async function start() {
+      try {
+        $('mealDate').value = todayBangkok();
+        $('mealDate').max = todayBangkok();
+        $('historyDate').value = todayBangkok();
+        $('historyDate').max = todayBangkok();
+        await liff.init({liffId:LIFF_ID});
+        if (!liff.isLoggedIn() || !liff.isInClient()) {
+          throw new Error('กรุณาเปิดหน้านี้จากเมนูใน SiOMC LINE Mini App');
+        }
+        const idToken = liff.getIDToken();
+        if (!idToken) throw new Error('ไม่พบสิทธิ์ LINE OpenID');
+        const {data: login, error: loginError} = await supabase.auth.signInWithIdToken({
+          provider:'custom:line-siomc', token:idToken,
+          access_token:liff.getAccessToken() || undefined,
+        });
+        if (loginError || !login.session?.user?.id) throw new Error('เข้าสู่ระบบ Supabase ไม่สำเร็จ');
+        userId = login.session.user.id;
+        const {data: registration, error: regError} = await supabase.rpc('register_line_member');
+        if (regError || registration?.success !== true) throw new Error('ยังไม่สามารถตรวจสอบสมาชิก SiOMC ได้');
+        const {data: member, error: memberError} = await supabase.from('members')
+          .select('id,status').eq('auth_user_id', userId).single();
+        const {data: profile, error: profileError} = await supabase.from('profiles')
+          .select('role,is_active').eq('id', userId).single();
+        if (memberError || !member || member.status !== 'active' ||
+            profileError || profile?.role !== 'member' || profile?.is_active !== true) {
+          throw new Error('บัญชีสมาชิกยังไม่พร้อมหรือถูกระงับการใช้งาน');
+        }
+        memberId = member.id;
+        $('content').hidden = false;
+        say('พร้อมบันทึกอาหาร สามารถถ่ายรูปให้ AI ช่วยประมาณ หรือกรอกเองได้');
+        await loadHistory();
+      } catch(err) {
+        say(err.message || 'ไม่สามารถเปิดหน้าบันทึกอาหารได้ กรุณากลับไปเปิดผ่าน LINE Mini App', 'error');
+      }
+    }
+
+    $('cameraInput').addEventListener('change', e => choosePhoto(e.target.files?.[0]));
+    $('galleryInput').addEventListener('change', e => choosePhoto(e.target.files?.[0]));
+    $('analyzeButton').addEventListener('click', analyzePhoto);
+    $('clearPhoto').addEventListener('click', async () => {
+      if (busy) return;
+      setBusy(true);
+      await discardUnusedPhoto();
+      photoBlob = null;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = null;
+      $('preview').hidden = true;
+      $('preview').removeAttribute('src');
+      $('aiResult').hidden = true;
+      $('clearPhoto').hidden = true;
+      setBusy(false);
+      say('ล้างรูปแล้ว สามารถเลือกรูปใหม่หรือกรอกอาหารเองได้');
+    });
+    $('foodForm').addEventListener('submit', saveFood);
+    $('historyDate').addEventListener('change', loadHistory);
+    window.addEventListener('load', start);
+  </script>
+</body>
+</html>
