@@ -535,6 +535,40 @@ async function initSiOMCLine(){
 const inLineApp = liff.isInClient();
 const contextScopes = liff.getContext()?.scope || [];
 const idToken = liff.getIDToken();
+if (idToken) {
+  const supabaseClient = window.siomcSupabase;
+
+  if (!supabaseClient) {
+    console.warn("SiOMC Supabase Client is not ready");
+  } else {
+    try {
+      const { data, error } =
+        await supabaseClient.functions.invoke(
+          "line-patient-auth",
+          {
+            body: { idToken }
+          }
+        );
+
+      if (error) {
+        console.error(
+          "LINE verification failed:",
+          error.message
+        );
+      } else {
+        console.log(
+          "LINE verification result:",
+          data?.verified === true ? "SUCCESS" : "FAILED"
+        );
+      }
+    } catch (error) {
+      console.error(
+        "LINE verification error:",
+        error.message
+      );
+    }
+  }
+}
 
 const lineDebugBox = document.createElement("div");
 
