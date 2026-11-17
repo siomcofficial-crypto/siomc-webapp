@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | บันทึกน้ำหนักของฉัน</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 16px/1.5 Arial, Tahoma, sans-serif; background: #f3f7fa; color: #173b52; }
+    header { background: #123d5a; color: #fff; padding: 20px 16px; }
+    header > div, main { max-width: 760px; margin: auto; }
+    header h1 { font-size: 22px; margin: 0; }
+    header p { margin: 4px 0 0; color: #d9e8f1; font-size: 14px; }
+    main { padding: 18px 14px 42px; }
+    .back { color: #17618a; text-decoration: none; display: inline-block; margin-bottom: 16px; }
+    .card { background: #fff; border: 1px solid #e1eaf0; border-radius: 14px; padding: 18px; margin-bottom: 16px; }
+    .card h2 { font-size: 18px; margin: 0 0 16px; }
+    .muted { font-size: 13px; color: #657c8a; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; font-size: 14px; }
+    input, textarea, button { font: inherit; }
+    input, textarea { width: 100%; padding: 12px; border: 1px solid #cbd9e2; border-radius: 9px; background: #fff; color: #173b52; }
+    textarea { resize: vertical; min-height: 70px; }
+    button { display: block; width: 100%; background: #123d5a; color: #fff; border: 0; border-radius: 10px; padding: 13px; margin-top: 18px; font-weight: 600; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    .status { margin-bottom: 16px; border-radius: 10px; padding: 12px 14px; background: #e7f2f8; }
+    .status.error { background: #ffefed; color: #8b2620; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { background: #f5f9fc; border-radius: 10px; padding: 14px; }
+    .stat small { display: block; color: #657c8a; margin-bottom: 6px; }
+    .stat strong { font-size: 22px; }
+    .chart { width: 100%; overflow-x: auto; }
+    .chart svg { display: block; width: 100%; min-width: 280px; }
+    .scroll { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 440px; }
+    th, td { text-align: left; border-bottom: 1px solid #e8eef2; padding: 10px 8px; font-size: 14px; }
+    th { color: #657c8a; }
+    [hidden] { display: none !important; }
+  </style>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <header><div><h1>SiOMC</h1><p>บันทึกน้ำหนักของฉัน</p></div></header>
+  <main>
+    <a class="back" href="./index.html">← กลับหน้าหลัก</a>
+    <div id="status" class="status" role="status" aria-live="polite">กำลังตรวจสอบบัญชี LINE...</div>
+    <div id="content" hidden>
+      <section class="card">
+        <h2>บันทึกน้ำหนัก</h2>
+        <form id="weightForm">
+          <label for="recordedAt">วันที่ชั่งน้ำหนัก</label>
+          <input id="recordedAt" name="recordedAt" type="date" required>
+          <label for="weightKg">น้ำหนัก (กิโลกรัม)</label>
+          <input id="weightKg" name="weightKg" type="number" min="10" max="500" step="0.1" inputmode="decimal" placeholder="เช่น 85.5" required>
+          <label for="note">หมายเหตุ (ไม่จำเป็น)</label>
+          <textarea id="note" name="note" maxlength="500" placeholder="เช่น ชั่งตอนเช้าก่อนอาหาร"></textarea>
+          <button id="saveButton" type="submit">บันทึกน้ำหนัก</button>
+        </form>
+        <p class="muted">หากชั่งหลายครั้งในวันเดียวกัน ระบบจะบันทึกเป็นคนละรายการ ขณะนี้ยังไม่มีปุ่มแก้ไขหรือลบรายการ</p>
+      </section>
+      <section class="card">
+        <h2>น้ำหนักของฉัน</h2>
+        <div class="stats">
+          <div class="stat"><small>น้ำหนักล่าสุด</small><strong id="latestWeight">—</strong></div>
+          <div class="stat"><small>เปลี่ยนจากครั้งก่อน</small><strong id="weightChange">—</strong></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>แนวโน้มล่าสุด</h2>
+        <div id="chart" class="chart muted">ยังไม่มีข้อมูลสำหรับสร้างกราฟ</div>
+      </section>
+      <section class="card">
+        <h2>ประวัติการบันทึก</h2>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>วันที่</th><th>น้ำหนัก</th><th>หมายเหตุ</th></tr></thead>
+            <tbody id="history"></tbody>
+          </table>
+        </div>
+        <p id="emptyHistory" class="muted">ยังไม่มีการบันทึกน้ำหนัก</p>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { supabase } from './supabase.js';
+
+    const LIFF_ID = '2012571121-sJssLsyF';
+    const $ = (id) => document.getElementById(id);
+    let memberId = null;
+    let userId = null;
+    let saving = false;
+
+    function showStatus(message, isError = false) {
+      $('status').textContent = message;
+      $('status').classList.toggle('error', isError);
+      $('status').hidden = false;
+    }
+
+    function dateLabel(value) {
+      const [y, m, d] = String(value).split('-').map(Number);
+      if (!y || !m || !d) return String(value);
+      return new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })
+        .format(new Date(y, m - 1, d));
+    }
+
+    function renderChart(records) {
+      const entries = records.slice(0, 14).reverse()
+        .map(r => ({ day: r.recorded_at, kg: Number(r.weight_kg) }))
+        .filter(r => Number.isFinite(r.kg));
+      if (entries.length < 2) {
+        $('chart').textContent = 'บันทึกน้ำหนักอย่างน้อย 2 ครั้งเพื่อดูกราฟ';
+        return;
+      }
+      const values = entries.map(r => r.kg);
+      const min = Math.min(...values) - 1;
+      const max = Math.max(...values) + 1;
+      const points = entries.map((r, i) => {
+        const x = 48 + i * 544 / (entries.length - 1);
+        const y = 176 - (r.kg - min) / (max - min) * 144;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 640 230');
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'กราฟแนวโน้มน้ำหนักล่าสุด');
+      const line = document.createElementNS(svg.namespaceURI, 'polyline');
+      line.setAttribute('points', points);
+      line.setAttribute('fill', 'none');
+      line.setAttribute('stroke', '#2386a8');
+      line.setAttribute('stroke-width', '3');
+      svg.append(line);
+      entries.forEach((r, i) => {
+        const dot = document.createElementNS(svg.namespaceURI, 'circle');
+        dot.setAttribute('cx', String(48 + i * 544 / (entries.length - 1)));
+        dot.setAttribute('cy', String(176 - (r.kg - min) / (max - min) * 144));
+        dot.setAttribute('r', '4');
+        dot.setAttribute('fill', '#2386a8');
+        svg.append(dot);
+      });
+      const hint = document.createElement('p');
+      hint.className = 'muted';
+      hint.textContent = `${dateLabel(entries[0].day)} – ${dateLabel(entries.at(-1).day)} (14 รายการล่าสุดสูงสุด)`;
+      $('chart').replaceChildren(svg, hint);
+    }
+
+    function renderHistory(records) {
+      const tbody = $('history');
+      tbody.replaceChildren();
+      $('emptyHistory').hidden = records.length > 0;
+      for (const r of records) {
+        const tr = document.createElement('tr');
+        for (const value of [dateLabel(r.recorded_at), `${Number(r.weight_kg)} กก.`, r.note || '—']) {
+          const td = document.createElement('td');
+          td.textContent = value;
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      if (records.length) {
+        const latest = Number(records[0].weight_kg);
+        $('latestWeight').textContent = `${latest.toFixed(1)} กก.`;
+        if (records.length > 1) {
+          const change = latest - Number(records[1].weight_kg);
+          $('weightChange').textContent = `${change > 0 ? '+' : ''}${change.toFixed(1)} กก.`;
+        } else {
+          $('weightChange').textContent = '—';
+        }
+      } else {
+        $('latestWeight').textContent = '—';
+        $('weightChange').textContent = '—';
+      }
+      renderChart(records);
+    }
+
+    async function loadWeights() {
+      const { data, error } = await supabase
+        .from('weight_records')
+        .select('recorded_at, weight_kg, note, created_at')
+        .eq('member_id', memberId)
+        .order('recorded_at', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      renderHistory(data || []);
+    }
+
+    async function initialize() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isInClient() || !liff.isLoggedIn()) {
+          throw new Error('กรุณาเปิดหน้านี้ผ่าน SiOMC Mini App ใน LINE');
+        }
+        const token = liff.getIDToken();
+        if (!token) throw new Error('ไม่พบ LINE ID Token');
+        const { data: auth, error: authError } = await supabase.auth.signInWithIdToken({
+          provider: 'custom:line-siomc',
+          token,
+          access_token: liff.getAccessToken() || undefined
+        });
+        if (authError) throw authError;
+        if (!auth?.user) throw new Error('ไม่พบบัญชี Supabase');
+        userId = auth.user.id;
+
+        const { data: registration, error: registrationError } =
+          await supabase.rpc('register_line_member');
+        if (registrationError || registration?.success !== true) {
+          throw registrationError || new Error('ไม่สามารถตรวจสอบสมาชิกได้');
+        }
+
+        const { data: member, error: memberError } = await supabase
+          .from('members')
+          .select('id, status')
+          .eq('auth_user_id', userId)
+          .single();
+        if (memberError) throw memberError;
+        if (member?.status !== 'active') throw new Error('บัญชีสมาชิกไม่พร้อมใช้งาน');
+        memberId = member.id;
+
+        const today = new Date();
+        const localToday = new Date(today.getTime() - today.getTimezoneOffset() * 60000)
+          .toISOString().slice(0, 10);
+        $('recordedAt').value = localToday;
+        $('recordedAt').max = localToday;
+        await loadWeights();
+        $('content').hidden = false;
+        $('status').hidden = true;
+      } catch (error) {
+        console.error('SiOMC weight initialization failed:', error?.message || 'Unknown');
+        showStatus(`ไม่สามารถเปิดหน้าบันทึกน้ำหนักได้ (รหัส: ${error?.code || 'LOGIN'}) กรุณาเปิดผ่าน LINE Mini App อีกครั้ง`, true);
+      }
+    }
+
+    $('weightForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (saving || !memberId || !userId) return;
+      const date = $('recordedAt').value;
+      const weight = Number($('weightKg').value);
+      const note = $('note').value.trim();
+      if (!date || !Number.isFinite(weight) || weight < 10 || weight > 500) {
+        showStatus('กรุณาระบุวันที่และน้ำหนัก 10–500 กก. ให้ถูกต้อง', true);
+        return;
+      }
+      saving = true;
+      $('saveButton').disabled = true;
+      try {
+        const { error } = await supabase.from('weight_records').insert({
+          member_id: memberId,
+          recorded_at: date,
+          weight_kg: weight,
+          note,
+          recorded_by: userId
+        });
+        if (error) throw error;
+        $('weightKg').value = '';
+        $('note').value = '';
+        await loadWeights();
+        showStatus('บันทึกน้ำหนักเรียบร้อยแล้ว');
+      } catch (error) {
+        console.error('SiOMC weight save failed:', error?.message || 'Unknown');
+        showStatus(`บันทึกไม่สำเร็จ (รหัส: ${error?.code || 'SAVE'}) กรุณาลองใหม่อีกครั้ง`, true);
+      } finally {
+        saving = false;
+        $('saveButton').disabled = false;
+      }
+    });
+
+    initialize();
+  </script>
+</body>
+</html>
