@@ -116,27 +116,6 @@ th{color:var(--muted);font-weight:500}
 </head>
 
 <body>
-
-<a
-href="./patient-weight.html"
-style="
-  display: block;
-  max-width: 420px;
-  margin: 16px auto;
-  padding: 15px;
-  background: #123d5a;
-  color: white;
-  text-align: center;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 12px;
-"
->
-⚖️ บันทึกน้ำหนักของฉัน
-</a>
-
-
 <header class="top">
   <div class="brand">
     <div class="mark">🦋</div>
@@ -188,7 +167,7 @@ style="
 
         <div class="quick">
           <button onclick="showPanel('appointment')"><span class="ico">🗓️</span><b>นัดหมาย</b><small>ดูและส่งคำขอนัด</small></button>
-          <button onclick="showPanel('weight')"><span class="ico">⚖️</span><b>บันทึกน้ำหนัก</b><small>ติดตามความเปลี่ยนแปลง</small></button>
+          <button onclick="window.location.href='./patient-weight.html'"><span class="ico">⚖️</span><b>บันทึกน้ำหนัก</b><small>ติดตามความเปลี่ยนแปลง</small></button>
           <button onclick="showPanel('learn')"><span class="ico">📚</span><b>คลังความรู้</b><small>เรียนรู้การดูแลตนเอง</small></button>
           <button onclick="showPanel('followup')"><span class="ico">🩺</span><b>ติดตามหลังผ่าตัด</b><small>แบบประเมินตัวอย่าง</small></button>
           <button onclick="showPanel('contact')"><span class="ico">💬</span><b>ติดต่อเจ้าหน้าที่</b><small>ส่งคำถามทั่วไป</small></button>
