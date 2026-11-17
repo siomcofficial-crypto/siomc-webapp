@@ -360,6 +360,66 @@ th{color:var(--muted);font-weight:500}
   "SiOMC Supabase Client:",
   supabase ? "READY" : "NOT READY"
 );
+
+const authTestButton = document.createElement("button");
+authTestButton.textContent = "ทดสอบ Supabase LINE Login";
+authTestButton.style.cssText = `
+  margin: 12px;
+  padding: 12px 16px;
+  background: #123d5a;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+`;
+
+const authTestResult = document.createElement("div");
+authTestResult.style.cssText = `
+  margin: 12px;
+  padding: 10px;
+  font-size: 14px;
+  color: #123d5a;
+`;
+
+document.body.prepend(authTestResult);
+document.body.prepend(authTestButton);
+
+authTestButton.addEventListener("click", async () => {
+  authTestButton.disabled = true;
+  authTestResult.textContent = "กำลังตรวจสอบ...";
+
+  try {
+    if (!liff.isLoggedIn()) {
+      throw new Error("ยังไม่ได้เข้าสู่ระบบ LINE");
+    }
+
+    const token = liff.getIDToken();
+
+    if (!token) {
+      throw new Error("ไม่พบ LINE ID Token");
+    }
+
+    const { data, error } =
+      await supabase.auth.signInWithIdToken({
+        provider: "custom:line-siomc",
+        token,
+        access_token: liff.getAccessToken() || undefined
+      });
+
+    if (error) throw error;
+
+    authTestResult.textContent = data.session
+      ? "SUCCESS: Supabase Session พร้อมใช้งาน"
+      : "FAILED: ไม่พบ Supabase Session";
+
+  } catch (error) {
+    authTestResult.textContent =
+      "ERROR: " + (error.message || "Unknown error");
+  } finally {
+    authTestButton.disabled = false;
+  }
+});
+
 </script>
 <script>
 const $ = id => document.getElementById(id);
