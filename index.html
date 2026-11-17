@@ -352,101 +352,109 @@ th{color:var(--muted);font-weight:500}
     Prototype only — ไม่ใช่ระบบเวชระเบียนหรือระบบนัดหมายทางการ
   </div>
 </main>
+
 <script type="module">
-  import { supabase } from './supabase.js';
+  import { supabase } from "./supabase.js";
 
   window.siomcSupabase = supabase;
-  console.log(
-  "SiOMC Supabase Client:",
-  supabase ? "READY" : "NOT READY"
-);
 
-const authTestButton = document.createElement("button");
-authTestButton.id = "siomcPatientAuthButton";
-authTestButton.textContent = "ทดสอบ Supabase LINE Login";
-authTestButton.style.cssText = `
-  margin: 12px;
-  padding: 12px 16px;
-  background: #123d5a;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-`;
+  let loginCompleted = false;
+  let loginPromise = null;
 
-const authTestResult = document.createElement("div");
-authTestResult.style.cssText = `
-  margin: 12px;
-  padding: 10px;
-  font-size: 14px;
-  color: #123d5a;
-`;
+  const errorBox = document.createElement("div");
 
-document.body.prepend(authTestResult);
-document.body.prepend(authTestButton);
-// ซ่อนเครื่องมือทดสอบจากผู้ป่วย
-authTestButton.style.display = "none";
-authTestResult.style.display = "none";
+  errorBox.style.cssText = `
+    display: none;
+    margin: 12px;
+    padding: 14px;
+    background: #fff1f0;
+    color: #9f2525;
+    border-radius: 10px;
+    font-size: 14px;
+  `;
 
-authTestButton.addEventListener("click", async () => {
-  authTestButton.disabled = true;
-  authTestResult.textContent = "กำลังตรวจสอบ...";
+  errorBox.setAttribute("role", "alert");
+  document.body.prepend(errorBox);
 
-  try {
-    if (!liff.isLoggedIn()) {
-      throw new Error("ยังไม่ได้เข้าสู่ระบบ LINE");
+  async function loginPatientWithLine() {
+    if (loginCompleted) return true;
+    if (loginPromise) return loginPromise;
+
+    loginPromise = (async () => {
+      try {
+        errorBox.style.display = "none";
+
+        if (
+          typeof liff === "undefined" ||
+          !liff.isLoggedIn()
+        ) {
+          throw new Error("LINE login required");
+        }
+
+        const idToken = liff.getIDToken();
+
+        if (!idToken) {
+          throw new Error("LINE ID Token unavailable");
+        }
+
+        const { data, error } =
+          await supabase.auth.signInWithIdToken({
+            provider: "custom:line-siomc",
+            token: idToken,
+            access_token:
+              liff.getAccessToken() || undefined
+          });
+
+        if (error) throw error;
+
+        if (!data?.session) {
+          throw new Error("Supabase session unavailable");
+        }
+
+        const {
+          data: member,
+          error: memberError
+        } = await supabase.rpc(
+          "register_line_member"
+        );
+
+        if (memberError) throw memberError;
+
+        if (
+          member?.success !== true ||
+          !member.member_code
+        ) {
+          throw new Error("Member registration failed");
+        }
+
+        loginCompleted = true;
+
+        // สำเร็จแล้ว ไม่แสดงข้อความหรือกล่องทดสอบ
+        return true;
+
+      } catch (error) {
+        console.error(
+          "SiOMC patient authentication failed"
+        );
+
+        errorBox.textContent =
+          "ไม่สามารถเข้าสู่ระบบ SiOMC ได้ กรุณาปิดและเปิด LINE Mini App ใหม่";
+
+        errorBox.style.display = "block";
+        return false;
+      }
+    })();
+
+    try {
+      return await loginPromise;
+    } finally {
+      loginPromise = null;
     }
-
-    const token = liff.getIDToken();
-
-    if (!token) {
-      throw new Error("ไม่พบ LINE ID Token");
-    }
-
-    const { data, error } =
-      await supabase.auth.signInWithIdToken({
-        provider: "custom:line-siomc",
-        token,
-        access_token: liff.getAccessToken() || undefined
-      });
-
-    if (error) throw error;
-
-    if (!data.session) {
-  throw new Error("ไม่พบ Supabase Session");
-}
-
-const { data: memberResult, error: memberError } =
-  await supabase.rpc("register_line_member");
-
-if (memberError) {
-  throw memberError;
-}
-
-if (
-  memberResult?.success !== true ||
-  !memberResult.member_code
-) {
-  throw new Error("ไม่สามารถลงทะเบียนสมาชิกได้");
-}
-
-authTestResult.textContent = memberResult.created
-  ? `สมัครสมาชิกสำเร็จ รหัส ${memberResult.member_code}`
-  : `พบสมาชิกเดิม รหัส ${memberResult.member_code}`;
-  authTestButton.style.display = "none";
-
-} catch (error) {
-  console.error("SiOMC Patient Login Error:", error);
-
-  authTestResult.style.display = "block";
-  authTestResult.textContent =
-    "ไม่สามารถเข้าสู่ระบบได้ กรุณาปิดและเปิด LINE Mini App ใหม่";
-  } finally {
-    authTestButton.disabled = false;
   }
-});
 
+  window.siomcPatientLogin = loginPatientWithLine;
 </script>
+
 <script>
 const $ = id => document.getElementById(id);
 
@@ -585,12 +593,7 @@ async function loginWithLine(){
     // เข้าสู่ระบบและตรวจสอบสมาชิกอัตโนมัติ
 // เฉพาะเมื่อเปิดผ่าน LINE Mini App
 if (liff.isInClient()) {
-  const loginButton =
-    document.getElementById("siomcPatientAuthButton");
-
-  if (loginButton) {
-    loginButton.click();
-  }
+  await window.siomcPatientLogin();
 }
   }
 }
@@ -667,7 +670,7 @@ verificationStatus.style.cssText = `
   font-size: 14px;
 `;
 
-document.body.prepend(verificationStatus);
+//document.body.prepend(verificationStatus);
       } else {
         console.log(
           "LINE verification result:",
