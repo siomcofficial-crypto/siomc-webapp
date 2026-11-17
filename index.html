@@ -384,6 +384,9 @@ authTestResult.style.cssText = `
 
 document.body.prepend(authTestResult);
 document.body.prepend(authTestButton);
+// ซ่อนเครื่องมือทดสอบจากผู้ป่วย
+authTestButton.style.display = "none";
+authTestResult.style.display = "none";
 
 authTestButton.addEventListener("click", async () => {
   authTestButton.disabled = true;
@@ -432,9 +435,12 @@ authTestResult.textContent = memberResult.created
   : `พบสมาชิกเดิม รหัส ${memberResult.member_code}`;
   authTestButton.style.display = "none";
 
-  } catch (error) {
-    authTestResult.textContent =
-      "ERROR: " + (error.message || "Unknown error");
+} catch (error) {
+  console.error("SiOMC Patient Login Error:", error);
+
+  authTestResult.style.display = "block";
+  authTestResult.textContent =
+    "ไม่สามารถเข้าสู่ระบบได้ กรุณาปิดและเปิด LINE Mini App ใหม่";
   } finally {
     authTestButton.disabled = false;
   }
@@ -700,7 +706,8 @@ Opened inside LINE: ${inLineApp ? "YES" : "NO"}<br>
 ID Token available: ${idToken ? "YES" : "NO"}
 `;
 
-document.body.prepend(lineDebugBox);
+// ปิดการแสดงกล่อง LINE Diagnostics
+// document.body.prepend(lineDebugBox);
 
     if(!liff.isLoggedIn()){
       setLineStatus(
