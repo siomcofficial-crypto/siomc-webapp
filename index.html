@@ -362,6 +362,7 @@ th{color:var(--muted);font-weight:500}
 );
 
 const authTestButton = document.createElement("button");
+authTestButton.id = "siomcPatientAuthButton";
 authTestButton.textContent = "ทดสอบ Supabase LINE Login";
 authTestButton.style.cssText = `
   margin: 12px;
@@ -429,6 +430,7 @@ if (
 authTestResult.textContent = memberResult.created
   ? `สมัครสมาชิกสำเร็จ รหัส ${memberResult.member_code}`
   : `พบสมาชิกเดิม รหัส ${memberResult.member_code}`;
+  authTestButton.style.display = "none";
 
   } catch (error) {
     authTestResult.textContent =
@@ -574,6 +576,16 @@ async function loginWithLine(){
     liff.login();
   }else{
     await loadLineProfile();
+    // เข้าสู่ระบบและตรวจสอบสมาชิกอัตโนมัติ
+// เฉพาะเมื่อเปิดผ่าน LINE Mini App
+if (liff.isInClient()) {
+  const loginButton =
+    document.getElementById("siomcPatientAuthButton");
+
+  if (loginButton) {
+    loginButton.click();
+  }
+}
   }
 }
 
