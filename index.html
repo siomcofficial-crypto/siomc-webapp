@@ -352,7 +352,15 @@ th{color:var(--muted);font-weight:500}
     Prototype only — ไม่ใช่ระบบเวชระเบียนหรือระบบนัดหมายทางการ
   </div>
 </main>
+<script type="module">
+  import { supabase } from './supabase.js';
 
+  window.siomcSupabase = supabase;
+  console.log(
+  "SiOMC Supabase Client:",
+  supabase ? "READY" : "NOT READY"
+);
+</script>
 <script>
 const $ = id => document.getElementById(id);
 
