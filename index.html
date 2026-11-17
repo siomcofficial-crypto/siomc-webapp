@@ -408,9 +408,27 @@ authTestButton.addEventListener("click", async () => {
 
     if (error) throw error;
 
-    authTestResult.textContent = data.session
-      ? "SUCCESS: Supabase Session พร้อมใช้งาน"
-      : "FAILED: ไม่พบ Supabase Session";
+    if (!data.session) {
+  throw new Error("ไม่พบ Supabase Session");
+}
+
+const { data: memberResult, error: memberError } =
+  await supabase.rpc("register_line_member");
+
+if (memberError) {
+  throw memberError;
+}
+
+if (
+  memberResult?.success !== true ||
+  !memberResult.member_code
+) {
+  throw new Error("ไม่สามารถลงทะเบียนสมาชิกได้");
+}
+
+authTestResult.textContent = memberResult.created
+  ? `สมัครสมาชิกสำเร็จ รหัส ${memberResult.member_code}`
+  : `พบสมาชิกเดิม รหัส ${memberResult.member_code}`;
 
   } catch (error) {
     authTestResult.textContent =
