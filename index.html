@@ -523,6 +523,8 @@ async function initSiOMCLine(){
   try{
     await liff.init({liffId:LIFF_ID});
     const grantedScopes = await liff.permission.getGrantedAll();
+    const sdkVersion = liff.getVersion();
+const inLineApp = liff.isInClient();
 const contextScopes = liff.getContext()?.scope || [];
 const idToken = liff.getIDToken();
 
@@ -544,7 +546,9 @@ lineDebugBox.innerHTML = `
   LIFF initialized: สำเร็จ<br>
   LIFF scopes: ${contextScopes.join(", ")}<br>
   Granted scopes: ${grantedScopes.join(", ")}<br>
-  ID Token available: ${idToken ? "YES" : "NO"}
+SDK version: ${sdkVersion}<br>
+Opened inside LINE: ${inLineApp ? "YES" : "NO"}<br>
+ID Token available: ${idToken ? "YES" : "NO"}
 `;
 
 document.body.prepend(lineDebugBox);
