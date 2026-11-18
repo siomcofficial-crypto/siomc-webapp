@@ -162,7 +162,13 @@
   <script type="module">
     import { supabase } from "./supabase.js";
 
-    const LIFF_ID = "2012571121-sJssLsyF";
+    const isPublished =
+  new URLSearchParams(window.location.search)
+    .get("siomc_env") === "published";
+
+const LIFF_ID = isPublished
+  ? "2012571123-L7rxvVsg"
+  : "2012571121-sJssLsyF";
     const el = id => document.getElementById(id);
     let loginPromise = null;
 
