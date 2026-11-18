@@ -78,18 +78,120 @@
     .brand-mark { width:114px; height:98px; overflow:hidden; padding:4px; border-radius:13px; }
     .brand-mark img { width:100%; height:100%; display:block; object-fit:contain; }
     @media(max-width:430px) { .brand-mark { width:100px; height:87px; } }
+
+/* SiOMC Responsive Header */
+
+.top {
+  background: #123d5a;
+  color: white;
+  padding: 15px max(16px, calc((100% - 848px)/2));
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
+.brand-mark {
+  --mark-size: 70px;
+  display: block;
+  position: relative;
+  width: var(--mark-size);
+  height: var(--mark-size);
+  flex: 0 0 var(--mark-size);
+  overflow: hidden;
+  background: white;
+  border-radius: 14px;
+}
+
+/* แสดงเฉพาะสัญลักษณ์คนเดินจากภาพต้นฉบับ */
+.brand-mark img {
+  position: absolute;
+  width: calc(var(--mark-size) * 2.45);
+  max-width: none;
+  height: auto;
+  left: calc(var(--mark-size) * -0.69);
+  top: calc(var(--mark-size) * -0.12);
+}
+
+.brand-info {
+  display: block;
+  min-width: 0;
+}
+
+.brand-info strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: white;
+}
+
+.brand-info small {
+  display: block;
+  margin-top: 4px;
+  color: #d9e7ef;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .brand-mark {
+    --mark-size: 62px;
+  }
+
+  .brand-info strong {
+    font-size: 22px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .top {
+    padding: 12px 16px;
+  }
+
+  .brand {
+    gap: 11px;
+  }
+
+  .brand-mark {
+    --mark-size: 54px;
+    border-radius: 11px;
+  }
+
+  .brand-info strong {
+    font-size: 20px;
+  }
+
+  .brand-info small {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+}
+
   </style>
 </head>
 <body>
-  <header class="top">
-    <div class="brand">
-      <div class="brand-mark"><img src="./siomc-logo.jpg" alt="โลโก้ SiOMC" width="108" height="90"></div>
-      <div>
-        <strong>SiOMC</strong>
-        <small>Siriraj Obesity and Metabolic Center</small>
-      </div>
-    </div>
-  </header>
+  
+<header class="top">
+  <div class="brand">
+
+    <span class="brand-mark" aria-hidden="true">
+      <img src="./siomc-logo.jpg" alt="">
+    </span>
+
+    <span class="brand-info">
+      <strong>SiOMC</strong>
+      <small>Siriraj Obesity and Metabolic Center</small>
+    </span>
+
+  </div>
+</header>
+
 
   <main class="wrap">
     <div id="errorBox" class="error-box" role="alert"></div>
