@@ -167,13 +167,16 @@ th{color:var(--muted);font-weight:500}
 
         
 <div class="quick">
-  <button disabled
+  <button
+  type="button"
+  disabled
   style="opacity: 0.5; cursor: not-allowed;"
-  title="ระบบนัดหมายยังไม่เปิดให้บริการ">
-    <span class="ico">🗓️</span>
-    <b>นัดหมาย</b>
-    <small>ดูและส่งคำขอนัด</small>
-  </button>
+  title="ระบบนัดหมายยังไม่เปิดให้บริการ"
+>
+  <span class="ico">🗓️</span>
+  <b>นัดหมาย</b>
+  <small>ยังไม่เปิดให้บริการ</small>
+</button>
 
   <button onclick="window.location.href='./patient-weight.html'">
     <span class="ico">⚖️</span>
@@ -229,9 +232,17 @@ th{color:var(--muted);font-weight:500}
     </div>
 
     <div class="nav" id="patientNav">
-      <button class="active" data-panel="appointment" disabled
-      style="opacity: 0.5; cursor: not-allowed;"
-      title="ระบบนัดหมายยังไม่เปิดให้บริการ">นัดหมาย</button>
+     
+<button
+type="button"
+data-panel="appointment"
+disabled
+style="opacity: 0.5; cursor: not-allowed;"
+title="ระบบนัดหมายยังไม่เปิดให้บริการ"
+>
+นัดหมาย (ยังไม่เปิดให้บริการ)
+</button>
+
       <button data-panel="weight" onclick="window.location.href='./patient-weight.html?v=2'">น้ำหนัก</button>
       <button data-panel="learn" onclick="showPanel('learn')">ความรู้</button>
       <button data-panel="followup" onclick="showPanel('followup')">ติดตามหลังผ่าตัด</button>
