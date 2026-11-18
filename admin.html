@@ -7,6 +7,54 @@
   <title>SiOMC | Admin Dashboard</title>
   <link rel="stylesheet" href="./siomc-design.css">
   <link rel="stylesheet" href="./siomc-admin-theme.css">
+  
+<style>
+  /* SiOMC Admin Dashboard Header */
+  
+  body .main > .topbar {
+    background: linear-gradient(
+      115deg,
+      #123d5a 0%,
+      #1c6484 100%
+    ) !important;
+  
+    color: #ffffff !important;
+    border-bottom: none !important;
+    min-height: 130px;
+  
+    padding: 24px clamp(22px, 3.5vw, 45px) !important;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  body .main > .topbar h2 {
+    color: #ffffff !important;
+    font-size: 25px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  body .main > .topbar .role {
+    color: #dcecf5 !important;
+    font-size: 13px;
+  }
+  
+  /* Responsive สำหรับมือถือ */
+  @media (max-width: 700px) {
+    body .main > .topbar {
+      min-height: 105px;
+      padding: 18px 18px 18px 68px !important;
+    }
+  
+    body .main > .topbar h2 {
+      font-size: 21px;
+    }
+  }
+</style>    
 </head>
 <body class="siomc-admin">
   <div id="adminLoading" class="admin-loading" role="status" aria-live="polite">
