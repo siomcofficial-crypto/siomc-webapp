@@ -1,0 +1,171 @@
+/* SiOMC Admin UI — common theme for admin.html and staff-facing pages.
+   Load AFTER siomc-design.css. Applies only to body.siomc-admin.
+   Does not change patient-facing LINE Mini App screens. */
+
+.siomc-admin {
+  --admin-navy: var(--siomc-primary, #123d5a);
+  --admin-navy-light: var(--siomc-primary-light, #285875);
+  --admin-bg: var(--siomc-background, #f3f6f9);
+  --admin-card: var(--siomc-surface, #ffffff);
+  --admin-text: var(--siomc-text, #173b52);
+  --admin-muted: var(--siomc-text-muted, #71869a);
+  --admin-border: var(--siomc-border, #e1eaf1);
+  --admin-shadow: 0 4px 20px rgba(18, 61, 90, .055);
+  margin: 0;
+  min-height: 100vh;
+  background: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
+  font-family: var(--siomc-font, 'IBM Plex Sans Thai', sans-serif) !important;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.siomc-admin * { box-sizing: border-box; }
+.siomc-admin :is(button, input, textarea, select) { font: inherit; }
+.siomc-admin :is(h1, h2, h3, h4) { letter-spacing: -.02em; }
+
+/* Most staff pages have a top-level page header; the dashboard has .topbar. */
+.siomc-admin > header:not(.topbar) {
+  background: linear-gradient(115deg, #123d5a 0%, #1c6484 100%) !important;
+  color: #fff !important;
+  border-bottom: 0 !important;
+  padding: 23px clamp(18px, 4vw, 36px) !important;
+  box-shadow: 0 3px 15px rgba(18, 61, 90, .10);
+}
+.siomc-admin > header:not(.topbar) :is(h1, h2, h3) {
+  color: #fff !important;
+  margin-top: 0;
+}
+.siomc-admin > header:not(.topbar) :is(p, small) { color: #dcecf5 !important; }
+
+.siomc-admin :is(.card, .stat, .stat-card, .panel, .dashboard-card) {
+  background: var(--admin-card) !important;
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--admin-shadow);
+}
+.siomc-admin .stat { background: #fff !important; }
+.siomc-admin :is(.card, .stat, .stat-card, .panel) :is(h1, h2, h3) {
+  color: var(--admin-navy);
+}
+.siomc-admin :is(.muted, .count, .unit, .stat p, .stat-card p) { color: var(--admin-muted); }
+
+.siomc-admin :is(.quick-link, .view-button) {
+  border-radius: 12px;
+  transition: background-color .16s ease, border-color .16s ease;
+}
+.siomc-admin .quick-link {
+  background: #fbfdff;
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text);
+}
+.siomc-admin .quick-link:hover,
+.siomc-admin .quick-link:focus-visible {
+  background: #eef6fa;
+  border-color: #b5d3e1;
+}
+.siomc-admin .quick-link:focus-visible,
+.siomc-admin a:focus-visible,
+.siomc-admin button:focus-visible {
+  outline: 3px solid #8abed5;
+  outline-offset: 2px;
+}
+
+.siomc-admin :is(input, select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+  color: var(--admin-text);
+  border-color: var(--admin-border);
+}
+.siomc-admin :is(input[type="date"], input[type="time"], input[type="datetime-local"]) {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.siomc-admin :is(table thead th, th) {
+  background: #f7fafc;
+  color: var(--admin-navy);
+}
+.siomc-admin :is(.table-wrap, .table-responsive, .siomc-table-scroll) {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.siomc-admin :is(.notice, .note) { line-height: 1.75; }
+
+/* Shared navigation is created by admin-layout.js; keep its behavior intact. */
+.siomc-admin .siomc-shared-sidebar {
+  background: var(--admin-navy) !important;
+  font-family: var(--siomc-font, 'IBM Plex Sans Thai', sans-serif) !important;
+}
+.siomc-admin .siomc-shared-sidebar .siomc-menu-link:hover {
+  color: #fff;
+}
+
+/* admin.html page-specific layout */
+.siomc-admin .layout { min-height: 100vh; }
+.siomc-admin .main { min-width: 0; width: 100%; }
+.siomc-admin .topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 22px clamp(18px, 3vw, 36px);
+  border-bottom: 1px solid var(--admin-border);
+  background: #fff;
+}
+.siomc-admin .topbar h2 { color: var(--admin-navy); margin: 0; font-size: 21px; }
+.siomc-admin .topbar .role { font-size: 12px; color: var(--admin-muted); }
+.siomc-admin .content { max-width: 1340px; margin: auto; padding: 28px clamp(18px, 3vw, 36px) 50px; }
+.siomc-admin .welcome h1 { font-size: clamp(23px, 3vw, 30px); color: var(--admin-navy); margin: 0 0 7px; }
+.siomc-admin .welcome p { margin: 0 0 23px; color: var(--admin-muted); }
+.siomc-admin .admin-info {
+  border: 1px solid #d8e8f0;
+  background: #eef6fa;
+  color: #245670;
+  padding: 13px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  line-height: 1.65;
+}
+.siomc-admin .stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.siomc-admin .stat-card { padding: 20px; }
+.siomc-admin .stat-card p { font-size: 13px; margin: 0 0 9px; }
+.siomc-admin .stat-card h2 { font-size: 29px; margin: 0; }
+.siomc-admin .stat-card small { color: var(--admin-muted); display: block; margin-top: 6px; font-size: 11px; }
+.siomc-admin .panel { padding: 22px; margin-bottom: 20px; }
+.siomc-admin .panel h3 { margin: 0 0 16px; font-size: 18px; }
+.siomc-admin .quick-links { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+.siomc-admin .quick-link { display: block; padding: 17px; text-decoration: none; }
+.siomc-admin .quick-link strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.siomc-admin .quick-link span { font-size: 12px; color: var(--admin-muted); }
+.siomc-admin .admin-loading {
+  max-width: 420px;
+  margin: 18vh auto;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid var(--admin-border);
+  background: #fff;
+  text-align: center;
+  color: var(--admin-navy);
+}
+.siomc-admin [hidden] { display: none !important; }
+
+@media (max-width: 950px) {
+  .siomc-admin .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .siomc-admin .quick-links { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .siomc-admin .content { padding: 20px 16px 40px; }
+  .siomc-admin .topbar { padding: 18px 18px 18px 72px; min-height: 70px; }
+  .siomc-admin .quick-links { grid-template-columns: minmax(0, 1fr); }
+  .siomc-admin .stat-card, .siomc-admin .panel { padding: 16px; }
+  .siomc-admin .stat-card h2 { font-size: 24px; }
+}

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -6,305 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#123d5a">
   <title>SiOMC | Admin Dashboard</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f6f9;
-      color: #173b52;
-    }
-    .layout { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 245px;
-      background: #123d5a;
-      color: white;
-      padding: 28px 18px;
-    }
-    .brand {
-      padding: 0 12px 28px;
-      border-bottom: 1px solid #42627a;
-    }
-    .brand h2 { margin: 0 0 7px; font-size: 25px; }
-    .brand p { margin: 0; font-size: 12px; color: #c6d8e5; }
-    .menu { margin-top: 25px; }
-    .menu a {
-      display: block;
-      color: #e5eef4;
-      text-decoration: none;
-      padding: 13px 14px;
-      border-radius: 9px;
-      margin-bottom: 7px;
-      font-size: 14px;
-    }
-    .menu a.active, .menu a:hover {
-      background: #285875;
-      color: white;
-    }
-    .main { flex: 1; min-width: 0; }
-    .topbar {
-      background: white;
-      padding: 20px 30px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e5ebef;
-    }
-    .topbar h2 { margin: 0; font-size: 20px; }
-    .role { color: #688092; font-size: 13px; }
-    .content { padding: 30px; }
-    .welcome h1 { margin: 0 0 8px; font-size: 25px; }
-    .welcome p { color: #718596; margin: 0 0 25px; }
-    .notice {
-      padding: 13px 16px;
-      border-radius: 9px;
-      background: #fff7e5;
-      color: #80601c;
-      font-size: 13px;
-      margin-bottom: 22px;
-      line-height: 1.6;
-    }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 25px;
-    }
-    .stat-card, .panel {
-      background: white;
-      border: 1px solid #e8edf1;
-      border-radius: 13px;
-      padding: 21px;
-    }
-    .stat-card p { margin: 0 0 13px; color: #718596; font-size: 13px; }
-    .stat-card h2 { margin: 0; font-size: 28px; color: #123d5a; }
-    .panel { margin-bottom: 22px; }
-    .panel h3 { margin: 0 0 17px; font-size: 17px; }
-    .quick-links {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-    }
-    .quick-link {
-      display: block;
-      padding: 18px;
-      border: 1px solid #e4ebf0;
-      border-radius: 10px;
-      text-decoration: none;
-      color: #173b52;
-      background: #fbfdfe;
-    }
-    .quick-link strong { display: block; margin-bottom: 7px; }
-    .quick-link span { color: #718596; font-size: 12px; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 500px; }
-    th, td {
-      padding: 13px 10px;
-      text-align: left;
-      border-bottom: 1px solid #edf1f4;
-      font-size: 13px;
-    }
-    th { color: #718596; font-weight: 600; }
-    .tag {
-      display: inline-block;
-      background: #e8f3ed;
-      color: #28734b;
-      padding: 5px 9px;
-      border-radius: 20px;
-      font-size: 11px;
-    }
-    @media (max-width: 900px) {
-      .stats { grid-template-columns: repeat(2, 1fr); }
-      .quick-links { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 600px) {
-      .layout { display: block; }
-      .sidebar { width: 100%; padding: 18px; }
-      .menu { display: flex; overflow-x: auto; gap: 5px; }
-      .menu a { white-space: nowrap; }
-      .content { padding: 18px; }
-      .topbar { padding: 16px 18px; }
-      .stats { gap: 10px; }
-      .stat-card { padding: 15px; }
-      .stat-card h2 { font-size: 23px; }
-    }
-  </style>
   <link rel="stylesheet" href="./siomc-design.css">
+  <link rel="stylesheet" href="./siomc-admin-theme.css">
 </head>
-<body>
-  <div class="layout">
+<body class="siomc-admin">
+  <div id="adminLoading" class="admin-loading" role="status" aria-live="polite">
+    กำลังตรวจสอบสิทธิ์เจ้าหน้าที่ SiOMC...
+  </div>
+
+  <div class="layout" id="adminContent" hidden>
     <main class="main">
       <header class="topbar">
-        <h2>Dashboard</h2>
-        <div class="role">พื้นที่สำหรับเจ้าหน้าที่ SiOMC</div>
+        <h2>ภาพรวมระบบ SiOMC</h2>
+        <div id="adminRole" class="role">เจ้าหน้าที่ SiOMC</div>
       </header>
 
       <section class="content">
         <div class="welcome">
-          <h1>ภาพรวมระบบ SiOMC</h1>
-          <p>ระบบติดตามและดูแลสมาชิกด้านโรคอ้วนและเมตาบอลิก</p>
+          <h1>Admin Dashboard</h1>
+          <p>ศูนย์โรคอ้วนและเมตาบอลิกศิริราช · ระบบสำหรับบุคลากรที่ได้รับอนุญาต</p>
         </div>
 
-        <div class="notice">
-          ข้อมูลตัวอย่างสำหรับออกแบบหน้าจอเท่านั้น
-          ยังไม่ได้เชื่อมต่อฐานข้อมูลหรือข้อมูลผู้รับบริการจริง
+        <div class="admin-info" role="note">
+          ส่วนสรุปตัวเลขด้านล่างยังไม่ได้เชื่อมข้อมูลจริง จึงแสดงเป็นขีดไว้ก่อน
+          เพื่อไม่ให้ตัวเลขตัวอย่างถูกเข้าใจว่าเป็นข้อมูลผู้ป่วยจริง
         </div>
 
-        <section class="stats">
+        <section class="stats" aria-label="ภาพรวมการดำเนินงาน">
           <div class="stat-card">
             <p>สมาชิกทั้งหมด</p>
-            <h2>1,250</h2>
+            <h2>—</h2>
+            <small>รอเชื่อมข้อมูลจริง</small>
           </div>
           <div class="stat-card">
             <p>สมาชิกใหม่เดือนนี้</p>
-            <h2>86</h2>
+            <h2>—</h2>
+            <small>รอเชื่อมข้อมูลจริง</small>
           </div>
           <div class="stat-card">
             <p>สมาชิกที่ใช้งาน</p>
-            <h2>735</h2>
+            <h2>—</h2>
+            <small>รอเชื่อมข้อมูลจริง</small>
           </div>
           <div class="stat-card">
-            <p>รอติดตาม</p>
-            <h2>42</h2>
+            <p>รายการรอติดตาม</p>
+            <h2>—</h2>
+            <small>รอเชื่อมข้อมูลจริง</small>
           </div>
         </section>
 
         <section class="panel">
           <h3>เมนูการทำงาน</h3>
           <div class="quick-links">
-            <a class="quick-link" href="members.html">
+            <a class="quick-link" href="./members.html">
               <strong>จัดการสมาชิก</strong>
-              <span>ค้นหาและดูข้อมูลสมาชิก</span>
+              <span>ดูรายชื่อและจัดการข้อมูลสมาชิก</span>
             </a>
-            <a class="quick-link" href="weight.html">
+            <a class="quick-link" href="./weight.html">
               <strong>ติดตามน้ำหนัก</strong>
-              <span>ดูแนวโน้มและเป้าหมายน้ำหนัก</span>
+              <span>ตรวจสอบแนวโน้มและประวัติน้ำหนัก</span>
             </a>
-            <a class="quick-link" href="nutrition.html">
+            <a class="quick-link" href="./nutrition.html">
               <strong>ติดตามโภชนาการ</strong>
-              <span>ดูบันทึกอาหารและพลังงาน</span>
+              <span>ดูประวัติอาหารและพลังงานที่บันทึก</span>
             </a>
-            <a class="quick-link" href="assessment.html">
+            <a class="quick-link" href="./assessment.html">
               <strong>ประเมินทางคลินิก</strong>
-              <span>บันทึกการประเมินและคำแนะนำ</span>
+              <span>แบบประเมินและข้อมูลที่ใช้ติดตามการดูแล</span>
             </a>
-            <a class="quick-link" href="learning.html">
-              <strong>จัดการบทเรียน</strong>
-              <span>เพิ่มและแก้ไขเนื้อหาความรู้</span>
+            <a class="quick-link" href="./learning.html">
+              <strong>จัดการคลังความรู้</strong>
+              <span>จัดเตรียมเนื้อหาความรู้สำหรับผู้ป่วย</span>
             </a>
-            <a class="quick-link" href="staff.html">
+            <a class="quick-link" href="./staff.html">
               <strong>จัดการเจ้าหน้าที่</strong>
-              <span>เตรียมระบบบัญชีและสิทธิ์การใช้งาน</span>
+              <span>ดูบัญชีเจ้าหน้าที่และสิทธิ์การใช้งาน</span>
             </a>
-          </div>
-        </section>
-
-        <section class="panel" id="members">
-          <h3>ตัวอย่างรายการสมาชิก</h3>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>รหัสสมาชิก</th>
-                  <th>ประเภทสมาชิก</th>
-                  <th>สถานะ</th>
-                  <th>การดำเนินการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>SIOMC-00001</td>
-                  <td>สมาชิกทั่วไป</td>
-                  <td><span class="tag">ใช้งาน</span></td>
-                  <td>รอเชื่อมระบบ</td>
-                </tr>
-                <tr>
-                  <td>SIOMC-00002</td>
-                  <td>สมาชิกทั่วไป</td>
-                  <td><span class="tag">ใช้งาน</span></td>
-                  <td>รอเชื่อมระบบ</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </section>
       </section>
     </main>
   </div>
-  
-<script type="module">
+
+  <script type="module">
     import { supabase } from './supabase.js';
     import { renderAdminSidebar } from './admin-layout.js';
-  
-    
-const roleLabels = {
-  admin: 'Super Admin',
-  system_admin: 'System Admin',
-  doctor: 'แพทย์',
-  nurse: 'พยาบาล',
-  dietitian: 'นักกำหนดอาหาร'
-};
 
-  
+    const roleLabels = {
+      admin: 'Super Admin',
+      system_admin: 'System Admin',
+      doctor: 'แพทย์',
+      nurse: 'พยาบาล',
+      dietitian: 'นักกำหนดอาหาร'
+    };
+
+    const allowedRoles = Object.keys(roleLabels);
+
     async function checkAccess() {
       try {
-        // ตรวจสอบว่ามีผู้ใช้เข้าสู่ระบบหรือไม่
-        const { data: { user }, error: authError } =
-          await supabase.auth.getUser();
-  
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError || !user) {
           window.location.replace('./admin-login.html');
           return;
         }
-  
-        // ตรวจสอบบทบาทและสถานะบัญชีจาก profiles
-        const { data: profile, error: profileError } =
-          await supabase
-            .from('profiles')
-            .select('full_name, role, is_active')
-            .eq('id', user.id)
-            .maybeSingle();
-  
-        
-const allowedRoles = [
-  'admin',
-  'system_admin',
-  'doctor',
-  'nurse',
-  'dietitian'
-];
 
-  
-        if (
-          profileError ||
-          !profile ||
-          profile.is_active !== true ||
-          !allowedRoles.includes(profile.role)
-        ) {
-          await supabase.auth.signOut();
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, role, is_active')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError || !profile || profile.is_active !== true ||
+            !allowedRoles.includes(profile.role)) {
+          // Keep the user session intact; other pages may be used by a LINE patient.
           window.location.replace('./admin-login.html');
           return;
         }
-  
-        // แสดงชื่อและบทบาทของผู้ใช้งาน
-        const roleElement = document.querySelector('.role');
-  
-        if (roleElement) {
-          roleElement.textContent =
-            `${profile.full_name || user.email} | ${roleLabels[profile.role]}`;
-        }
-  
-        // แสดงเมนู Admin Portal
+
+        const displayName = profile.full_name || user.email || 'เจ้าหน้าที่';
+        document.getElementById('adminRole').textContent =
+          `${displayName} · ${roleLabels[profile.role]}`;
+
         renderAdminSidebar('admin');
-  
+        document.getElementById('adminLoading').hidden = true;
+        document.getElementById('adminContent').hidden = false;
       } catch (error) {
         console.error('Dashboard access error:', error);
         window.location.replace('./admin-login.html');
       }
     }
-  
+
     checkAccess();
   </script>
-  
 </body>
 </html>
