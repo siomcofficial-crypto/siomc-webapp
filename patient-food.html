@@ -56,6 +56,56 @@
     .empty { font-size: 14px; color: #718596; text-align: center; padding: 18px; }
     .footnote { color: #657b87; font-size: 12px; line-height: 1.7; }
     @media(max-width: 520px) { .panel { padding: 16px; } .grid { grid-template-columns: 1fr; gap: 0; } }
+
+/* SiOMC: ปรับช่องกรอกวันที่สำหรับมือถือ iPhone */
+
+main,
+.panel,
+form,
+.row,
+.row > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+#mealDate,
+#historyDate {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 16px;
+  padding: 12px;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+/* มือถือ: ให้วันที่และมื้ออาหารเรียงลงมา */
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .row > div {
+    width: 100%;
+    min-width: 0;
+  }
+
+  #mealDate,
+  #historyDate {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
   </style>
 </head>
 <body>
