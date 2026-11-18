@@ -173,6 +173,30 @@
   }
 }
 
+/* SiOMC Responsive Feature Cards */
+
+.feature {
+  min-height: 136px;
+  padding: 16px;
+  gap: 6px;
+}
+
+.feature.wide {
+  min-height: 84px;
+}
+
+@media (max-width: 430px) {
+  .feature {
+    min-height: 120px;
+    padding: 13px;
+    gap: 5px;
+  }
+
+  .feature.wide {
+    min-height: 80px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -286,6 +310,26 @@ if (isPublished) {
 }
 
     const el = id => document.getElementById(id);
+
+function formatThaiDate(isoDate) {
+  if (!isoDate) return "—";
+
+  const [year, month, day] = isoDate
+    .split("-")
+    .map(Number);
+
+  const date = new Date(
+    Date.UTC(year, month - 1, day)
+  );
+
+  return new Intl.DateTimeFormat("th-TH-u-nu-latn", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
     let loginPromise = null;
 
     function setStatus(message, state = "normal") {
@@ -341,7 +385,7 @@ if (isPublished) {
       } else if (weights.data?.length) {
         const entry = weights.data[0];
         el("latestWeight").textContent = `${Number(entry.weight_kg).toLocaleString("th-TH", { maximumFractionDigits: 2 })} กก.`;
-        el("latestWeightDate").textContent = `วันที่บันทึก ${entry.recorded_at}`;
+        el("latestWeightDate").textContent = `วันที่บันทึก ${formatThaiDate(entry.recorded_at)}`;
       } else {
         el("latestWeightDate").textContent = "ยังไม่มีรายการบันทึก";
       }
