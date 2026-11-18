@@ -222,4 +222,65 @@ a:hover {
   .siomc-table-scroll td {
     white-space: nowrap;
   }
+
+/* ======================================
+   SiOMC GLOBAL MOBILE FORM FIX
+   แก้ช่องกรอกข้อมูลล้นขอบบนมือถือ
+   ====================================== */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ป้องกันองค์ประกอบภายในกรอบดันความกว้าง */
+main,
+section,
+form,
+.field,
+.grid > *,
+.card,
+.panel {
+  min-width: 0;
+}
+
+/* ช่องกรอกข้อมูลทุกประเภท */
+input,
+select,
+textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* ช่องเลือกวันที่และเวลาบน iPhone */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  -webkit-min-logical-width: 0;
+  font-size: 16px;
+}
+
+/* แก้ข้อความวันที่ภาษาไทยที่ยาว */
+input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
+}
+
+input[type="date"]::-webkit-datetime-edit {
+  min-width: 0;
+}
+
+/* การจัดวางบนมือถือ */
+@media (max-width: 600px) {
+  .field,
+  .grid > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
   
