@@ -187,6 +187,12 @@ input[type="date"]::-webkit-date-and-time-value {
 
   <script type="module">
     import { supabase } from './supabase.js';
+    // SiOMC Published: preserve environment on back link
+    const isPublished = new URLSearchParams(window.location.search)
+      .get('siomc_env') === 'published';
+    document.querySelector('.back').href = isPublished
+      ? './index.html?siomc_env=published'
+      : './index.html';
 
     const $ = (id) => document.getElementById(id);
     const status = $('status');

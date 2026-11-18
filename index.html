@@ -73,12 +73,17 @@
       .feature-description { font-size:11px; }
       .summary-value { font-size:22px; }
     }
+  
+    /* SiOMC official uploaded logo in patient Dashboard header */
+    .brand-mark { width:114px; height:98px; overflow:hidden; padding:4px; border-radius:13px; }
+    .brand-mark img { width:100%; height:100%; display:block; object-fit:contain; }
+    @media(max-width:430px) { .brand-mark { width:100px; height:87px; } }
   </style>
 </head>
 <body>
   <header class="top">
     <div class="brand">
-      <div class="brand-mark" aria-hidden="true">🦋</div>
+      <div class="brand-mark"><img src="./siomc-logo.jpg" alt="โลโก้ SiOMC" width="108" height="90"></div>
       <div>
         <strong>SiOMC</strong>
         <small>Siriraj Obesity and Metabolic Center</small>
