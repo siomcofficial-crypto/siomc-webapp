@@ -169,6 +169,15 @@
 const LIFF_ID = isPublished
   ? "2012571123-L7rxvVsg"
   : "2012571121-sJssLsyF";
+
+if (isPublished) {
+  document.getElementById("weightLink").href =
+    "./patient-weight.html?v=2&siomc_env=published";
+
+  document.getElementById("foodLink").href =
+    "./patient-food.html?v=3&siomc_env=published";
+}
+
     const el = id => document.getElementById(id);
     let loginPromise = null;
 
