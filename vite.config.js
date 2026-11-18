@@ -7,7 +7,6 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        patientFood: resolve(__dirname, 'patient-food.html'),
         main: resolve(__dirname, 'index.html'),
         login: resolve(__dirname, 'login.html'),
         admin: resolve(__dirname, 'admin.html'),
@@ -15,7 +14,7 @@ export default defineConfig({
         setPassword: resolve(__dirname, 'set-password.html'),
         members: resolve(__dirname, 'members.html'),
         weight: resolve(__dirname, 'weight.html'),
-        patientWeight: resolve(__dirname, 'patient-weight.html'),
+        patientWeight: resolve(__dirname, 'patient-weight.html'),patientFood: resolve(__dirname, 'patient-food.html'),
         nutrition: resolve(__dirname, 'nutrition.html'),
         assessment: resolve(__dirname, 'assessment.html'),
         learning: resolve(__dirname, 'learning.html'),
