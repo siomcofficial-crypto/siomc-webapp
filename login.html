@@ -15,7 +15,25 @@
     .shell{width:min(100%,950px);display:grid;grid-template-columns:.9fr 1.1fr;background:#fff;border:1px solid var(--l);border-radius:25px;overflow:hidden;box-shadow:0 18px 55px #153f5b18}
     .brand{background:linear-gradient(150deg,#153f5b,#19789b);color:#fff;padding:40px 32px;display:flex;flex-direction:column;justify-content:space-between;min-height:580px}
     .logo{display:flex;align-items:center;gap:12px}
-    .butterfly{width:52px;height:52px;background:#fff;color:var(--b);border-radius:16px;display:grid;place-items:center;font-size:28px}
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      background: #fff;
+      border-radius: 13px;
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-logo img {
+      position: absolute;
+      width: 127px;
+      max-width: none;
+      height: auto;
+      left: -36px;
+      top: -6px;
+      display: block;
+    }
+
     .logo strong{font-size:25px}.logo small{display:block;font-size:11px;color:#d5eaf2}
     .brand h1{font-size:30px;line-height:1.35;margin:48px 0 10px}
     .brand p{color:#d5eaf2;font-size:14px;line-height:1.8}
@@ -45,7 +63,15 @@
   <div class="shell">
     <aside class="brand">
       <div>
-        <div class="logo"><div class="butterfly" aria-hidden="true">🦋</div><div><strong>SiOMC</strong><small>Siriraj Obesity and Metabolic Center</small></div></div>
+        <div class="logo">
+          <div class="brand-logo">
+            <img src="./siomc-logo.jpg" alt="โลโก้ศูนย์ SiOMC">
+          </div>
+          <div>
+            <strong>SiOMC</strong>
+            <small>Siriraj Obesity and Metabolic Center</small>
+          </div>
+        </div>
         <h1>Lose weight,<br>Change lives</h1>
         <p>แพลตฟอร์มดิจิทัลเพื่อสนับสนุนการดูแลผู้ป่วยโรคอ้วนอย่างต่อเนื่อง โดยทีมสหสาขาวิชาชีพ</p>
         <div class="slogan">CARE • CONNECT • TRANSFORM</div>
