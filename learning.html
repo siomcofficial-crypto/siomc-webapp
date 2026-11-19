@@ -1,89 +1,422 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#123d5a">
-  <title>SiOMC | คลังความรู้</title>
-  <link rel="stylesheet" href="./siomc-design.css"><link rel="stylesheet" href="./siomc-admin-theme.css"><link rel="stylesheet" href="./admin-workspace.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | จัดการคลังความรู้</title>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <link rel="stylesheet" href="./siomc-admin-theme.css">
+  <link rel="stylesheet" href="./admin-workspace.css">
+  <style>
+    .siomc-admin .learning-headline{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .siomc-admin .learning-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .siomc-admin .learning-field{min-width:0}
+    .siomc-admin .learning-field.full{grid-column:1/-1}
+    .siomc-admin .learning-field label{display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#365d77}
+    .siomc-admin .learning-field input,.siomc-admin .learning-field select,.siomc-admin .learning-field textarea{
+      box-sizing:border-box;width:100%;padding:11px 12px;border:1px solid #d5e3eb;border-radius:9px;background:white;
+      color:#123d5a;font:inherit;font-size:14px
+    }
+    .siomc-admin .learning-field textarea{min-height:165px;resize:vertical;line-height:1.7}
+    .siomc-admin .learning-field input:focus,.siomc-admin .learning-field select:focus,.siomc-admin .learning-field textarea:focus{
+      outline:2px solid #69a7bd;outline-offset:1px
+    }
+    .siomc-admin .learning-buttons{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+    .siomc-admin .learning-button{border:1px solid #cadde8;border-radius:9px;padding:9px 13px;background:#f5f9fb;color:#123d5a;cursor:pointer;font:inherit;font-size:13px;font-weight:600;min-height:40px}
+    .siomc-admin .learning-button.primary{background:#123d5a;border-color:#123d5a;color:#fff}
+    .siomc-admin .learning-button.danger{background:#fff5f5;border-color:#edc9c9;color:#9b3030}
+    .siomc-admin .learning-button:disabled{opacity:.55;cursor:wait}
+    .siomc-admin .learning-button:hover:not(:disabled){filter:brightness(.95)}
+    .siomc-admin .learning-tag{display:inline-block;border-radius:100px;padding:5px 9px;font-size:12px;white-space:nowrap}
+    .siomc-admin .learning-tag.published{background:#e7f5ef;color:#24674a}
+    .siomc-admin .learning-tag.draft{background:#fff3d8;color:#80591a}
+    .siomc-admin .learning-row-actions{display:flex;gap:6px;flex-wrap:wrap}
+    .siomc-admin .learning-row-actions .learning-button{padding:6px 9px;min-height:34px;white-space:nowrap}
+    .siomc-admin .learning-muted{color:#71869a;font-size:12px}
+    .siomc-admin .learning-toolbar{display:grid;grid-template-columns:minmax(220px,2fr) minmax(175px,1fr);gap:12px;align-items:end}
+    .siomc-admin .learning-toolbar label{display:block;color:#587488;font-size:13px;margin-bottom:6px}
+    .siomc-admin .learning-toolbar input,.siomc-admin .learning-toolbar select{width:100%;height:44px;border:1px solid #d5e3eb;background:white;border-radius:9px;padding:9px 12px;box-sizing:border-box}
+    .siomc-admin .learning-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .siomc-admin .learning-a{color:#1c6484;text-decoration:underline;overflow-wrap:anywhere}
+    .siomc-admin [hidden]{display:none!important}
+    @media(max-width:700px){
+      .siomc-admin .learning-form-grid,.siomc-admin .learning-toolbar{grid-template-columns:1fr}
+      .siomc-admin .learning-buttons{align-items:stretch}
+      .siomc-admin .learning-buttons .learning-button{flex:1}
+    }
+  </style>
 </head>
 <body class="siomc-admin">
   <div class="workspace-message" id="accessMessage" role="status" aria-live="polite">กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...</div>
   <div id="workspace" hidden>
-    <header class="workspace-top"><h2>SiOMC Admin Portal</h2><p>Knowledge Library | ตรวจสอบเนื้อหาความรู้จริงจากฐานข้อมูล</p></header>
+    <header class="workspace-top">
+      <h2>SiOMC Admin Portal</h2>
+      <p>Knowledge Library | เพิ่ม แก้ไข เผยแพร่ และลบเนื้อหาความรู้</p>
+    </header>
     <main class="workspace-page">
-      <div class="workspace-heading"><h1>คลังความรู้ SiOMC</h1><p>รายการบทความและเนื้อหาจาก Supabase</p></div>
-      <div class="workspace-message warning">โหมดอ่านข้อมูลอย่างเดียว: ปิดปุ่มเพิ่ม แก้ไข เผยแพร่ และลบข้อมูลตัวอย่างเดิม เพราะไฟล์โครงการไม่มี SQL schema ของ <code>learning_contents</code> จึงยังไม่ปลอดภัยที่จะเปิดการเขียนข้อมูลจริง</div>
-      <section class="workspace-metrics" aria-label="สรุปรายการความรู้">
-        <div class="workspace-metric"><span>เนื้อหาที่โหลดได้</span><strong id="totalCount">—</strong></div>
+      <div class="workspace-heading learning-headline">
+        <div>
+          <h1>จัดการคลังความรู้</h1>
+          <p>เนื้อหาจัดเก็บจริงใน Supabase ตาราง learning_contents</p>
+        </div>
+        <button class="learning-button primary" type="button" id="newContentButton">+ เพิ่มเนื้อหา</button>
+      </div>
+
+      <section class="workspace-metrics" aria-label="จำนวนเนื้อหาความรู้">
+        <div class="workspace-metric"><span>เนื้อหาทั้งหมด</span><strong id="totalCount">—</strong></div>
         <div class="workspace-metric"><span>เผยแพร่แล้ว</span><strong id="publishedCount">—</strong></div>
         <div class="workspace-metric"><span>ฉบับร่าง</span><strong id="draftCount">—</strong></div>
       </section>
-      <section class="workspace-panel">
-        <div class="workspace-fields"><div><label for="search">ค้นหาบทความ</label><input id="search" type="search" maxlength="80" placeholder="ค้นชื่อหรือหมวดหมู่..."></div><div><label for="statusFilter">สถานะ</label><select id="statusFilter"><option value="">ทุกสถานะ</option><option value="published">เผยแพร่</option><option value="draft">ฉบับร่าง</option><option value="unknown">ไม่ทราบสถานะ</option></select></div></div>
-        <div id="statusMessage" class="workspace-message" role="status" aria-live="polite">กำลังโหลดเนื้อหาความรู้...</div>
+
+      <section class="workspace-panel" id="editorPanel" aria-labelledby="formHeading">
+        <div class="learning-headline">
+          <h2 id="formHeading">เพิ่มเนื้อหาความรู้</h2>
+          <span class="learning-tag draft" id="formStatus">บันทึกใหม่เป็นฉบับร่าง</span>
+        </div>
+        <form id="learningForm">
+          <div class="learning-form-grid">
+            <div class="learning-field full">
+              <label for="contentTitle">ชื่อบทความ / ชื่อสื่อความรู้ *</label>
+              <input id="contentTitle" type="text" maxlength="200" required placeholder="เช่น แนวทางการเลือกอาหารเพื่อสุขภาพ" autocomplete="off">
+            </div>
+            <div class="learning-field">
+              <label for="contentCategory">หมวดหมู่ *</label>
+              <input id="contentCategory" type="text" list="learningCategories" maxlength="100" required placeholder="เลือกหรือพิมพ์หมวดหมู่">
+              <datalist id="learningCategories">
+                <option value="ความรู้เกี่ยวกับโรคอ้วน"></option>
+                <option value="โภชนาการและอาหาร"></option>
+                <option value="การออกกำลังกาย"></option>
+                <option value="การเตรียมตัวก่อนผ่าตัด"></option>
+                <option value="การดูแลหลังผ่าตัด"></option>
+                <option value="พฤติกรรมสุขภาพ"></option>
+              </datalist>
+            </div>
+            <div class="learning-field">
+              <label for="contentType">ประเภทเนื้อหา *</label>
+              <select id="contentType" required>
+                <option value="บทความ">บทความ</option>
+                <option value="วิดีโอ">วิดีโอ</option>
+                <option value="บทเรียน">บทเรียนออนไลน์</option>
+              </select>
+            </div>
+            <div class="learning-field full">
+              <label for="contentBody">รายละเอียด / เนื้อหาบทความ</label>
+              <textarea id="contentBody" maxlength="50000" placeholder="พิมพ์ข้อความความรู้ที่ต้องการเผยแพร่..."></textarea>
+              <p class="workspace-hint">ต้องมีเนื้อหาข้อความหรือ URL สื่ออย่างน้อยหนึ่งอย่าง โปรดหลีกเลี่ยงการใส่ข้อมูลระบุตัวผู้ป่วย</p>
+            </div>
+            <div class="learning-field full">
+              <label for="mediaPath">URL สื่อประกอบ (ไม่บังคับ)</label>
+              <input id="mediaPath" type="url" maxlength="2000" placeholder="https://example.org/video-or-document">
+              <p class="workspace-hint">รองรับลิงก์ HTTPS เท่านั้น เวอร์ชันนี้ยังไม่อัปโหลดไฟล์เข้า Storage โดยตรง</p>
+            </div>
+          </div>
+          <div class="learning-buttons" style="margin-top:18px">
+            <button class="learning-button primary" id="saveButton" type="submit">บันทึกฉบับร่าง</button>
+            <button class="learning-button" id="cancelEditButton" type="button">ล้างฟอร์ม</button>
+          </div>
+        </form>
+        <div class="workspace-message" id="formMessage" role="status" aria-live="polite" hidden></div>
       </section>
-      <section class="workspace-panel"><h2>รายการความรู้</h2><div class="workspace-table"><table><thead><tr><th>ชื่อบทความ</th><th>หมวดหมู่</th><th>ประเภท</th><th>สถานะ</th><th>รายละเอียด</th></tr></thead><tbody id="contentRows"></tbody></table></div><p class="workspace-hint">แสดงสูงสุด 200 รายการจากฐานข้อมูลจริง หากสถานะไม่ตรงกับค่าที่ระบบรองรับจะแสดง “ไม่ทราบสถานะ”</p></section>
+
+      <section class="workspace-panel">
+        <h2>รายการเนื้อหาความรู้</h2>
+        <div class="learning-toolbar">
+          <div>
+            <label for="search">ค้นหาชื่อบทความหรือหมวดหมู่</label>
+            <input id="search" type="search" maxlength="80" placeholder="ค้นหา..." autocomplete="off">
+          </div>
+          <div>
+            <label for="statusFilter">สถานะ</label>
+            <select id="statusFilter">
+              <option value="">ทุกสถานะ</option>
+              <option value="published">เผยแพร่แล้ว</option>
+              <option value="draft">ฉบับร่าง</option>
+            </select>
+          </div>
+        </div>
+        <div class="workspace-message" id="statusMessage" role="status" aria-live="polite" hidden></div>
+        <div class="workspace-table" style="margin-top:14px">
+          <table>
+            <thead><tr><th>ชื่อเนื้อหา</th><th>หมวดหมู่ / ประเภท</th><th>สถานะ</th><th>อัปเดตล่าสุด</th><th>จัดการ</th></tr></thead>
+            <tbody id="contentRows"><tr><td colspan="5">กำลังโหลดข้อมูล...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="learning-pager">
+          <span class="learning-muted" id="pageLabel">—</span>
+          <div class="learning-buttons">
+            <button class="learning-button" type="button" id="prevPageButton">ก่อนหน้า</button>
+            <button class="learning-button" type="button" id="nextPageButton">ถัดไป</button>
+          </div>
+        </div>
+        <p class="workspace-hint">การลบจะลบรายการในฐานข้อมูลจริง ต้องยืนยันก่อนทุกครั้ง หากไม่ต้องการให้สมาชิกเห็นชั่วคราว ให้เลือก “ยกเลิกเผยแพร่” แทน</p>
+      </section>
     </main>
   </div>
+
   <script type="module">
     import { supabase } from './supabase.js';
-    import { guardWorkspace, formatNumber, appendCell, emptyTable, setMessage } from './admin-workspace.js';
+    import { guardWorkspace, formatNumber, formatThaiDate, appendCell, emptyTable, setMessage } from './admin-workspace.js';
+
     const $ = id => document.getElementById(id);
-    let contents = [];
-    const field = (row, keys) => {
-      for (const key of keys) if (row[key] !== undefined && row[key] !== null) return row[key];
-      return null;
-    };
-    const normalizeStatus = row => {
-      const publishedFlag = field(row, ['is_published','published']);
-      if (typeof publishedFlag === 'boolean') return publishedFlag ? 'published' : 'draft';
-      const raw = String(field(row, ['status','publication_status']) || '').toLowerCase();
-      if (['published','active','เผยแพร่'].includes(raw)) return 'published';
-      if (['draft','unpublished','ฉบับร่าง'].includes(raw)) return 'draft';
-      return 'unknown';
-    };
-    const statusLabel = {published:'เผยแพร่', draft:'ฉบับร่าง', unknown:'ไม่ทราบสถานะ'};
-    function render() {
-      const keyword = $('search').value.trim().toLocaleLowerCase('th-TH');
-      const filter = $('statusFilter').value;
-      const display = contents.filter(row => {
-        const matched = `${field(row,['title','name']) || ''} ${field(row,['category','topic']) || ''}`
-          .toLocaleLowerCase('th-TH').includes(keyword);
-        return matched && (!filter || normalizeStatus(row) === filter);
-      });
+    const STAFF_ROLES = ['admin', 'doctor', 'nurse', 'dietitian'];
+    const PAGE_SIZE = 25;
+    let currentUser = null;
+    let records = [];
+    let currentPage = 0;
+    let totalMatches = 0;
+    let editing = null;
+    let busy = false;
+    let latestRequest = 0;
+    let searchDelay;
+
+    const statusLabel = status => status === 'published' ? 'เผยแพร่แล้ว' : status === 'draft' ? 'ฉบับร่าง' : 'ไม่ทราบสถานะ';
+
+    function setBusy(value) {
+      busy = value;
+      for (const button of document.querySelectorAll('.learning-button')) button.disabled = value;
+      if (!value) refreshPager();
+    }
+
+    function setEditor(mode, row = null) {
+      editing = row ? { ...row } : null;
+      $('learningForm').reset();
+      $('contentTitle').value = row?.title || '';
+      $('contentCategory').value = row?.category || '';
+      $('contentType').value = row?.content_type || 'บทความ';
+      $('contentBody').value = row?.content_body || '';
+      $('mediaPath').value = row?.media_path || '';
+      $('formHeading').textContent = mode === 'edit' ? 'แก้ไขเนื้อหาความรู้' : 'เพิ่มเนื้อหาความรู้';
+      $('saveButton').textContent = mode === 'edit' ? 'บันทึกการแก้ไข' : 'บันทึกฉบับร่าง';
+      $('cancelEditButton').textContent = mode === 'edit' ? 'ยกเลิกการแก้ไข' : 'ล้างฟอร์ม';
+      $('formStatus').textContent = row ? statusLabel(row.status) : 'บันทึกใหม่เป็นฉบับร่าง';
+      $('formStatus').className = `learning-tag ${row?.status === 'published' ? 'published' : 'draft'}`;
+      setMessage('formMessage', '');
+      if (mode === 'edit') $('editorPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getPayload() {
+      const title = $('contentTitle').value.trim();
+      const category = $('contentCategory').value.trim();
+      const content_type = $('contentType').value;
+      const content_body = $('contentBody').value.trim();
+      const link = $('mediaPath').value.trim();
+      if (!title || !category || !content_type) throw new Error('กรุณากรอกชื่อ หมวดหมู่ และประเภทเนื้อหา');
+      if (!content_body && !link) throw new Error('กรุณากรอกเนื้อหาหรือ URL สื่ออย่างน้อยหนึ่งอย่าง');
+      if (link) {
+        let url;
+        try { url = new URL(link); } catch { throw new Error('URL สื่อไม่ถูกต้อง'); }
+        if (url.protocol !== 'https:') throw new Error('URL สื่อต้องขึ้นต้นด้วย https://');
+      }
+      return { title, category, content_type, content_body: content_body || null, media_path: link || null };
+    }
+
+    function refreshPager() {
+      const from = totalMatches === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+      const to = Math.min(totalMatches, (currentPage + 1) * PAGE_SIZE);
+      $('pageLabel').textContent = totalMatches ? `แสดง ${formatNumber(from)}–${formatNumber(to)} จาก ${formatNumber(totalMatches)} รายการ` : 'ไม่มีรายการ';
+      $('prevPageButton').disabled = busy || currentPage === 0;
+      $('nextPageButton').disabled = busy || (currentPage + 1) * PAGE_SIZE >= totalMatches;
+    }
+
+    function createAction(label, action, variant = '') {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `learning-button ${variant}`.trim();
+      button.textContent = label;
+      button.disabled = busy;
+      button.addEventListener('click', action);
+      return button;
+    }
+
+    function drawRows() {
       const tbody = $('contentRows');
       tbody.replaceChildren();
-      for (const row of display) {
+      for (const row of records) {
         const tr = document.createElement('tr');
-        appendCell(tr, field(row,['title','name']) || '—');
-        appendCell(tr, field(row,['category','topic']) || '—');
-        appendCell(tr, field(row,['content_type','type','media_type']) || '—');
-        appendCell(tr, statusLabel[normalizeStatus(row)]);
-        const excerpt = field(row,['description','summary','body','content']);
-        appendCell(tr, typeof excerpt === 'string' ? excerpt.slice(0,220) : '—');
+        const nameCell = appendCell(tr, row.title || '—');
+        if (row.media_path && /^https:\/\//i.test(row.media_path)) {
+          const link = document.createElement('a');
+          link.href = row.media_path;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.className = 'learning-a';
+          link.textContent = 'เปิดสื่อ';
+          nameCell.append(document.createElement('br'), link);
+        }
+        const typeCell = appendCell(tr, row.category || '—');
+        const type = document.createElement('span');
+        type.className = 'learning-muted';
+        type.textContent = row.content_type || '—';
+        typeCell.append(document.createElement('br'), type);
+        const statusCell = appendCell(tr, '');
+        const status = document.createElement('span');
+        status.className = `learning-tag ${row.status === 'published' ? 'published' : 'draft'}`;
+        status.textContent = statusLabel(row.status);
+        statusCell.appendChild(status);
+        appendCell(tr, formatThaiDate(row.updated_at || row.created_at, true));
+        const actionsCell = appendCell(tr, '');
+        const actions = document.createElement('div');
+        actions.className = 'learning-row-actions';
+        actions.appendChild(createAction('แก้ไข', () => setEditor('edit', row)));
+        if (row.status === 'draft' || row.status === 'published') {
+          actions.appendChild(createAction(row.status === 'published' ? 'ยกเลิกเผยแพร่' : 'เผยแพร่', () => togglePublication(row)));
+        }
+        actions.appendChild(createAction('ลบ', () => deleteContent(row), 'danger'));
+        actionsCell.appendChild(actions);
         tbody.appendChild(tr);
       }
-      if (!display.length) emptyTable(tbody, 5, 'ไม่พบเนื้อหาตามเงื่อนไข');
+      if (!records.length) emptyTable(tbody, 5, 'ไม่พบเนื้อหาตามเงื่อนไข');
+      refreshPager();
     }
-    $('search').addEventListener('input', render);
-    $('statusFilter').addEventListener('change', render);
-    async function loadContents() {
+
+    async function loadStats() {
+      const countQuery = (status = '') => {
+        let q = supabase.from('learning_contents').select('id', { count: 'exact', head: true });
+        return status ? q.eq('status', status) : q;
+      };
+      const [all, published, draft] = await Promise.all([countQuery(), countQuery('published'), countQuery('draft')]);
+      if (all.error || published.error || draft.error) throw all.error || published.error || draft.error;
+      $('totalCount').textContent = formatNumber(all.count ?? 0);
+      $('publishedCount').textContent = formatNumber(published.count ?? 0);
+      $('draftCount').textContent = formatNumber(draft.count ?? 0);
+    }
+
+    async function loadRecords() {
+      const request = ++latestRequest;
       try {
-        const { data, error } = await supabase.from('learning_contents').select('*').limit(200);
+        let q = supabase.from('learning_contents')
+          .select('id,title,category,content_type,content_body,media_path,status,created_by,published_at,created_at,updated_at', { count: 'exact' })
+          .order('created_at', { ascending: false })
+          .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
+        const filter = $('statusFilter').value;
+        if (filter) q = q.eq('status', filter);
+        const keyword = $('search').value.trim()
+          .replace(/[^\p{L}\p{M}\p{N}\s.-]/gu, '').slice(0, 80);
+        if (keyword) q = q.or(`title.ilike.%${keyword}%,category.ilike.%${keyword}%`);
+        const { data, error, count } = await q;
+        if (request !== latestRequest) return;
         if (error) throw error;
-        contents = data || [];
-        $('totalCount').textContent = formatNumber(contents.length);
-        $('publishedCount').textContent = formatNumber(contents.filter(row => normalizeStatus(row)==='published').length);
-        $('draftCount').textContent = formatNumber(contents.filter(row => normalizeStatus(row)==='draft').length);
-        render();
-        setMessage('statusMessage', contents.length === 200 ? 'โหลดสูงสุด 200 รายการ จำนวนทั้งหมดจริงอาจมากกว่านี้' : '');
+        totalMatches = count ?? 0;
+        if (currentPage > 0 && totalMatches && currentPage * PAGE_SIZE >= totalMatches) {
+          currentPage = Math.max(0, Math.ceil(totalMatches / PAGE_SIZE) - 1);
+          return loadRecords();
+        }
+        records = data || [];
+        drawRows();
+        setMessage('statusMessage', '');
       } catch (error) {
-        console.error('SiOMC learning content query failed:', error.code, error.message);
-        emptyTable($('contentRows'), 5, 'ไม่สามารถโหลดเนื้อหาจาก Supabase ได้');
-        setMessage('statusMessage', 'ยังอ่าน learning_contents ไม่ได้ กรุณาตรวจสอบตารางและสิทธิ์ RLS ก่อน', 'error');
+        if (request !== latestRequest) return;
+        console.error('SiOMC learning list failed:', error);
+        records = [];
+        totalMatches = 0;
+        emptyTable($('contentRows'), 5, 'ไม่สามารถโหลดข้อมูลได้');
+        refreshPager();
+        setMessage('statusMessage', `อ่านข้อมูลไม่สำเร็จ: ${error.message || 'โปรดตรวจสอบสิทธิ์ Supabase'}`, 'error');
       }
     }
-    const access = await guardWorkspace('learning');
-    if (access) loadContents();
+
+    async function reload() {
+      await Promise.all([loadStats(), loadRecords()]);
+    }
+
+    async function saveContent(event) {
+      event.preventDefault();
+      if (busy || !currentUser) return;
+      let values;
+      try { values = getPayload(); }
+      catch (error) { setMessage('formMessage', error.message, 'error'); return; }
+      setBusy(true);
+      try {
+        if (editing) {
+          const { data, error } = await supabase.from('learning_contents')
+            .update({ ...values, updated_at: new Date().toISOString() })
+            .eq('id', editing.id).select('id').maybeSingle();
+          if (error) throw error;
+          if (!data) throw new Error('ไม่พบรายการที่แก้ไขได้ หรือสิทธิ์ RLS ไม่อนุญาต');
+          setEditor('new');
+          setMessage('formMessage', 'บันทึกการแก้ไขสำเร็จ', 'info');
+        } else {
+          const { data, error } = await supabase.from('learning_contents')
+            .insert({ ...values, status: 'draft', created_by: currentUser.id })
+            .select('id').maybeSingle();
+          if (error) throw error;
+          if (!data) throw new Error('ไม่สามารถยืนยันการบันทึกเนื้อหาได้');
+          setEditor('new');
+          setMessage('formMessage', 'เพิ่มเนื้อหาเป็นฉบับร่างสำเร็จ กด “เผยแพร่” เมื่อตรวจสอบความถูกต้องแล้ว', 'info');
+        }
+        currentPage = 0;
+        await reload();
+      } catch (error) {
+        console.error('SiOMC learning save failed:', error);
+        setMessage('formMessage', `บันทึกไม่สำเร็จ: ${error.message}`, 'error');
+      } finally { setBusy(false); }
+    }
+
+    async function togglePublication(row) {
+      if (busy) return;
+      const publish = row.status !== 'published';
+      if (publish && !row.content_body && !row.media_path) {
+        setMessage('statusMessage', 'ยังเผยแพร่ไม่ได้: เนื้อหานี้ไม่มีข้อความหรือ URL สื่อ', 'error');
+        return;
+      }
+      const nextStatus = publish ? 'published' : 'draft';
+      if (!window.confirm(`${publish ? 'เผยแพร่' : 'ยกเลิกเผยแพร่'}เนื้อหา “${row.title}” หรือไม่?`)) return;
+      setBusy(true);
+      try {
+        const { data, error } = await supabase.from('learning_contents')
+          .update({ status: nextStatus, published_at: publish ? new Date().toISOString() : null, updated_at: new Date().toISOString() })
+          .eq('id', row.id).eq('status', row.status).select('id').maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('เนื้อหาอาจถูกเปลี่ยนสถานะโดยผู้อื่น หรือสิทธิ์ไม่เพียงพอ');
+        if (editing?.id === row.id) setEditor('new');
+        currentPage = 0;
+        await reload();
+        setMessage('statusMessage', publish ? 'เผยแพร่เนื้อหาสำเร็จ' : 'เปลี่ยนกลับเป็นฉบับร่างแล้ว', 'info');
+      } catch (error) {
+        console.error('SiOMC publication update failed:', error);
+        setMessage('statusMessage', `เปลี่ยนสถานะไม่สำเร็จ: ${error.message}`, 'error');
+      } finally { setBusy(false); }
+    }
+
+    async function deleteContent(row) {
+      if (busy) return;
+      if (!window.confirm(`ยืนยันลบเนื้อหา “${row.title}” ออกจากฐานข้อมูลจริงหรือไม่?\n\nการลบนี้ไม่สามารถกู้คืนผ่านหน้านี้ได้`)) return;
+      setBusy(true);
+      try {
+        const { data, error } = await supabase.from('learning_contents')
+          .delete().eq('id', row.id).select('id').maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('ไม่พบรายการที่ลบได้ หรือสิทธิ์ RLS ไม่อนุญาต');
+        if (editing?.id === row.id) setEditor('new');
+        await reload();
+        setMessage('statusMessage', 'ลบเนื้อหาสำเร็จ', 'info');
+      } catch (error) {
+        console.error('SiOMC delete failed:', error);
+        setMessage('statusMessage', `ลบไม่สำเร็จ: ${error.message}`, 'error');
+      } finally { setBusy(false); }
+    }
+
+    $('learningForm').addEventListener('submit', saveContent);
+    $('newContentButton').addEventListener('click', () => { setEditor('new'); $('editorPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    $('cancelEditButton').addEventListener('click', () => setEditor('new'));
+    $('search').addEventListener('input', () => {
+      clearTimeout(searchDelay);
+      searchDelay = setTimeout(() => { currentPage = 0; loadRecords(); }, 250);
+    });
+    $('statusFilter').addEventListener('change', () => { currentPage = 0; loadRecords(); });
+    $('prevPageButton').addEventListener('click', () => { if (!busy && currentPage > 0) { currentPage -= 1; loadRecords(); } });
+    $('nextPageButton').addEventListener('click', () => { if (!busy && (currentPage + 1) * PAGE_SIZE < totalMatches) { currentPage += 1; loadRecords(); } });
+
+    const access = await guardWorkspace('learning', STAFF_ROLES);
+    if (access) {
+      currentUser = access.user;
+      try { await reload(); }
+      catch (error) {
+        console.error('SiOMC learning stats failed:', error);
+        setMessage('statusMessage', `อ่านสถิติไม่สำเร็จ: ${error.message}`, 'error');
+      }
+    }
   </script>
 </body>
 </html>
