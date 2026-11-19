@@ -132,6 +132,10 @@
               <strong>จัดการคลังความรู้</strong>
               <span>จัดเตรียมเนื้อหาความรู้สำหรับผู้ป่วย</span>
             </a>
+            <a class="quick-link" href="./care-team.html">
+              <strong>จัดการทีมรักษา</strong>
+              <span>มอบหมายผู้ป่วยให้แพทย์ พยาบาล หรือนักโภชนาการ</span>
+            </a>
             <a class="quick-link" href="./staff.html">
               <strong>จัดการเจ้าหน้าที่</strong>
               <span>ดูบัญชีเจ้าหน้าที่และสิทธิ์การใช้งาน</span>
@@ -258,7 +262,7 @@ window.location.replace('./login.html?role=staff');
           });
         } else if (['doctor','nurse','dietitian'].includes(profile.role)) {
           document.querySelectorAll('.quick-link').forEach(link => {
-            if (link.getAttribute('href') === './staff.html') link.hidden = true;
+            if (['./staff.html', './care-team.html'].includes(link.getAttribute('href'))) link.hidden = true;
           });
         }
         await loadMemberStats(profile.role);

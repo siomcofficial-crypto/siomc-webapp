@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | จัดการทีมรักษา</title>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <link rel="stylesheet" href="./siomc-admin-theme.css">
+  <link rel="stylesheet" href="./admin-workspace.css">
+  <style>
+    .siomc-admin .team-form{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+    .siomc-admin .team-form-field{min-width:0}
+    .siomc-admin .team-form-field label{display:block;color:#365d77;font-size:13px;font-weight:600;margin-bottom:7px}
+    .siomc-admin .team-form-field input,.siomc-admin .team-form-field select{width:100%;height:46px;border-radius:10px;padding:10px 12px;border:1px solid #d4e1e9;background:#fff;color:#123d5a;font:inherit;font-size:14px;min-width:0;box-sizing:border-box}
+    .siomc-admin .team-lookup{display:flex;gap:8px;align-items:stretch}
+    .siomc-admin .team-lookup input{flex:1;min-width:0}
+    .siomc-admin .team-button{font:inherit;font-size:14px;font-weight:600;min-height:44px;border:1px solid #cadce8;border-radius:10px;padding:9px 16px;cursor:pointer;background:#f0f7fa;color:#123d5a}
+    .siomc-admin .team-button.primary{background:#123d5a;color:#fff;border-color:#123d5a}
+    .siomc-admin .team-button:disabled{cursor:not-allowed;opacity:.6}
+    .siomc-admin .team-button:focus-visible,.siomc-admin select:focus-visible,.siomc-admin input:focus-visible{outline:2px solid #177da5;outline-offset:2px}
+    .siomc-admin .team-note{font-size:12px;line-height:1.7;color:#678397;margin:8px 0 0}
+    .siomc-admin .team-notice{margin:0 0 18px;padding:13px 15px;border-radius:10px;background:#edf7fc;border:1px solid #c9e5f2;color:#245b78;line-height:1.7}
+    .siomc-admin .team-notice.error{background:#fff1f0;border-color:#f1cdca;color:#9b2a28}
+    .siomc-admin .team-notice.ok{background:#edf9f3;border-color:#bfe3cc;color:#186341}
+    .siomc-admin .team-caption{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .siomc-admin .team-type{display:inline-block;padding:4px 9px;background:#edf5f8;color:#245b78;border-radius:20px;font-size:12px}
+    @media(max-width:750px){.siomc-admin .team-form{grid-template-columns:1fr}.siomc-admin .team-lookup{flex-wrap:wrap}.siomc-admin .team-lookup button{min-width:90px}}
+  </style>
+</head>
+<body class="siomc-admin">
+  <div id="accessMessage" class="workspace-message" role="status" aria-live="polite">กำลังตรวจสอบสิทธิ์ผู้ดูแลระบบ...</div>
+  <div id="protectedContent" hidden>
+    <header class="workspace-top">
+      <h2>SiOMC Admin Portal</h2>
+      <p>Patient Care Team | มอบหมายทีมรักษาให้ผู้ป่วย</p>
+    </header>
+    <main class="workspace-page">
+      <div class="workspace-heading">
+        <h1>จัดการทีมรักษา</h1>
+        <p>มอบหมายแพทย์ พยาบาล และนักโภชนาการให้ผู้ป่วยที่เปิดใช้งานอยู่</p>
+      </div>
+      <section class="workspace-panel">
+        <h2>มอบหมายเจ้าหน้าที่</h2>
+        <div id="actionNotice" class="team-notice" role="status" aria-live="polite">เลือกผู้ป่วยและเจ้าหน้าที่ที่ได้รับอนุญาตก่อนบันทึก</div>
+        <form id="assignmentForm">
+          <div class="team-form">
+            <div class="team-form-field">
+              <label for="patientSearch">ค้นหาผู้ป่วย (ชื่อหรือรหัสสมาชิก)</label>
+              <div class="team-lookup">
+                <input id="patientSearch" type="search" maxlength="80" autocomplete="off" placeholder="เช่น ชื่อ หรือรหัสสมาชิก">
+                <button id="patientFind" type="button" class="team-button">ค้นหา</button>
+              </div>
+              <label for="patientSelect" style="margin-top:10px">เลือกผู้ป่วย</label>
+              <select id="patientSelect" required><option value="">กำลังโหลดรายชื่อ...</option></select>
+              <p class="team-note" id="patientCount">แสดงสูงสุด 50 รายการต่อการค้นหา</p>
+            </div>
+            <div class="team-form-field">
+              <label for="staffSearch">ค้นหาเจ้าหน้าที่</label>
+              <div class="team-lookup">
+                <input id="staffSearch" type="search" maxlength="80" autocomplete="off" placeholder="ชื่อแพทย์ พยาบาล หรือนักโภชนาการ">
+                <button id="staffFind" type="button" class="team-button">ค้นหา</button>
+              </div>
+              <label for="staffSelect" style="margin-top:10px">เลือกเจ้าหน้าที่</label>
+              <select id="staffSelect" required><option value="">กำลังโหลดรายชื่อ...</option></select>
+              <p class="team-note" id="staffCount">เลือกได้เฉพาะเจ้าหน้าที่ที่เปิดใช้งานอยู่</p>
+            </div>
+          </div>
+          <p class="team-note">ระบบป้องกันการมอบหมายซ้ำ และตรวจสอบสิทธิ์ Admin ที่ฐานข้อมูลทุกครั้ง</p>
+          <button class="team-button primary" id="assignButton" type="submit" disabled>บันทึกการมอบหมายทีมรักษา</button>
+        </form>
+      </section>
+      <section class="workspace-panel">
+        <div class="team-caption">
+          <h2>ทีมรักษาที่มอบหมายแล้ว</h2>
+          <button id="refreshButton" type="button" class="team-button">โหลดรายการใหม่</button>
+        </div>
+        <p class="team-note">แสดงรายการที่ยังมีผลอยู่เท่านั้น การยุติการมอบหมายจะเพิ่มในขั้นตอนถัดไป</p>
+        <div class="workspace-table">
+          <table>
+            <thead><tr><th>ผู้ป่วย</th><th>เจ้าหน้าที่</th><th>บทบาท</th><th>วันที่มอบหมาย</th></tr></thead>
+            <tbody id="assignmentRows"><tr><td colspan="4" class="workspace-empty">กำลังโหลดรายการ...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { renderAdminSidebar } from './admin-layout.js';
+
+    const $ = id => document.getElementById(id);
+    const ROLE_LABEL = { doctor: 'แพทย์', nurse: 'พยาบาล', dietitian: 'นักโภชนาการ' };
+    const patientById = new Map();
+    const staffById = new Map();
+    let ready = false;
+    let submitting = false;
+
+    function status(message, kind = '') {
+      const notice = $('actionNotice');
+      notice.textContent = message;
+      notice.className = 'team-notice' + (kind ? ' ' + kind : '');
+    }
+    function accessDenied(message) {
+      $('accessMessage').textContent = message;
+      $('accessMessage').classList.add('error');
+    }
+    function setOptions(selectId, items, placeholder) {
+      const select = $(selectId);
+      const selected = select.value;
+      select.replaceChildren();
+      const blank = document.createElement('option');
+      blank.value = '';
+      blank.textContent = placeholder;
+      select.append(blank);
+      for (const item of items) {
+        const option = document.createElement('option');
+        option.value = item.entity_id;
+        option.textContent = item.display_name + ' (' + (item.detail || '—') + ')';
+        select.append(option);
+      }
+      if (items.some(item => item.entity_id === selected)) select.value = selected;
+      updateButton();
+    }
+    function updateButton() {
+      $('assignButton').disabled = !ready || submitting || !$('patientSelect').value || !$('staffSelect').value;
+    }
+    async function searchDirectory(kind) {
+      const isPatient = kind === 'patient';
+      const input = $(isPatient ? 'patientSearch' : 'staffSearch');
+      const button = $(isPatient ? 'patientFind' : 'staffFind');
+      button.disabled = true;
+      try {
+        const { data, error } = await supabase.rpc('siomc_care_team_directory', {
+          p_kind: kind,
+          p_search: input.value.trim()
+        });
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        const map = isPatient ? patientById : staffById;
+        for (const row of rows) map.set(row.entity_id, row);
+        setOptions(isPatient ? 'patientSelect' : 'staffSelect', rows, isPatient ? '— เลือกผู้ป่วย —' : '— เลือกเจ้าหน้าที่ —');
+        $(isPatient ? 'patientCount' : 'staffCount').textContent = `พบ ${rows.length} รายการ${rows.length === 50 ? ' (แสดงสูงสุด 50 รายการ กรุณาค้นหาให้เฉพาะเจาะจง)' : ''}`;
+      } catch (error) {
+        console.error('SiOMC directory error:', error?.message || error);
+        status('ค้นหารายชื่อไม่สำเร็จ กรุณาตรวจสอบสิทธิ์บัญชีและการเชื่อมต่อ Supabase', 'error');
+        setOptions(isPatient ? 'patientSelect' : 'staffSelect', [], 'ไม่สามารถโหลดรายชื่อ');
+      } finally {
+        button.disabled = false;
+      }
+    }
+    function cell(tr, value) {
+      const td = document.createElement('td');
+      td.textContent = value;
+      tr.append(td);
+    }
+    async function loadAssignments() {
+      $('refreshButton').disabled = true;
+      try {
+        const { data, error } = await supabase
+          .from('patient_care_team')
+          .select('id,member_id,staff_id,assigned_at')
+          .is('ended_at', null)
+          .order('assigned_at', { ascending: false })
+          .limit(200);
+        if (error) throw error;
+        const tbody = $('assignmentRows');
+        tbody.replaceChildren();
+        if (!data?.length) {
+          const tr = document.createElement('tr');
+          const td = document.createElement('td');
+          td.colSpan = 4;
+          td.className = 'workspace-empty';
+          td.textContent = 'ยังไม่มีรายการมอบหมายทีมรักษา';
+          tr.append(td);
+          tbody.append(tr);
+          return;
+        }
+        for (const a of data) {
+          const patient = patientById.get(a.member_id);
+          const staff = staffById.get(a.staff_id);
+          const tr = document.createElement('tr');
+          cell(tr, patient ? `${patient.display_name} (${patient.detail})` : 'ผู้ป่วย (ค้นหาชื่อจากช่องด้านบน)');
+          cell(tr, staff ? staff.display_name : 'เจ้าหน้าที่ (ค้นหาชื่อจากช่องด้านบน)');
+          cell(tr, staff ? (ROLE_LABEL[staff.detail] || staff.detail) : '—');
+          cell(tr, a.assigned_at ? new Date(a.assigned_at).toLocaleDateString('th-TH') : '—');
+          tbody.append(tr);
+        }
+        if (data.length === 200) status('รายการมอบหมายมีมากกว่า 200 รายการ หน้านี้แสดงเฉพาะ 200 รายการล่าสุด', '');
+      } catch (error) {
+        console.error('SiOMC assignments error:', error?.message || error);
+        $('assignmentRows').replaceChildren();
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 4;
+        td.className = 'workspace-empty';
+        td.textContent = 'อ่านรายการมอบหมายไม่สำเร็จ กรุณาตรวจสอบสิทธิ์ SELECT';
+        tr.append(td);
+        $('assignmentRows').append(tr);
+      } finally {
+        $('refreshButton').disabled = false;
+      }
+    }
+    async function submitAssignment(event) {
+      event.preventDefault();
+      if (submitting || !ready) return;
+      const memberId = $('patientSelect').value;
+      const staffId = $('staffSelect').value;
+      const patient = patientById.get(memberId);
+      const staff = staffById.get(staffId);
+      if (!patient || !staff) { status('กรุณาเลือกผู้ป่วยและเจ้าหน้าที่จากรายการที่ค้นพบ', 'error'); return; }
+      if (!confirm(`ยืนยันมอบหมาย ${staff.display_name} ให้ดูแล ${patient.display_name} ?`)) return;
+      submitting = true;
+      updateButton();
+      try {
+        const { error } = await supabase.rpc('siomc_assign_care_team', {
+          p_member_id: memberId,
+          p_staff_id: staffId
+        });
+        if (error) throw error;
+        status('บันทึกการมอบหมายสำเร็จ', 'ok');
+        await loadAssignments();
+      } catch (error) {
+        console.error('SiOMC assign care team error:', error?.message || error);
+        const message = error?.message || '';
+        status(message.includes('มีการมอบหมาย') ? 'มีการมอบหมายเจ้าหน้าที่คนนี้ให้ผู้ป่วยรายนี้แล้ว' : 'ไม่สามารถบันทึกการมอบหมายได้ กรุณาตรวจสอบสิทธิ์หรือสถานะบัญชี', 'error');
+      } finally {
+        submitting = false;
+        updateButton();
+      }
+    }
+    async function init() {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) { location.replace('./login.html?role=staff'); return; }
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role,is_active')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profileError || !profile || profile.is_active !== true || !['admin', 'system_admin'].includes(profile.role)) {
+          accessDenied('บัญชีนี้ไม่มีสิทธิ์จัดการทีมรักษา กรุณาเข้าสู่ระบบด้วยบัญชี Admin');
+          return;
+        }
+        renderAdminSidebar('careTeam', profile.role);
+        $('accessMessage').hidden = true;
+        $('protectedContent').hidden = false;
+        ready = true;
+        $('patientFind').addEventListener('click', () => searchDirectory('patient'));
+        $('staffFind').addEventListener('click', () => searchDirectory('staff'));
+        $('patientSearch').addEventListener('keydown', event => {
+          if (event.key === 'Enter') { event.preventDefault(); searchDirectory('patient'); }
+        });
+        $('staffSearch').addEventListener('keydown', event => {
+          if (event.key === 'Enter') { event.preventDefault(); searchDirectory('staff'); }
+        });
+        $('patientSelect').addEventListener('change', updateButton);
+        $('staffSelect').addEventListener('change', updateButton);
+        $('assignmentForm').addEventListener('submit', submitAssignment);
+        $('refreshButton').addEventListener('click', loadAssignments);
+        await Promise.all([searchDirectory('patient'), searchDirectory('staff')]);
+        await loadAssignments();
+      } catch (error) {
+        console.error('SiOMC care team init error:', error?.message || error);
+        accessDenied('ไม่สามารถเปิดหน้าจัดการทีมรักษาได้ กรุณาลองใหม่อีกครั้ง');
+      }
+    }
+    init();
+  </script>
+</body>
+</html>

@@ -8,6 +8,7 @@ const SIOMC_SIDEBAR_PATHS = {
   nutrition: '<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18"/><path d="M19 21V3c-4 2-5 7-5 11h5"/>',
   assessment: '<rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M12 10v7M8.5 13.5h7"/>',
   learning: '<path d="M12 7v14M12 7c-2-2-5-3-9-3v14c4 0 7 1 9 3M12 7c2-2 5-3 9-3v14c-4 0-7 1-9 3"/>',
+  careTeam: '<circle cx="9" cy="7" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2"/><path d="M17 8h5M19.5 5.5v5"/>',
   staff: '<circle cx="10" cy="7" r="4"/><path d="M3 21v-2a7 7 0 0 1 10-6.3"/><circle cx="18" cy="18" r="3"/><path d="M18 13v2M18 21v2M13 18h2M21 18h2"/>'
 };
 function siomcSidebarIcon(id) {
@@ -25,13 +26,14 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
     { id: "nutrition", label: "ติดตามโภชนาการ", icon: "◉", href: "nutrition.html" },
     { id: "assessment", label: "ประเมินทางคลินิก", icon: "✚", href: "assessment.html" },
     { id: "learning", label: "จัดการคลังความรู้", icon: "▤", href: "learning.html" },
+    { id: "careTeam", label: "จัดการทีมรักษา", icon: "", href: "care-team.html" },
     { id: "staff", label: "จัดการเจ้าหน้าที่", icon: "♙", href: "staff.html" }
   ];
 
   // Navigation is convenience only; each page and database RLS verify access.
   const visibleItems = menuItems.filter(item => {
-    if (role === 'system_admin') return ['admin', 'members', 'staff'].includes(item.id);
-    if (['doctor', 'nurse', 'dietitian'].includes(role)) return item.id !== 'staff';
+    if (role === 'system_admin') return ['admin', 'members', 'staff', 'careTeam'].includes(item.id);
+    if (['doctor', 'nurse', 'dietitian'].includes(role)) return !['staff', 'careTeam'].includes(item.id);
     return true;
   });
 

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | Admin Dashboard</title>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <link rel="stylesheet" href="./siomc-admin-theme.css">
+  
+<style>
+  /* SiOMC Admin Dashboard Header */
+  
+  body .main > .topbar {
+    background: linear-gradient(
+      115deg,
+      #123d5a 0%,
+      #1c6484 100%
+    ) !important;
+  
+    color: #ffffff !important;
+    border-bottom: none !important;
+    min-height: 130px;
+  
+    padding: 24px clamp(22px, 3.5vw, 45px) !important;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  body .main > .topbar h2 {
+    color: #ffffff !important;
+    font-size: 25px;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  body .main > .topbar .role {
+    color: #dcecf5 !important;
+    font-size: 13px;
+  }
+  
+  /* Responsive สำหรับมือถือ */
+  @media (max-width: 700px) {
+    body .main > .topbar {
+      min-height: 105px;
+      padding: 18px 18px 18px 68px !important;
+    }
+  
+    body .main > .topbar h2 {
+      font-size: 21px;
+    }
+  }
+</style>    
+</head>
+<body class="siomc-admin">
+  <div id="adminLoading" class="admin-loading" role="status" aria-live="polite">
+    กำลังตรวจสอบสิทธิ์เจ้าหน้าที่ SiOMC...
+  </div>
+
+  <div class="layout" id="adminContent" hidden>
+    <main class="main">
+      <header class="topbar">
+        <h2>ภาพรวมระบบ SiOMC</h2>
+        <div id="adminRole" class="role">เจ้าหน้าที่ SiOMC</div>
+      </header>
+
+      <section class="content">
+        <div class="welcome">
+          <h1>Admin Dashboard</h1>
+          <p>ศูนย์โรคอ้วนและเมตาบอลิกศิริราช · ระบบสำหรับบุคลากรที่ได้รับอนุญาต</p>
+        </div>
+
+        <div class="admin-info" role="note">
+          ตัวเลขสมาชิกด้านล่างดึงจาก Supabase ตามสิทธิ์ของเจ้าหน้าที่
+          ส่วนรายการรอติดตามยังไม่เชื่อมระบบติดตามจริง จึงแสดงเป็นขีดไว้ก่อน
+        </div>
+
+        
+<section class="stats" aria-label="ภาพรวมการดำเนินงาน">
+
+  <div class="stat-card">
+    <p>สมาชิกทั้งหมด</p>
+    <h2 id="totalMembers">—</h2>
+    <small>จำนวนสมาชิกสะสม รวมบัญชีเก็บถาวร</small>
+  </div>
+
+  <div class="stat-card">
+    <p>สมาชิกใหม่เดือนนี้</p>
+    <h2 id="newMembers">—</h2>
+    <small>เดือนปัจจุบันตามเวลาไทย รวมบัญชีเก็บถาวร</small>
+  </div>
+
+  <div class="stat-card">
+    <p>สมาชิกที่เปิดใช้งาน</p>
+    <h2 id="activeMembers">—</h2>
+    <small>สถานะบัญชีสมาชิก Active</small>
+  </div>
+
+  <div class="stat-card">
+    <p>รายการรอติดตาม</p>
+    <h2>—</h2>
+    <small>ยังไม่เชื่อมระบบติดตามจริง</small>
+  </div>
+
+</section>
+
+
+        <section class="panel">
+          <h3>เมนูการทำงาน</h3>
+          <div class="quick-links">
+            <a class="quick-link" href="./members.html">
+              <strong>จัดการสมาชิก</strong>
+              <span>ดูรายชื่อและจัดการข้อมูลสมาชิก</span>
+            </a>
+            <a class="quick-link" href="./weight.html">
+              <strong>ติดตามน้ำหนัก</strong>
+              <span>ตรวจสอบแนวโน้มและประวัติน้ำหนัก</span>
+            </a>
+            <a class="quick-link" href="./nutrition.html">
+              <strong>ติดตามโภชนาการ</strong>
+              <span>ดูประวัติอาหารและพลังงานที่บันทึก</span>
+            </a>
+            <a class="quick-link" href="./assessment.html">
+              <strong>ประเมินทางคลินิก</strong>
+              <span>แบบประเมินและข้อมูลที่ใช้ติดตามการดูแล</span>
+            </a>
+            <a class="quick-link" href="./learning.html">
+              <strong>จัดการคลังความรู้</strong>
+              <span>จัดเตรียมเนื้อหาความรู้สำหรับผู้ป่วย</span>
+            </a>
+            <a class="quick-link" href="./staff.html">
+              <strong>จัดการเจ้าหน้าที่</strong>
+              <span>ดูบัญชีเจ้าหน้าที่และสิทธิ์การใช้งาน</span>
+            </a>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { renderAdminSidebar } from './admin-layout.js';
+
+    const roleLabels = {
+      admin: 'Super Admin',
+      system_admin: 'System Admin',
+      doctor: 'แพทย์',
+      nurse: 'พยาบาล',
+      dietitian: 'นักกำหนดอาหาร'
+    };
+
+    const allowedRoles = Object.keys(roleLabels);
+
+    async function loadMemberStats(role) {
+  const totalEl = document.getElementById('totalMembers');
+  const newEl = document.getElementById('newMembers');
+  const activeEl = document.getElementById('activeMembers');
+
+  if (!totalEl || !newEl || !activeEl) return;
+
+  // System Admin ใช้ View ที่จำกัดสิทธิ์ไว้แล้ว
+  const source = role === 'system_admin'
+    ? 'system_admin_member_directory'
+    : 'members';
+
+  // คำนวณขอบเขตเดือนตามเวลาประเทศไทย
+  const thaiNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+
+  const year = thaiNow.getUTCFullYear();
+  const month = thaiNow.getUTCMonth();
+
+  const start = new Date(
+    Date.UTC(year, month, 1) - 7 * 60 * 60 * 1000
+  ).toISOString();
+
+  const end = new Date(
+    Date.UTC(year, month + 1, 1) - 7 * 60 * 60 * 1000
+  ).toISOString();
+
+  try {
+    const [total, recent, active] = await Promise.all([
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true }),
+
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true })
+        .gte('created_at', start)
+        .lt('created_at', end),
+
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true })
+        .eq('status', 'active')
+    ]);
+
+    if (total.error) throw total.error;
+    if (recent.error) throw recent.error;
+    if (active.error) throw active.error;
+
+    const formatNumber = value =>
+      new Intl.NumberFormat('th-TH-u-nu-latn')
+        .format(value ?? 0);
+
+    totalEl.textContent = formatNumber(total.count);
+    newEl.textContent = formatNumber(recent.count);
+    activeEl.textContent = formatNumber(active.count);
+
+  } catch (error) {
+    console.error('SiOMC member stats error:', error);
+
+    totalEl.textContent = '—';
+    newEl.textContent = '—';
+    activeEl.textContent = '—';
+  }
+}
+
+    async function checkAccess() {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          
+window.location.replace('./login.html?role=staff');
+
+          return;
+        }
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, role, is_active')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError || !profile || profile.is_active !== true ||
+            !allowedRoles.includes(profile.role)) {
+          // Keep the user session intact; other pages may be used by a LINE patient.
+          
+window.location.replace('./login.html?role=staff');
+
+          return;
+        }
+
+        const displayName = profile.full_name || user.email || 'เจ้าหน้าที่';
+        document.getElementById('adminRole').textContent =
+          `${displayName} · ${roleLabels[profile.role]}`;
+
+        renderAdminSidebar('admin', profile.role);
+        if (profile.role === 'system_admin') {
+          document.querySelectorAll('.quick-link').forEach(link => {
+            const path = new URL(link.href).pathname.split('/').at(-1);
+            if (['weight.html', 'nutrition.html', 'assessment.html', 'learning.html'].includes(path)) link.hidden = true;
+          });
+        } else if (['doctor','nurse','dietitian'].includes(profile.role)) {
+          document.querySelectorAll('.quick-link').forEach(link => {
+            if (link.getAttribute('href') === './staff.html') link.hidden = true;
+          });
+        }
+        await loadMemberStats(profile.role);
+        document.getElementById('adminLoading').hidden = true;
+        document.getElementById('adminContent').hidden = false;
+      } catch (error) {
+        console.error('Dashboard access error:', error);
+        
+window.location.replace('./login.html?role=staff');
+
+      }
+    }
+
+    checkAccess();
+  </script>
+</body>
+</html>

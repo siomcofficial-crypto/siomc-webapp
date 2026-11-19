@@ -18,7 +18,8 @@ export default defineConfig({
         nutrition: resolve(__dirname, 'nutrition.html'),
         assessment: resolve(__dirname, 'assessment.html'),
         learning: resolve(__dirname, 'learning.html'),
-        staff: resolve(__dirname, 'staff.html')
+        staff: resolve(__dirname, 'staff.html'),
+        careTeam: resolve(__dirname, 'care-team.html')
       }
     }
   }
