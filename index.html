@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+html:not(.patient-authorized) body {
+  visibility: hidden;
+}
+
   <style>
     :root {
       --navy:#123d5a; --ink:#183447; --muted:#637f90;
@@ -441,6 +446,42 @@ function formatThaiDate(isoDate) {
         if (typeof liff === "undefined") throw new Error("ไม่พบ LINE LIFF SDK");
         await liff.init({ liffId: LIFF_ID });
 
+const loginUrl = "./login.html" +
+  (isPublished ? "?siomc_env=published" : "");
+
+const {
+  data: { user },
+  error: authError
+} = await supabase.auth.getUser();
+
+if (authError || !user) {
+  window.location.replace(loginUrl);
+  return;
+}
+
+const {
+  data: member,
+  error: memberError
+} = await supabase
+  .from("members")
+  .select("id, status")
+  .eq("auth_user_id", user.id)
+  .maybeSingle();
+
+if (
+  memberError ||
+  !member ||
+  member.status !== "active"
+) {
+  window.location.replace(loginUrl);
+  return;
+}
+
+document.documentElement.classList.add(
+  "patient-authorized"
+);
+
+
         if (!liff.isLoggedIn()) {
           setStatus("กรุณาเข้าสู่ระบบ LINE");
           el("lineDisplayName").textContent = "ยังไม่ได้เข้าสู่ระบบ LINE";
@@ -461,6 +502,19 @@ function formatThaiDate(isoDate) {
         }
         setStatus("กำลังตรวจสอบบัญชีสมาชิก...");
         await loginPatientWithLine();
+
+if (
+  !document.documentElement.classList.contains(
+    "patient-authorized"
+  )
+) {
+  window.location.replace(
+    "./login.html" +
+    (isPublished ? "?siomc_env=published" : "")
+  );
+  return;
+}
+
       } catch (err) {
         // ไม่แสดงข้อมูลทางเทคนิค, ID Token หรือข้อมูลอ่อนไหวบนหน้าจอ
         console.error("SiOMC LINE authentication failed", err?.message || "Unknown error");

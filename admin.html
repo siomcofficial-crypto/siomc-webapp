@@ -225,7 +225,9 @@
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (authError || !user) {
-          window.location.replace('./admin-login.html');
+          
+window.location.replace('./login.html?role=staff');
+
           return;
         }
 
@@ -238,7 +240,9 @@
         if (profileError || !profile || profile.is_active !== true ||
             !allowedRoles.includes(profile.role)) {
           // Keep the user session intact; other pages may be used by a LINE patient.
-          window.location.replace('./admin-login.html');
+          
+window.location.replace('./login.html?role=staff');
+
           return;
         }
 
@@ -262,7 +266,9 @@
         document.getElementById('adminContent').hidden = false;
       } catch (error) {
         console.error('Dashboard access error:', error);
-        window.location.replace('./admin-login.html');
+        
+window.location.replace('./login.html?role=staff');
+
       }
     }
 
