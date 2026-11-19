@@ -321,7 +321,7 @@
 
         // System Admin ใช้ View ที่ตรวจสิทธิ์ system_admin ภายในฐานข้อมูล
         source = profile.role === ROLE_VIEW ? 'system_admin_member_directory' : 'members';
-        renderAdminSidebar('members');
+        renderAdminSidebar('members', profile.role);
         $('authState').hidden = true;
         $('protectedContent').hidden = false;
         await loadMembers();

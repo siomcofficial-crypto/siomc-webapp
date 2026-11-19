@@ -1,5 +1,5 @@
 
-export function renderAdminSidebar(activePage = "") {
+export function renderAdminSidebar(activePage = "", role = "admin") {
   const menuItems = [
     { id: "admin", label: "ภาพรวม", icon: "▦", href: "admin.html" },
     { id: "members", label: "จัดการสมาชิก", icon: "♙", href: "members.html" },
@@ -9,6 +9,16 @@ export function renderAdminSidebar(activePage = "") {
     { id: "learning", label: "จัดการคลังความรู้", icon: "▤", href: "learning.html" },
     { id: "staff", label: "จัดการเจ้าหน้าที่", icon: "♙", href: "staff.html" }
   ];
+
+  // Navigation is convenience only; each page and database RLS verify access.
+  const visibleItems = menuItems.filter(item => {
+    if (role === 'system_admin') return ['admin', 'members', 'staff'].includes(item.id);
+    if (['doctor', 'nurse', 'dietitian'].includes(role)) return item.id !== 'staff';
+    return true;
+  });
+
+  // Avoid duplicate sidebar when an initialization is retried.
+  if (document.getElementById('siomcSidebar')) return;
 
   const sidebar = document.createElement("aside");
   sidebar.className = "siomc-shared-sidebar";
@@ -23,7 +33,7 @@ export function renderAdminSidebar(activePage = "") {
     <div class="siomc-menu-title">MAIN MENU</div>
 
     <nav class="siomc-menu">
-      ${menuItems.map(item => `
+      ${visibleItems.map(item => `
         <a href="${item.href}"
            class="siomc-menu-link ${activePage === item.id ? "active" : ""}">
           <span class="siomc-menu-icon">${item.icon}</span>

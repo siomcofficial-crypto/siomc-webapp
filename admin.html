@@ -75,8 +75,8 @@
         </div>
 
         <div class="admin-info" role="note">
-          ส่วนสรุปตัวเลขด้านล่างยังไม่ได้เชื่อมข้อมูลจริง จึงแสดงเป็นขีดไว้ก่อน
-          เพื่อไม่ให้ตัวเลขตัวอย่างถูกเข้าใจว่าเป็นข้อมูลผู้ป่วยจริง
+          ตัวเลขสมาชิกด้านล่างดึงจาก Supabase ตามสิทธิ์ของเจ้าหน้าที่
+          ส่วนรายการรอติดตามยังไม่เชื่อมระบบติดตามจริง จึงแสดงเป็นขีดไว้ก่อน
         </div>
 
         
@@ -85,13 +85,13 @@
   <div class="stat-card">
     <p>สมาชิกทั้งหมด</p>
     <h2 id="totalMembers">—</h2>
-    <small>ข้อมูลจาก Supabase</small>
+    <small>จำนวนสมาชิกสะสม รวมบัญชีเก็บถาวร</small>
   </div>
 
   <div class="stat-card">
     <p>สมาชิกใหม่เดือนนี้</p>
     <h2 id="newMembers">—</h2>
-    <small>เดือนปัจจุบัน (เวลาไทย)</small>
+    <small>เดือนปัจจุบันตามเวลาไทย รวมบัญชีเก็บถาวร</small>
   </div>
 
   <div class="stat-card">
@@ -246,7 +246,17 @@
         document.getElementById('adminRole').textContent =
           `${displayName} · ${roleLabels[profile.role]}`;
 
-        renderAdminSidebar('admin');
+        renderAdminSidebar('admin', profile.role);
+        if (profile.role === 'system_admin') {
+          document.querySelectorAll('.quick-link').forEach(link => {
+            const path = new URL(link.href).pathname.split('/').at(-1);
+            if (['weight.html', 'nutrition.html', 'assessment.html', 'learning.html'].includes(path)) link.hidden = true;
+          });
+        } else if (['doctor','nurse','dietitian'].includes(profile.role)) {
+          document.querySelectorAll('.quick-link').forEach(link => {
+            if (link.getAttribute('href') === './staff.html') link.hidden = true;
+          });
+        }
         await loadMemberStats(profile.role);
         document.getElementById('adminLoading').hidden = true;
         document.getElementById('adminContent').hidden = false;

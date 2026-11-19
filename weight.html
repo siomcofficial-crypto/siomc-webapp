@@ -1,302 +1,123 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SiOMC | Weight Monitoring</title>
-<style>
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f3f6f9;
-  color: #173b52;
-}
-header {
-  background: #123d5a;
-  color: white;
-  padding: 22px 30px;
-}
-header h2 { margin: 0 0 5px; }
-header p { margin: 0; color: #d2e1eb; font-size: 13px; }
-main { max-width: 1150px; margin: auto; padding: 28px; }
-.topline {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 22px;
-}
-h1 { font-size: 24px; margin: 0; }
-.back { color: #17618a; text-decoration: none; font-size: 14px; }
-.panel {
-  background: white;
-  border: 1px solid #e5ebef;
-  border-radius: 13px;
-  padding: 22px;
-  margin-bottom: 20px;
-}
-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: bold; }
-select, input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #d6e1e8;
-  border-radius: 8px;
-  background: white;
-  font-size: 14px;
-}
-.member-select { max-width: 400px; }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.stat {
-  background: #f8fbfd;
-  border: 1px solid #e8eef2;
-  border-radius: 10px;
-  padding: 18px;
-}
-.stat p { color: #718596; font-size: 13px; margin: 0 0 12px; }
-.stat strong { font-size: 25px; color: #123d5a; }
-.unit { font-size: 12px; color: #718596; }
-.chart { width: 100%; overflow-x: auto; }
-.chart svg { display: block; min-width: 500px; width: 100%; height: auto; }
-table { width: 100%; border-collapse: collapse; min-width: 450px; }
-th, td {
-  text-align: left;
-  padding: 13px 10px;
-  border-bottom: 1px solid #edf1f4;
-  font-size: 13px;
-}
-th { color: #718596; }
-.table-wrap { overflow-x: auto; }
-.notice {
-  background: #fff7e5;
-  color: #80601c;
-  border-radius: 9px;
-  padding: 13px 16px;
-  font-size: 13px;
-  line-height: 1.6;
-}
-@media(max-width: 800px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
-}
-@media(max-width: 500px) {
-  main { padding: 16px; }
-  .panel { padding: 15px; }
-  .stats { gap: 9px; }
-  .stat { padding: 13px; }
-  .stat strong { font-size: 21px; }
-}
-</style>
-<link rel="stylesheet" href="./siomc-design.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | ติดตามน้ำหนักสมาชิก</title>
+  <link rel="stylesheet" href="./siomc-design.css">
   <link rel="stylesheet" href="./siomc-admin-theme.css">
+  <link rel="stylesheet" href="./admin-workspace.css">
 </head>
 <body class="siomc-admin">
-<header>
-  <h2>SiOMC Admin Portal</h2>
-  <p>Weight Monitoring</p>
-</header>
-
-<main>
-  <div class="topline">
-    <h1>ติดตามน้ำหนักสมาชิก</h1>
-    <a class="back" href="admin.html">← กลับ Dashboard</a>
+  <div class="workspace-message" id="accessMessage" role="status" aria-live="polite">กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...</div>
+  <div id="workspace" hidden>
+    <header class="workspace-top"><h2>SiOMC Admin Portal</h2><p>Weight Monitoring | ติดตามน้ำหนักจากข้อมูลที่ผู้ป่วยบันทึกจริง</p></header>
+    <main class="workspace-page">
+      <div class="workspace-heading"><h1>ติดตามน้ำหนักสมาชิก</h1><p>เฉพาะเจ้าหน้าที่ที่ได้รับอนุญาต · อ่านข้อมูลอย่างเดียว</p></div>
+      <section class="workspace-panel" aria-label="เลือกสมาชิก">
+        <div class="workspace-fields">
+          <div><label for="memberSearch">ค้นหาชื่อ / รหัสสมาชิก</label><input type="search" id="memberSearch" maxlength="80" placeholder="ค้นหาสมาชิกที่เปิดใช้งาน..."></div>
+          <div><label for="memberSelect">สมาชิก</label><select id="memberSelect"><option value="">— เลือกสมาชิก —</option></select></div>
+        </div>
+        <p class="workspace-hint">แสดงสมาชิกที่เปิดใช้งานสูงสุด 50 รายการต่อการค้นหา พิมพ์ชื่อหรือรหัสเพื่อค้นหารายอื่น</p>
+        <div id="statusMessage" class="workspace-message" role="status" aria-live="polite">กรุณาเลือกสมาชิกเพื่อดูข้อมูลน้ำหนัก</div>
+      </section>
+      <div id="memberResults" hidden>
+        <section class="workspace-metrics" aria-label="สรุปน้ำหนัก">
+          <div class="workspace-metric"><span>น้ำหนักครั้งแรกที่บันทึก</span><strong id="firstWeight">—</strong></div>
+          <div class="workspace-metric"><span>น้ำหนักล่าสุดที่บันทึก</span><strong id="latestWeight">—</strong></div>
+          <div class="workspace-metric"><span>การเปลี่ยนแปลงจากครั้งแรก</span><strong id="weightChange">—</strong></div>
+        </section>
+        <section class="workspace-panel"><h2>แนวโน้มน้ำหนัก</h2><div id="weightChart" class="workspace-chart" role="region" aria-label="กราฟแนวโน้มน้ำหนัก"></div><p class="workspace-hint">แสดงไม่เกิน 50 รายการล่าสุดบนกราฟ; ค่าแรกคำนวณจากข้อมูลรายการแรกสุดของสมาชิกทั้งหมด</p></section>
+        <section class="workspace-panel"><h2>ประวัติการบันทึกน้ำหนัก</h2><div class="workspace-table"><table><thead><tr><th>วันที่บันทึก</th><th>น้ำหนัก (กก.)</th><th>หมายเหตุ</th></tr></thead><tbody id="weightRows"><tr><td colspan="3">—</td></tr></tbody></table></div><p class="workspace-hint" id="recordsNote">แสดงไม่เกิน 200 รายการล่าสุด</p></section>
+      </div>
+    </main>
   </div>
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { guardWorkspace, fillActiveMemberSelect, formatThaiDate, formatNumber, setMessage, drawWeightLine, appendCell, emptyTable } from './admin-workspace.js';
+    const $ = id => document.getElementById(id);
+    let searchTimer;
+    let dataRequest = 0;
+    let memberSearchRequest = 0;
+    const select = $('memberSelect');
 
-  <section class="panel">
-    <label for="memberSelect">เลือกสมาชิก</label>
-    <select id="memberSelect" class="member-select">
-      <option value="0">SIOMC-00001 | ตัวอย่าง สมาชิก 1</option>
-      <option value="1">SIOMC-00002 | ตัวอย่าง สมาชิก 2</option>
-      <option value="2">SIOMC-00003 | ตัวอย่าง สมาชิก 3</option>
-    </select>
-  </section>
+    async function refreshMembers() {
+      const seq = ++memberSearchRequest;
+      try {
+        const rows = await fillActiveMemberSelect(select, $('memberSearch').value, () => seq === memberSearchRequest);
+        if (seq !== memberSearchRequest || !rows) return;
+        if (!rows.length) setMessage('statusMessage', 'ไม่พบสมาชิกที่เปิดใช้งานตามคำค้นหา');
+        else if (!select.value) setMessage('statusMessage', 'กรุณาเลือกสมาชิกเพื่อดูข้อมูลน้ำหนัก');
+        if (select.value) await loadWeights();
+        else { dataRequest++; $('memberResults').hidden = true; }
+      } catch (error) {
+        console.error('SiOMC member search failed:', error.code, error.message);
+        setMessage('statusMessage', 'โหลดรายชื่อสมาชิกไม่สำเร็จ กรุณาตรวจสอบสิทธิ์หรือการเชื่อมต่อ', 'error');
+      }
+    }
 
-  <section class="panel">
-    <h3 id="memberTitle">ข้อมูลน้ำหนัก: SIOMC-00001</h3>
-    <div class="stats">
-      <div class="stat">
-        <p>น้ำหนักเริ่มต้น</p>
-        <strong id="startWeight">90</strong>
-        <span class="unit">กก.</span>
-      </div>
-      <div class="stat">
-        <p>น้ำหนักล่าสุด</p>
-        <strong id="currentWeight">85</strong>
-        <span class="unit">กก.</span>
-      </div>
-      <div class="stat">
-        <p>น้ำหนักที่เปลี่ยนแปลง</p>
-        <strong id="weightChange">-5</strong>
-        <span class="unit">กก.</span>
-      </div>
-      <div class="stat">
-        <p>เป้าหมาย</p>
-        <strong id="goalWeight">75</strong>
-        <span class="unit">กก.</span>
-      </div>
-    </div>
-  </section>
+    async function loadWeights() {
+      const memberId = select.value;
+      const seq = ++dataRequest;
+      $('memberResults').hidden = true;
+      if (!memberId) { setMessage('statusMessage', 'กรุณาเลือกสมาชิก'); return; }
+      setMessage('statusMessage', 'กำลังโหลดประวัติน้ำหนัก...');
+      try {
+        const [recent, earliest, total] = await Promise.all([
+          supabase.from('weight_records')
+            .select('id,recorded_at,weight_kg,note')
+            .eq('member_id', memberId)
+            .order('recorded_at', { ascending: false })
+            .limit(200),
+          supabase.from('weight_records')
+            .select('recorded_at,weight_kg')
+            .eq('member_id', memberId)
+            .order('recorded_at', { ascending: true })
+            .limit(1),
+          supabase.from('weight_records')
+            .select('id', { head: true, count: 'exact' })
+            .eq('member_id', memberId)
+        ]);
+        if (seq !== dataRequest) return;
+        if (recent.error) throw recent.error;
+        if (earliest.error) throw earliest.error;
+        if (total.error) throw total.error;
+        const rows = recent.data || [];
+        const first = earliest.data?.[0];
+        const last = rows[0];
+        $('firstWeight').textContent = first ? `${Number(first.weight_kg).toFixed(1)} กก.` : '—';
+        $('latestWeight').textContent = last ? `${Number(last.weight_kg).toFixed(1)} กก.` : '—';
+        $('weightChange').textContent = first && last
+          ? `${Number(last.weight_kg - first.weight_kg) > 0 ? '+' : ''}${(Number(last.weight_kg) - Number(first.weight_kg)).toFixed(1)} กก.` : '—';
+        drawWeightLine($('weightChart'), rows.slice(0, 50).reverse());
+        const tbody = $('weightRows');
+        tbody.replaceChildren();
+        for (const row of rows) {
+          const tr = document.createElement('tr');
+          appendCell(tr, formatThaiDate(row.recorded_at));
+          appendCell(tr, `${Number(row.weight_kg).toFixed(1)}`);
+          appendCell(tr, row.note || '—');
+          tbody.appendChild(tr);
+        }
+        if (!rows.length) emptyTable(tbody, 3, 'สมาชิกนี้ยังไม่มีประวัติบันทึกน้ำหนัก');
+        $('recordsNote').textContent = `พบทั้งหมด ${formatNumber(total.count || 0)} รายการ · แสดง ${formatNumber(rows.length)} รายการล่าสุด`;
+        $('memberResults').hidden = false;
+        setMessage('statusMessage', rows.length ? '' : 'ยังไม่มีข้อมูลน้ำหนักสำหรับสมาชิกนี้');
+      } catch (error) {
+        console.error('SiOMC weight query failed:', error.code, error.message);
+        setMessage('statusMessage', 'ไม่สามารถโหลดข้อมูลน้ำหนักได้ กรุณาตรวจสอบสิทธิ์การอ่าน weight_records', 'error');
+      }
+    }
 
-  <section class="panel">
-    <h3>แนวโน้มน้ำหนัก</h3>
-    <div class="chart">
-      <svg viewBox="0 0 700 280" role="img"
-        aria-label="กราฟตัวอย่างแนวโน้มน้ำหนัก">
-        <g stroke="#e8eef2" stroke-width="1">
-          <line x1="65" y1="35" x2="660" y2="35"/>
-          <line x1="65" y1="85" x2="660" y2="85"/>
-          <line x1="65" y1="135" x2="660" y2="135"/>
-          <line x1="65" y1="185" x2="660" y2="185"/>
-          <line x1="65" y1="235" x2="660" y2="235"/>
-        </g>
-        <g fill="#718596" font-size="12">
-          <text x="25" y="39">100</text>
-          <text x="32" y="89">90</text>
-          <text x="32" y="139">80</text>
-          <text x="32" y="189">70</text>
-          <text x="32" y="239">60</text>
-        </g>
-        <polyline id="weightLine"
-          points="90,85 200,100 310,115 420,125 530,140 640,160"
-          fill="none" stroke="#2386a8" stroke-width="3"
-          stroke-linecap="round" stroke-linejoin="round"/>
-        <g id="weightDots" fill="#2386a8">
-          <circle cx="90" cy="85" r="5"/>
-          <circle cx="200" cy="100" r="5"/>
-          <circle cx="310" cy="115" r="5"/>
-          <circle cx="420" cy="125" r="5"/>
-          <circle cx="530" cy="140" r="5"/>
-          <circle cx="640" cy="160" r="5"/>
-        </g>
-        <g fill="#718596" font-size="11" text-anchor="middle">
-          <text x="90" y="260">ม.ค.</text>
-          <text x="200" y="260">ก.พ.</text>
-          <text x="310" y="260">มี.ค.</text>
-          <text x="420" y="260">เม.ย.</text>
-          <text x="530" y="260">พ.ค.</text>
-          <text x="640" y="260">มิ.ย.</text>
-        </g>
-      </svg>
-    </div>
-    <p class="unit">กราฟตัวอย่างเพื่อแสดงรูปแบบการติดตามน้ำหนัก</p>
-  </section>
-
-  <section class="panel">
-    <h3>ประวัติการบันทึกน้ำหนัก</h3>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>วันที่</th>
-            <th>น้ำหนัก</th>
-            <th>หมายเหตุ</th>
-          </tr>
-        </thead>
-        <tbody id="historyTable"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <div class="notice">
-    ข้อมูลทั้งหมดเป็นข้อมูลสมมติสำหรับทดสอบหน้าจอ
-    ยังไม่ได้เชื่อมต่อฐานข้อมูลสมาชิกจริง
-  </div>
-</main>
-
-<script>
-const data = [
-  {
-    id: 'SIOMC-00001',
-    name: 'ตัวอย่าง สมาชิก 1',
-    start: 90, current: 85, goal: 75,
-    history: [
-      ['1 ม.ค. 2026', 90],
-      ['1 ก.พ. 2026', 88],
-      ['1 มี.ค. 2026', 86],
-      ['1 เม.ย. 2026', 87],
-      ['1 พ.ค. 2026', 86],
-      ['1 มิ.ย. 2026', 85]
-    ]
-  },
-  {
-    id: 'SIOMC-00002',
-    name: 'ตัวอย่าง สมาชิก 2',
-    start: 100, current: 94, goal: 85,
-    history: [
-      ['1 ม.ค. 2026', 100],
-      ['1 ก.พ. 2026', 99],
-      ['1 มี.ค. 2026', 97],
-      ['1 เม.ย. 2026', 96],
-      ['1 พ.ค. 2026', 95],
-      ['1 มิ.ย. 2026', 94]
-    ]
-  },
-  {
-    id: 'SIOMC-00003',
-    name: 'ตัวอย่าง สมาชิก 3',
-    start: 80, current: 82, goal: 70,
-    history: [
-      ['1 ม.ค. 2026', 80],
-      ['1 ก.พ. 2026', 81],
-      ['1 มี.ค. 2026', 79],
-      ['1 เม.ย. 2026', 80],
-      ['1 พ.ค. 2026', 81],
-      ['1 มิ.ย. 2026', 82]
-    ]
-  }
-];
-
-const select = document.getElementById('memberSelect');
-
-function render() {
-  const member = data[Number(select.value)];
-  const change = member.current - member.start;
-
-  document.getElementById('memberTitle').textContent =
-    `ข้อมูลน้ำหนัก: ${member.id}`;
-  document.getElementById('startWeight').textContent = member.start;
-  document.getElementById('currentWeight').textContent = member.current;
-  document.getElementById('weightChange').textContent =
-    change > 0 ? `+${change}` : change;
-  document.getElementById('goalWeight').textContent = member.goal;
-
-  document.getElementById('historyTable').innerHTML =
-    member.history.slice().reverse().map(item => `
-      <tr>
-        <td>${item[0]}</td>
-        <td>${item[1]} กก.</td>
-        <td>ข้อมูลตัวอย่าง</td>
-      </tr>
-    `).join('');
-
-  const points = member.history.map((item, index) => {
-    const x = 90 + index * 110;
-    const y = 235 - (item[1] - 60) * 5;
-    return `${x},${y}`;
-  });
-
-  document.getElementById('weightLine')
-    .setAttribute('points', points.join(' '));
-
-  document.getElementById('weightDots').innerHTML =
-    points.map(point => {
-      const [x, y] = point.split(',');
-      return `<circle cx="${x}" cy="${y}" r="5"/>`;
-    }).join('');
-}
-
-select.addEventListener('change', render);
-render();
-</script>
-<script type="module">
-    import { renderAdminSidebar } from './admin-layout.js';
-  
-    renderAdminSidebar('weight');
+    select.addEventListener('change', loadWeights);
+    $('memberSearch').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(refreshMembers, 300);
+    });
+    const access = await guardWorkspace('weight');
+    if (access) refreshMembers();
   </script>
 </body>
 </html>

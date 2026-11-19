@@ -1,386 +1,89 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#123d5a">
-<title>SiOMC | Knowledge Management</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f6fa;color:#173b52;font-family:Arial,Tahoma,sans-serif}
-header{background:#fff;padding:22px 30px;border-bottom:1px solid #e5ebef}
-header h2{margin:0 0 6px;font-size:21px}
-header p{margin:0;color:#718596;font-size:13px}
-.container{max-width:1200px;margin:auto;padding:25px 20px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-bottom:22px}
-.stat{background:#fff;border:1px solid #e8edf1;border-radius:12px;padding:19px}
-.stat small{color:#718596}
-.stat h2{margin:9px 0 0;color:#123d5a;font-size:27px}
-.panel{background:#fff;border:1px solid #e8edf1;border-radius:13px;padding:21px;margin-bottom:20px}
-.panel h3{margin:0 0 17px;color:#123d5a;font-size:17px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.field{display:flex;flex-direction:column;gap:7px}
-.field.full{grid-column:1/-1}
-label{font-size:13px;font-weight:bold;color:#526b7e}
-input,select,textarea{width:100%;padding:11px 12px;border:1px solid #d8e1e8;border-radius:9px;background:white;color:#173b52;font:14px Arial,Tahoma,sans-serif}
-textarea{min-height:105px;resize:vertical;line-height:1.6}
-.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
-button{border:0;border-radius:8px;padding:10px 15px;font-size:13px;font-weight:bold;cursor:pointer}
-button:hover{opacity:.9}
-.primary{background:#123d5a;color:white}
-.secondary{background:#edf2f6;color:#38586d}
-.publish{background:#e7f3eb;color:#28734b}
-.unpublish{background:#fff3df;color:#855d19}
-.edit{background:#eaf1f7;color:#285875}
-.searchbar{margin-bottom:14px;max-width:360px}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:720px}
-th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1f5;font-size:13px;vertical-align:middle}
-th{background:#f8fafc;color:#718596}
-.status{display:inline-block;border-radius:20px;padding:5px 10px;font-size:11px}
-.status.published{background:#e8f3ed;color:#28734b}
-.status.draft{background:#fff3df;color:#855d19}
-.row-actions{display:flex;gap:6px;flex-wrap:wrap}
-.message{display:none;margin-top:14px;padding:12px;border-radius:8px;background:#e8f3ed;color:#28734b;font-size:13px}
-.note{background:#fff8e9;border:1px solid #f2dfb5;border-radius:9px;padding:13px;color:#785c27;font-size:13px;line-height:1.6;margin-bottom:20px}
-.empty{text-align:center;color:#718596;padding:25px}
-@media(max-width:700px){
-.container{padding:16px 12px}
-.stats{grid-template-columns:1fr}
-.form-grid{grid-template-columns:1fr}
-.field.full{grid-column:auto}
-.panel{padding:15px}
-header{padding:18px}
-}
-.delete {
-  background: #fdeaea;
-  color: #c62828;
-  border: none;
-}
-
-.delete:hover {
-  background: #fbd5d5;
-  color: #a31515;
-}
-</style>
-<link rel="stylesheet" href="./siomc-design.css">
-  <link rel="stylesheet" href="./siomc-admin-theme.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#123d5a">
+  <title>SiOMC | คลังความรู้</title>
+  <link rel="stylesheet" href="./siomc-design.css"><link rel="stylesheet" href="./siomc-admin-theme.css"><link rel="stylesheet" href="./admin-workspace.css">
 </head>
 <body class="siomc-admin">
-
-<header>
-<h2>SiOMC Admin Portal</h2>
-<p>Knowledge Management | ระบบจัดการคลังความรู้</p>
-</header>
-
-<main class="container">
-
-<section class="stats">
-<div class="stat">
-<small>เนื้อหาทั้งหมด</small>
-<h2 id="totalCount">3</h2>
-</div>
-<div class="stat">
-<small>เผยแพร่แล้ว</small>
-<h2 id="publishedCount">2</h2>
-</div>
-<div class="stat">
-<small>ฉบับร่าง</small>
-<h2 id="draftCount">1</h2>
-</div>
-</section>
-
-<div class="note">
-<strong>โหมดทดลอง:</strong> ข้อมูลบทความในหน้านี้เป็นข้อมูลตัวอย่าง และรายการที่เพิ่มหรือแก้ไขจะอยู่ในหน่วยความจำของหน้าเว็บเท่านั้น เมื่อรีเฟรชหน้า ข้อมูลจะกลับเป็นชุดตัวอย่าง ยังไม่ได้เชื่อมฐานข้อมูลกลางหรือ Member App
-</div>
-
-<section class="panel">
-<h3 id="formHeading">เพิ่มเนื้อหาความรู้</h3>
-
-<form id="learningForm">
-<div class="form-grid">
-
-<div class="field full">
-<label for="title">ชื่อบทความ / ชื่อสื่อความรู้</label>
-<input id="title" type="text" placeholder="เช่น ความรู้พื้นฐานเกี่ยวกับโรคอ้วน" required>
-</div>
-
-<div class="field">
-<label for="category">หมวดหมู่</label>
-<select id="category" required>
-<option value="">เลือกหมวดหมู่</option>
-<option>ความรู้เกี่ยวกับโรคอ้วน</option>
-<option>โภชนาการและอาหาร</option>
-<option>การออกกำลังกาย</option>
-<option>การเตรียมตัวก่อนผ่าตัด</option>
-<option>การดูแลหลังผ่าตัด</option>
-<option>พฤติกรรมสุขภาพ</option>
-</select>
-</div>
-
-<div class="field">
-<label for="contentType">ประเภทเนื้อหา</label>
-<select id="contentType" required>
-<option value="บทความ">บทความ</option>
-<option value="วิดีโอ">วิดีโอ</option>
-<option value="บทเรียน">บทเรียนออนไลน์</option>
-</select>
-</div>
-
-<div class="field full">
-<label for="description">รายละเอียด / เนื้อหา / ลิงก์วิดีโอ</label>
-<textarea id="description" placeholder="ใส่รายละเอียดบทความ หรือ URL ของวิดีโอ..." required></textarea>
-</div>
-
-</div>
-
-<div class="actions">
-<button type="submit" class="primary" id="saveButton">เพิ่มเนื้อหา</button>
-<button type="reset" class="secondary" id="resetButton">ล้างข้อมูล</button>
-<button type="button" class="secondary" id="cancelEdit" hidden>ยกเลิกการแก้ไข</button>
-</div>
-
-<div class="message" id="message"></div>
-</form>
-</section>
-
-<section class="panel">
-<h3>จัดการเนื้อหาความรู้</h3>
-
-<div class="searchbar">
-<input type="search" id="search" placeholder="ค้นหาชื่อบทความหรือหมวดหมู่...">
-</div>
-
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>ชื่อเนื้อหา</th>
-<th>หมวดหมู่</th>
-<th>ประเภท</th>
-<th>สถานะ</th>
-<th>จัดการ</th>
-</tr>
-</thead>
-<tbody id="contentRows"></tbody>
-</table>
-</div>
-</section>
-
-</main>
-
-<script>
-let nextId = 4;
-let editingId = null;
-
-let articles = [
-{
-id:1,
-title:"ความรู้พื้นฐานเกี่ยวกับโรคอ้วน",
-category:"ความรู้เกี่ยวกับโรคอ้วน",
-type:"บทความ",
-description:"ความรู้เบื้องต้นเกี่ยวกับโรคอ้วน สาเหตุ ความเสี่ยง และการดูแลสุขภาพ",
-status:"เผยแพร่"
-},
-{
-id:2,
-title:"หลักการเลือกรับประทานอาหารเพื่อสุขภาพ",
-category:"โภชนาการและอาหาร",
-type:"บทความ",
-description:"แนวทางการเลือกอาหารและการควบคุมพลังงานในชีวิตประจำวัน",
-status:"เผยแพร่"
-},
-{
-id:3,
-title:"การเตรียมตัวก่อนเข้ารับการผ่าตัดลดน้ำหนัก",
-category:"การเตรียมตัวก่อนผ่าตัด",
-type:"บทเรียน",
-description:"เนื้อหาตัวอย่างสำหรับผู้ที่เตรียมเข้ารับการผ่าตัด",
-status:"ฉบับร่าง"
-}
-];
-
-const form = document.getElementById("learningForm");
-
-function updateStats(){
-document.getElementById("totalCount").textContent=articles.length;
-document.getElementById("publishedCount").textContent=
-articles.filter(a=>a.status==="เผยแพร่").length;
-document.getElementById("draftCount").textContent=
-articles.filter(a=>a.status==="ฉบับร่าง").length;
-}
-
-function createCell(text){
-const td=document.createElement("td");
-td.textContent=text;
-return td;
-}
-
-function renderArticles(){
-const tbody=document.getElementById("contentRows");
-const keyword=document.getElementById("search").value.toLowerCase();
-
-tbody.replaceChildren();
-
-const filtered=articles.filter(a=>
-a.title.toLowerCase().includes(keyword)||
-a.category.toLowerCase().includes(keyword)
-);
-
-if(filtered.length===0){
-const tr=document.createElement("tr");
-const td=createCell("ไม่พบเนื้อหาที่ค้นหา");
-td.colSpan=5;
-td.className="empty";
-tr.appendChild(td);
-tbody.appendChild(tr);
-}
-
-filtered.forEach(article=>{
-const tr=document.createElement("tr");
-
-tr.appendChild(createCell(article.title));
-tr.appendChild(createCell(article.category));
-tr.appendChild(createCell(article.type));
-
-const statusCell=document.createElement("td");
-const badge=document.createElement("span");
-badge.className="status "+(article.status==="เผยแพร่"?"published":"draft");
-badge.textContent=article.status;
-statusCell.appendChild(badge);
-tr.appendChild(statusCell);
-
-const actionCell=document.createElement("td");
-const actions=document.createElement("div");
-actions.className="row-actions";
-
-const editButton=document.createElement("button");
-editButton.className="edit";
-editButton.textContent="แก้ไข";
-editButton.addEventListener("click",()=>editArticle(article.id));
-
-const publishButton=document.createElement("button");
-publishButton.className=article.status==="เผยแพร่"?"unpublish":"publish";
-publishButton.textContent=article.status==="เผยแพร่"?"ยกเลิกเผยแพร่":"เผยแพร่";
-publishButton.addEventListener("click",()=>togglePublish(article.id));
-
-const deleteButton=document.createElement("button");
-deleteButton.className="delete";
-deleteButton.textContent="ลบ";
-
-deleteButton.addEventListener("click",()=>{
-  if(!window.confirm(`ยืนยันลบบทความ "${article.title}" หรือไม่?`)){
-    return;
-  }
-
-  articles=articles.filter(item=>item.id!==article.id);
-
-  if(editingId===article.id){
-    resetForm();
-  }
-
-  renderArticles();
-});
-
-actions.append(editButton,publishButton,deleteButton);
-actionCell.appendChild(actions);
-tr.appendChild(actionCell);
-
-tbody.appendChild(tr);
-});
-
-updateStats();
-}
-
-function resetForm(){
-form.reset();
-editingId=null;
-document.getElementById("formHeading").textContent="เพิ่มเนื้อหาความรู้";
-document.getElementById("saveButton").textContent="เพิ่มเนื้อหา";
-document.getElementById("cancelEdit").hidden=true;
-}
-
-function editArticle(id){
-const article=articles.find(a=>a.id===id);
-if(!article)return;
-
-editingId=id;
-document.getElementById("title").value=article.title;
-document.getElementById("category").value=article.category;
-document.getElementById("contentType").value=article.type;
-document.getElementById("description").value=article.description;
-
-document.getElementById("formHeading").textContent="แก้ไขเนื้อหาความรู้";
-document.getElementById("saveButton").textContent="บันทึกการแก้ไข";
-document.getElementById("cancelEdit").hidden=false;
-
-document.getElementById("message").style.display="none";
-document.getElementById("formHeading").scrollIntoView({behavior:"smooth"});
-}
-
-function togglePublish(id){
-const article=articles.find(a=>a.id===id);
-if(!article)return;
-
-article.status=article.status==="เผยแพร่"?"ฉบับร่าง":"เผยแพร่";
-renderArticles();
-}
-
-form.addEventListener("submit",event=>{
-event.preventDefault();
-
-const articleData={
-title:document.getElementById("title").value.trim(),
-category:document.getElementById("category").value,
-type:document.getElementById("contentType").value,
-description:document.getElementById("description").value.trim()
-};
-
-if(!articleData.title||!articleData.description)return;
-
-if(editingId!==null){
-const article=articles.find(a=>a.id===editingId);
-if(article)Object.assign(article,articleData);
-}else{
-articles.unshift({
-id:nextId++,
-...articleData,
-status:"ฉบับร่าง"
-});
-}
-
-document.getElementById("message").textContent=
-editingId!==null
-?"แก้ไขข้อมูลตัวอย่างเรียบร้อยแล้ว"
-:"เพิ่มเนื้อหาตัวอย่างเรียบร้อยแล้ว โดยเริ่มต้นเป็นฉบับร่าง";
-
-document.getElementById("message").style.display="block";
-
-resetForm();
-renderArticles();
-});
-
-document.getElementById("cancelEdit").addEventListener("click",()=>{
-resetForm();
-document.getElementById("message").style.display="none";
-});
-
-document.getElementById("resetButton").addEventListener("click",()=>{
-resetForm();
-document.getElementById("message").style.display="none";
-});
-
-document.getElementById("search").addEventListener("input",renderArticles);
-
-renderArticles();
-</script>
-
-<script type="module">
-import { renderAdminSidebar } from './admin-layout.js';
-
-renderAdminSidebar('learning');
-</script>
-
+  <div class="workspace-message" id="accessMessage" role="status" aria-live="polite">กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...</div>
+  <div id="workspace" hidden>
+    <header class="workspace-top"><h2>SiOMC Admin Portal</h2><p>Knowledge Library | ตรวจสอบเนื้อหาความรู้จริงจากฐานข้อมูล</p></header>
+    <main class="workspace-page">
+      <div class="workspace-heading"><h1>คลังความรู้ SiOMC</h1><p>รายการบทความและเนื้อหาจาก Supabase</p></div>
+      <div class="workspace-message warning">โหมดอ่านข้อมูลอย่างเดียว: ปิดปุ่มเพิ่ม แก้ไข เผยแพร่ และลบข้อมูลตัวอย่างเดิม เพราะไฟล์โครงการไม่มี SQL schema ของ <code>learning_contents</code> จึงยังไม่ปลอดภัยที่จะเปิดการเขียนข้อมูลจริง</div>
+      <section class="workspace-metrics" aria-label="สรุปรายการความรู้">
+        <div class="workspace-metric"><span>เนื้อหาที่โหลดได้</span><strong id="totalCount">—</strong></div>
+        <div class="workspace-metric"><span>เผยแพร่แล้ว</span><strong id="publishedCount">—</strong></div>
+        <div class="workspace-metric"><span>ฉบับร่าง</span><strong id="draftCount">—</strong></div>
+      </section>
+      <section class="workspace-panel">
+        <div class="workspace-fields"><div><label for="search">ค้นหาบทความ</label><input id="search" type="search" maxlength="80" placeholder="ค้นชื่อหรือหมวดหมู่..."></div><div><label for="statusFilter">สถานะ</label><select id="statusFilter"><option value="">ทุกสถานะ</option><option value="published">เผยแพร่</option><option value="draft">ฉบับร่าง</option><option value="unknown">ไม่ทราบสถานะ</option></select></div></div>
+        <div id="statusMessage" class="workspace-message" role="status" aria-live="polite">กำลังโหลดเนื้อหาความรู้...</div>
+      </section>
+      <section class="workspace-panel"><h2>รายการความรู้</h2><div class="workspace-table"><table><thead><tr><th>ชื่อบทความ</th><th>หมวดหมู่</th><th>ประเภท</th><th>สถานะ</th><th>รายละเอียด</th></tr></thead><tbody id="contentRows"></tbody></table></div><p class="workspace-hint">แสดงสูงสุด 200 รายการจากฐานข้อมูลจริง หากสถานะไม่ตรงกับค่าที่ระบบรองรับจะแสดง “ไม่ทราบสถานะ”</p></section>
+    </main>
+  </div>
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { guardWorkspace, formatNumber, appendCell, emptyTable, setMessage } from './admin-workspace.js';
+    const $ = id => document.getElementById(id);
+    let contents = [];
+    const field = (row, keys) => {
+      for (const key of keys) if (row[key] !== undefined && row[key] !== null) return row[key];
+      return null;
+    };
+    const normalizeStatus = row => {
+      const publishedFlag = field(row, ['is_published','published']);
+      if (typeof publishedFlag === 'boolean') return publishedFlag ? 'published' : 'draft';
+      const raw = String(field(row, ['status','publication_status']) || '').toLowerCase();
+      if (['published','active','เผยแพร่'].includes(raw)) return 'published';
+      if (['draft','unpublished','ฉบับร่าง'].includes(raw)) return 'draft';
+      return 'unknown';
+    };
+    const statusLabel = {published:'เผยแพร่', draft:'ฉบับร่าง', unknown:'ไม่ทราบสถานะ'};
+    function render() {
+      const keyword = $('search').value.trim().toLocaleLowerCase('th-TH');
+      const filter = $('statusFilter').value;
+      const display = contents.filter(row => {
+        const matched = `${field(row,['title','name']) || ''} ${field(row,['category','topic']) || ''}`
+          .toLocaleLowerCase('th-TH').includes(keyword);
+        return matched && (!filter || normalizeStatus(row) === filter);
+      });
+      const tbody = $('contentRows');
+      tbody.replaceChildren();
+      for (const row of display) {
+        const tr = document.createElement('tr');
+        appendCell(tr, field(row,['title','name']) || '—');
+        appendCell(tr, field(row,['category','topic']) || '—');
+        appendCell(tr, field(row,['content_type','type','media_type']) || '—');
+        appendCell(tr, statusLabel[normalizeStatus(row)]);
+        const excerpt = field(row,['description','summary','body','content']);
+        appendCell(tr, typeof excerpt === 'string' ? excerpt.slice(0,220) : '—');
+        tbody.appendChild(tr);
+      }
+      if (!display.length) emptyTable(tbody, 5, 'ไม่พบเนื้อหาตามเงื่อนไข');
+    }
+    $('search').addEventListener('input', render);
+    $('statusFilter').addEventListener('change', render);
+    async function loadContents() {
+      try {
+        const { data, error } = await supabase.from('learning_contents').select('*').limit(200);
+        if (error) throw error;
+        contents = data || [];
+        $('totalCount').textContent = formatNumber(contents.length);
+        $('publishedCount').textContent = formatNumber(contents.filter(row => normalizeStatus(row)==='published').length);
+        $('draftCount').textContent = formatNumber(contents.filter(row => normalizeStatus(row)==='draft').length);
+        render();
+        setMessage('statusMessage', contents.length === 200 ? 'โหลดสูงสุด 200 รายการ จำนวนทั้งหมดจริงอาจมากกว่านี้' : '');
+      } catch (error) {
+        console.error('SiOMC learning content query failed:', error.code, error.message);
+        emptyTable($('contentRows'), 5, 'ไม่สามารถโหลดเนื้อหาจาก Supabase ได้');
+        setMessage('statusMessage', 'ยังอ่าน learning_contents ไม่ได้ กรุณาตรวจสอบตารางและสิทธิ์ RLS ก่อน', 'error');
+      }
+    }
+    const access = await guardWorkspace('learning');
+    if (access) loadContents();
+  </script>
 </body>
 </html>

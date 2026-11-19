@@ -1,265 +1,99 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#123d5a">
-<title>SiOMC | Clinical Assessment</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#f3f6fa;color:#173b52;font-family:Arial,Tahoma,sans-serif}
-header{background:#fff;padding:22px 30px;border-bottom:1px solid #e5ebef}
-header h2{margin:0 0 6px;font-size:21px}
-header p{margin:0;color:#718596;font-size:13px}
-.container{max-width:1150px;margin:auto;padding:25px 20px}
-.toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
-select,input,textarea{width:100%;padding:11px 12px;border:1px solid #d8e1e8;border-radius:9px;background:white;font:14px Arial,Tahoma,sans-serif;color:#173b52}
-select{min-width:240px}
-.toolbar select{width:auto}
-.card{background:white;border:1px solid #e8edf1;border-radius:13px;padding:21px;margin-bottom:20px}
-.card h3{margin:0 0 17px;color:#123d5a;font-size:17px}
-.profile{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
-.profile-item{background:#f7fafc;border-radius:9px;padding:14px}
-.profile-item small{display:block;color:#718596;margin-bottom:7px}
-.profile-item strong{font-size:15px}
-.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.field{display:flex;flex-direction:column;gap:7px}
-.field label{font-size:13px;font-weight:bold;color:#526b7e}
-.field.full{grid-column:1/-1}
-textarea{min-height:90px;resize:vertical;line-height:1.6}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-button{border:0;border-radius:9px;padding:12px 19px;font-size:14px;font-weight:bold;cursor:pointer}
-.primary{background:#123d5a;color:white}
-.secondary{background:#edf2f6;color:#38586d}
-button:hover{opacity:.9}
-table{width:100%;border-collapse:collapse;min-width:650px}
-th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1f5;font-size:13px;vertical-align:top}
-th{background:#f8fafc;color:#718596}
-.table-wrap{overflow-x:auto}
-.tag{display:inline-block;background:#e8f3ed;color:#28734b;border-radius:20px;padding:5px 9px;font-size:11px}
-.note{background:#fff8e9;border:1px solid #f2dfb5;border-radius:9px;padding:13px;color:#785c27;font-size:13px;line-height:1.6;margin-bottom:20px}
-.notice-success{display:none;background:#e8f3ed;color:#28734b;padding:12px;border-radius:9px;margin-top:15px;font-size:13px}
-@media(max-width:700px){
-.container{padding:16px 12px}
-.profile{grid-template-columns:1fr}
-.form-grid{grid-template-columns:1fr}
-.field.full{grid-column:auto}
-header{padding:18px}
-.card{padding:16px}
-}
-</style>
-  <link rel="stylesheet" href="./siomc-design.css">
-  <link rel="stylesheet" href="./siomc-admin-theme.css">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#123d5a">
+  <title>SiOMC | ประเมินทางคลินิก</title>
+  <link rel="stylesheet" href="./siomc-design.css"><link rel="stylesheet" href="./siomc-admin-theme.css"><link rel="stylesheet" href="./admin-workspace.css">
 </head>
 <body class="siomc-admin">
+  <div class="workspace-message" id="accessMessage" role="status" aria-live="polite">กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...</div>
+  <div id="workspace" hidden>
+    <header class="workspace-top"><h2>SiOMC Admin Portal</h2><p>Clinical Assessment | ประวัติการประเมินที่บันทึกในฐานข้อมูลจริง</p></header>
+    <main class="workspace-page">
+      <div class="workspace-heading"><h1>ประเมินทางคลินิก</h1><p>ตรวจสอบประวัติการประเมินตามสิทธิ์บัญชีเจ้าหน้าที่</p></div>
+      <div class="workspace-message warning">โหมดอ่านข้อมูลอย่างเดียว: ปิดฟอร์มบันทึกตัวอย่างเดิมเพื่อป้องกันข้อมูลเวชระเบียนสูญหายเมื่อรีเฟรช การเปิดบันทึกจริงต้องยืนยันโครงสร้างตาราง <code>clinical_assessments</code> และนโยบายสิทธิ์ก่อน</div>
+      <section class="workspace-panel">
+        <div class="workspace-fields">
+          <div><label for="memberSearch">ค้นหาชื่อ / รหัสสมาชิก</label><input id="memberSearch" type="search" maxlength="80" placeholder="ค้นหาสมาชิกที่เปิดใช้งาน..."></div>
+          <div><label for="memberSelect">สมาชิก</label><select id="memberSelect"><option value="">— เลือกสมาชิก —</option></select></div>
+        </div>
+        <p class="workspace-hint">แสดงสมาชิกที่เปิดใช้งานไม่เกิน 50 รายการต่อการค้นหา · ประวัติจาก Supabase ไม่ใช่ข้อมูลจำลอง</p>
+        <div id="statusMessage" class="workspace-message" role="status" aria-live="polite">กรุณาเลือกสมาชิกเพื่อดูประวัติการประเมิน</div>
+      </section>
+      <section class="workspace-panel" id="memberResults" hidden>
+        <h2>ประวัติการประเมิน</h2>
+        <div class="workspace-table"><table><thead><tr><th>วันที่</th><th>ประเภทการประเมิน</th><th>สรุป / หมายเหตุ</th><th>สถานะ</th><th>นัดติดตาม</th></tr></thead><tbody id="assessmentRows"></tbody></table></div>
+        <p class="workspace-hint" id="assessmentNote">แสดงไม่เกิน 100 รายการ · บางช่องอาจแสดง — หากตารางปัจจุบันไม่มีคอลัมน์ดังกล่าว</p>
+      </section>
+    </main>
+  </div>
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { guardWorkspace, fillActiveMemberSelect, formatThaiDate, appendCell, emptyTable, setMessage } from './admin-workspace.js';
+    const $ = id => document.getElementById(id);
+    const memberSelect = $('memberSelect');
+    let searchTimer, searchRequest = 0, dataRequest = 0;
+    const firstAvailable = (row, fields) => {
+      for (const key of fields) if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
+      return null;
+    };
 
-<header>
-<h2>SiOMC Admin Portal</h2>
-<p>Clinical Assessment | ระบบประเมินและติดตามทางคลินิก</p>
-</header>
-
-<main class="container">
-
-<div class="toolbar">
-<select id="member" onchange="updateMember()">
-<option value="0">SIOMC-00001 | ตัวอย่าง สมาชิก 1</option>
-<option value="1">SIOMC-00002 | ตัวอย่าง สมาชิก 2</option>
-<option value="2">SIOMC-00003 | ตัวอย่าง สมาชิก 3</option>
-</select>
-</div>
-
-<div class="note">
-<strong>ข้อมูลสำหรับทดสอบระบบเท่านั้น</strong><br>
-ข้อมูลสมาชิกและประวัติด้านล่างเป็นข้อมูลจำลอง ไม่ใช่เวชระเบียนหรือข้อมูลผู้ป่วยจริง แบบฟอร์มนี้ยังไม่ได้บันทึกลงฐานข้อมูลกลาง
-</div>
-
-<section class="card">
-<h3>ข้อมูลสมาชิก</h3>
-<div class="profile">
-<div class="profile-item">
-<small>รหัสสมาชิก</small>
-<strong id="memberId">SIOMC-00001</strong>
-</div>
-<div class="profile-item">
-<small>ชื่อสมาชิก</small>
-<strong id="memberName">ตัวอย่าง สมาชิก 1</strong>
-</div>
-<div class="profile-item">
-<small>ประเภทสมาชิก</small>
-<strong>สมาชิกทั่วไป (ตัวอย่าง)</strong>
-</div>
-</div>
-</section>
-
-<section class="card">
-<h3>บันทึกผลการประเมิน</h3>
-<form id="assessmentForm">
-<div class="form-grid">
-
-<div class="field">
-<label for="assessmentDate">วันที่ประเมิน</label>
-<input type="date" id="assessmentDate" required>
-</div>
-
-<div class="field">
-<label for="assessor">ผู้ประเมิน</label>
-<select id="assessor" required>
-<option value="">เลือกผู้ประเมิน</option>
-<option>แพทย์</option>
-<option>พยาบาล</option>
-<option>นักกำหนดอาหาร</option>
-</select>
-</div>
-
-<div class="field">
-<label for="assessmentType">ประเภทการประเมิน</label>
-<select id="assessmentType" required>
-<option value="">เลือกประเภท</option>
-<option>ประเมินครั้งแรก</option>
-<option>ติดตามผล</option>
-<option>ประเมินด้านโภชนาการ</option>
-<option>ประเมินพฤติกรรมสุขภาพ</option>
-<option>ติดตามหลังผ่าตัด</option>
-</select>
-</div>
-
-<div class="field">
-<label for="status">สถานะการติดตาม</label>
-<select id="status" required>
-<option>ประเมินแล้ว</option>
-<option>รอติดตาม</option>
-<option>ต้องประเมินเพิ่มเติม</option>
-</select>
-</div>
-
-<div class="field full">
-<label for="summary">สรุปผลการประเมิน</label>
-<textarea id="summary" placeholder="บันทึกสรุปผลการประเมิน..." required></textarea>
-</div>
-
-<div class="field full">
-<label for="recommendation">คำแนะนำและแผนการดูแล</label>
-<textarea id="recommendation" placeholder="บันทึกคำแนะนำหรือแผนการดูแล..." required></textarea>
-</div>
-
-<div class="field">
-<label for="goal">เป้าหมายการดูแล</label>
-<input id="goal" type="text" placeholder="เช่น เป้าหมายพฤติกรรมสุขภาพ">
-</div>
-
-<div class="field">
-<label for="followup">วันที่นัดติดตามครั้งถัดไป</label>
-<input id="followup" type="date">
-</div>
-
-</div>
-
-<div class="actions">
-<button class="primary" type="submit">บันทึกข้อมูลตัวอย่าง</button>
-<button class="secondary" type="reset">ล้างแบบฟอร์ม</button>
-</div>
-
-<div class="notice-success" id="successMessage">
-บันทึกตัวอย่างลงในหน้าจอเรียบร้อยแล้ว (ยังไม่ได้ส่งข้อมูลไปยังฐานข้อมูล)
-</div>
-</form>
-</section>
-
-<section class="card">
-<h3>ประวัติการประเมิน</h3>
-<div class="table-wrap">
-<table>
-<thead>
-<tr>
-<th>วันที่</th>
-<th>ผู้ประเมิน</th>
-<th>ประเภท</th>
-<th>สรุปผล</th>
-<th>สถานะ</th>
-<th>นัดติดตาม</th>
-</tr>
-</thead>
-<tbody id="historyRows">
-<tr>
-<td>15/10/2026</td>
-<td>แพทย์ (ตัวอย่าง)</td>
-<td>ประเมินครั้งแรก</td>
-<td>ข้อมูลจำลองสำหรับทดสอบ</td>
-<td><span class="tag">ประเมินแล้ว</span></td>
-<td>15/11/2026</td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-
-<div style="margin:20px 0">
-<a href="admin.html" style="color:#17648a;text-decoration:none">← กลับหน้า Admin Dashboard</a>
-</div>
-
-</main>
-
-<script>
-const members = [
-{id:"SIOMC-00001",name:"ตัวอย่าง สมาชิก 1"},
-{id:"SIOMC-00002",name:"ตัวอย่าง สมาชิก 2"},
-{id:"SIOMC-00003",name:"ตัวอย่าง สมาชิก 3"}
-];
-
-function updateMember(){
-const member=members[Number(document.getElementById("member").value)];
-document.getElementById("memberId").textContent=member.id;
-document.getElementById("memberName").textContent=member.name;
-}
-
-document.getElementById("assessmentDate").value=new Date().toISOString().slice(0,10);
-
-document.getElementById("assessmentForm").addEventListener("submit",function(event){
-event.preventDefault();
-
-const date=document.getElementById("assessmentDate").value;
-const assessor=document.getElementById("assessor").value;
-const type=document.getElementById("assessmentType").value;
-const summary=document.getElementById("summary").value;
-const status=document.getElementById("status").value;
-const followup=document.getElementById("followup").value;
-
-const formatDate=value=>{
-if(!value)return "-";
-const [y,m,d]=value.split("-");
-return `${d}/${m}/${y}`;
-};
-
-const row=document.createElement("tr");
-const values=[
-formatDate(date),
-assessor,
-type,
-summary,
-status,
-formatDate(followup)
-];
-
-values.forEach(value=>{
-const cell=document.createElement("td");
-cell.textContent=value;
-row.appendChild(cell);
-});
-
-document.getElementById("historyRows").prepend(row);
-document.getElementById("successMessage").style.display="block";
-});
-
-document.getElementById("assessmentForm").addEventListener("reset",function(){
-document.getElementById("successMessage").style.display="none";
-});
-
-</script>
-<script type="module">
-    import { renderAdminSidebar } from './admin-layout.js';
-  
-    renderAdminSidebar('assessment');
+    async function refreshMembers() {
+      const seq = ++searchRequest;
+      try {
+        const rows = await fillActiveMemberSelect(memberSelect, $('memberSearch').value, () => seq === searchRequest);
+        if (seq !== searchRequest || !rows) return;
+        if (memberSelect.value) loadAssessments();
+        else { dataRequest++; $('memberResults').hidden = true; setMessage('statusMessage', rows.length ? 'กรุณาเลือกสมาชิก' : 'ไม่พบสมาชิกตามคำค้นหา'); }
+      } catch (error) {
+        console.error('SiOMC assessment member lookup failed:', error.code, error.message);
+        setMessage('statusMessage', 'ไม่สามารถโหลดสมาชิกได้ กรุณาตรวจสอบสิทธิ์', 'error');
+      }
+    }
+    async function loadAssessments() {
+      const id = memberSelect.value;
+      const seq = ++dataRequest;
+      $('memberResults').hidden = true;
+      if (!id) { setMessage('statusMessage', 'กรุณาเลือกสมาชิก'); return; }
+      setMessage('statusMessage', 'กำลังโหลดประวัติการประเมิน...');
+      try {
+        // Schema not included with project ZIP; request only this member's rows.
+        // Never insert or update clinical data using guessed column names.
+        const { data, error } = await supabase.from('clinical_assessments')
+          .select('*').eq('member_id', id).limit(100);
+        if (seq !== dataRequest) return;
+        if (error) throw error;
+        const rows = data || [];
+        rows.sort((a, b) => {
+          const aDate = firstAvailable(a,['assessment_date','assessed_at','created_at']) || '';
+          const bDate = firstAvailable(b,['assessment_date','assessed_at','created_at']) || '';
+          return String(bDate).localeCompare(String(aDate));
+        });
+        const tbody = $('assessmentRows');
+        tbody.replaceChildren();
+        for (const row of rows) {
+          const tr = document.createElement('tr');
+          appendCell(tr, formatThaiDate(firstAvailable(row,['assessment_date','assessed_at','created_at'])));
+          appendCell(tr, firstAvailable(row,['assessment_type','type','category']) || '—');
+          const summary = firstAvailable(row,['summary','assessment_summary','notes','note','findings']);
+          appendCell(tr, typeof summary === 'string' ? summary : '—');
+          appendCell(tr, firstAvailable(row,['status','followup_status']) || '—');
+          appendCell(tr, formatThaiDate(firstAvailable(row,['followup_date','next_followup_at','next_appointment_date'])));
+          tbody.appendChild(tr);
+        }
+        if (!rows.length) emptyTable(tbody, 5, 'ไม่มีประวัติการประเมินที่มองเห็นได้สำหรับสมาชิกนี้');
+        $('assessmentNote').textContent = `แสดง ${rows.length} รายการล่าสุดที่อ่านได้ (สูงสุด 100) · ฟิลด์ที่ไม่มีในตารางจะแสดง —`;
+        $('memberResults').hidden = false;
+        setMessage('statusMessage', '');
+      } catch (error) {
+        console.error('SiOMC clinical assessments query failed:', error.code, error.message);
+        setMessage('statusMessage', 'ไม่สามารถอ่าน clinical_assessments ได้ อาจต้องตรวจสอบโครงสร้างตารางหรือ RLS ก่อน', 'error');
+      }
+    }
+    memberSelect.addEventListener('change', loadAssessments);
+    $('memberSearch').addEventListener('input', () => {clearTimeout(searchTimer);searchTimer=setTimeout(refreshMembers,300);});
+    const access = await guardWorkspace('assessment');
+    if (access) refreshMembers();
   </script>
 </body>
 </html>
