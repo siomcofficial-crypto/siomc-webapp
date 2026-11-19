@@ -1,206 +1,347 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiOMC | Member Management</title>
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | จัดการสมาชิก</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f3f6f9;
-      color: #173b52;
+    body { margin: 0; background: #f3f6f9; color: #173b52; }
+    .page-head {
+      background: linear-gradient(115deg, #123d5a, #1c6484);
+      color: #fff;
+      padding: 22px clamp(18px, 3vw, 36px);
     }
-    header {
-      background: #123d5a;
-      color: white;
-      padding: 22px 30px;
-    }
-    header h2 { margin: 0 0 5px; }
-    header p { margin: 0; color: #d2e1eb; font-size: 13px; }
-    main { padding: 28px; max-width: 1200px; margin: auto; }
+    .page-head h2 { margin: 0 0 5px; font-size: 24px; color: #fff; }
+    .page-head p { margin: 0; color: #dcecf5; font-size: 13px; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px; min-width: 0; }
     .topline {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 22px;
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 20px;
     }
     .topline h1 { margin: 0; font-size: 24px; }
-    .back {
-      color: #17618a;
-      text-decoration: none;
-      font-size: 14px;
-    }
+    .back { color: #17618a; text-decoration: none; font-size: 14px; }
     .panel {
-      background: white;
-      border: 1px solid #e5ebef;
-      border-radius: 13px;
-      padding: 22px;
-      margin-bottom: 20px;
+      background: #fff; border: 1px solid #e1eaf1;
+      border-radius: 14px; padding: 22px; margin-bottom: 18px;
     }
     .filters {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
+      display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
       gap: 12px;
     }
-    input, select {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #d6e1e8;
-      border-radius: 8px;
-      font-size: 14px;
-      background: white;
+    .filters label { display: block; margin-bottom: 5px; font-size: 13px; color: #547084; }
+    .filters input, .filters select {
+      display: block; width: 100%; max-width: 100%; min-width: 0;
+      padding: 11px 12px; font-size: 14px; border: 1px solid #d6e1e8;
+      border-radius: 9px; background: #fff; color: #173b52;
     }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .count { margin: 14px 0 0; font-size: 13px; color: #647d91; }
+    .table-wrap { overflow-x: auto; max-width: 100%; }
+    table { width: 100%; min-width: 600px; border-collapse: collapse; }
     th, td {
-      padding: 14px 10px;
-      text-align: left;
-      border-bottom: 1px solid #edf1f4;
+      text-align: left; border-bottom: 1px solid #edf1f4;
+      padding: 13px 10px; font-size: 13px; vertical-align: middle;
+    }
+    th { color: #47677d; font-weight: 600; }
+    .status {
+      display: inline-block; padding: 5px 10px;
+      border-radius: 30px; font-size: 12px; font-weight: 400;
+    }
+    .status.active { background: #e9f5ee; color: #276b4c; }
+    .status.inactive, .status.archived { background: #f0f2f5; color: #5e6b75; }
+    .status.unknown { background: #fff3df; color: #865c19; }
+    .view-button, .page-button, .refresh-button {
+      border: 1px solid #cddfea; background: #e8f1f7; color: #123d5a;
+      border-radius: 9px; padding: 8px 12px; cursor: pointer;
       font-size: 13px;
     }
-    th { color: #718596; }
-    .status {
-      display: inline-block;
-      background: #e8f3ed;
-      color: #28734b;
-      padding: 5px 9px;
-      border-radius: 20px;
-      font-size: 11px;
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .pager { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .pager span { font-size: 13px; color: #647d91; }
+    .auth-state {
+      max-width: 480px; margin: 12vh auto; padding: 24px;
+      border: 1px solid #dce8ee; border-radius: 14px;
+      background: white; text-align: center; color: #123d5a;
     }
-    .view-button {
-      border: 0;
-      background: #e8f1f7;
-      color: #123d5a;
-      border-radius: 7px;
-      padding: 8px 12px;
-      cursor: pointer;
+    .error-text { color: #ab3333; }
+    dialog {
+      width: min(92vw, 460px); max-width: 460px;
+      border: 1px solid #dce8ee; border-radius: 16px;
+      padding: 24px; color: #173b52; background: #fff;
     }
-    .count { color: #718596; font-size: 13px; margin-top: 15px; }
-    @media(max-width: 650px) {
+    dialog::backdrop { background: rgba(13,35,49,.5); }
+    dialog h2 { margin: 0 0 14px; font-size: 20px; }
+    .detail-grid { display: grid; gap: 10px; margin-bottom: 18px; }
+    .detail-row { display: grid; grid-template-columns: 125px minmax(0,1fr); gap: 12px; }
+    .detail-row .label { color: #718596; }
+    @media (max-width: 700px) {
+      .page-head { padding: 16px 18px 16px 72px !important; min-height: 78px; }
+      .page-head h2 { font-size: 20px; }
       main { padding: 16px; }
-      .filters { grid-template-columns: 1fr; }
-      .panel { padding: 15px; }
+      .filters { grid-template-columns: minmax(0,1fr); }
+      .siomc-admin .panel { padding: 16px; }
+      .topline h1 { font-size: 22px; }
+      .detail-row { grid-template-columns: 108px minmax(0,1fr); }
     }
   </style>
   <link rel="stylesheet" href="./siomc-design.css">
   <link rel="stylesheet" href="./siomc-admin-theme.css">
 </head>
 <body class="siomc-admin">
-  <header>
-    <h2>SiOMC Admin Portal</h2>
-    <p>Member Management</p>
-  </header>
+  <div class="auth-state" id="authState" role="status" aria-live="polite">
+    กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...
+  </div>
 
-  <main>
-    <div class="topline">
-      <h1>จัดการสมาชิก</h1>
-      <a class="back" href="admin.html">← กลับ Dashboard</a>
+  <div id="protectedContent" hidden>
+    <header class="page-head">
+      <h2>SiOMC Admin Portal</h2>
+      <p>Member Management</p>
+    </header>
+
+    <main>
+      <div class="topline">
+        <h1>จัดการสมาชิก</h1>
+        <a class="back" href="./admin.html">← กลับ Dashboard</a>
+      </div>
+
+      <section class="panel" aria-label="ค้นหาและกรองสมาชิก">
+        <div class="filters">
+          <div>
+            <label for="searchInput">ค้นหาสมาชิก</label>
+            <input id="searchInput" type="search" maxlength="80" autocomplete="off"
+              placeholder="ค้นหารหัสสมาชิกหรือชื่อสมาชิก...">
+          </div>
+          <div>
+            <label for="statusFilter">สถานะสมาชิก</label>
+            <select id="statusFilter">
+              <option value="">ทุกสถานะ</option>
+              <option value="active">เปิดใช้งาน</option>
+              <option value="inactive">ปิดใช้งาน</option>
+              <option value="archived">เก็บถาวร</option>
+            </select>
+          </div>
+        </div>
+        <p class="count" id="memberCount" role="status" aria-live="polite">กำลังโหลดข้อมูลสมาชิก...</p>
+      </section>
+
+      <section class="panel" aria-label="รายชื่อสมาชิก">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">รหัสสมาชิก</th>
+                <th scope="col">ชื่อสมาชิก</th>
+                <th scope="col">สถานะ</th>
+                <th scope="col">วันที่สมัคร</th>
+                <th scope="col">รายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody id="memberTable">
+              <tr><td colspan="5">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="prevPage" class="page-button" type="button" disabled>ก่อนหน้า</button>
+          <span id="pageInfo">หน้า 1</span>
+          <button id="nextPage" class="page-button" type="button" disabled>ถัดไป</button>
+          <button id="refreshButton" class="refresh-button" type="button">รีเฟรช</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="memberDialog" aria-labelledby="dialogTitle">
+    <h2 id="dialogTitle">รายละเอียดสมาชิก</h2>
+    <div class="detail-grid">
+      <div class="detail-row"><span class="label">รหัสสมาชิก</span><span id="detailCode"></span></div>
+      <div class="detail-row"><span class="label">ชื่อสมาชิก</span><span id="detailName"></span></div>
+      <div class="detail-row"><span class="label">สถานะ</span><span id="detailStatus"></span></div>
+      <div class="detail-row"><span class="label">วันที่สมัคร</span><span id="detailDate"></span></div>
     </div>
+    <button id="closeDialog" class="view-button" type="button">ปิด</button>
+  </dialog>
 
-    <section class="panel">
-      <div class="filters">
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="ค้นหารหัสสมาชิกหรือชื่อ..."
-        >
-        <select id="typeFilter">
-          <option value="">สมาชิกทุกประเภท</option>
-          <option value="general">สมาชิกทั่วไป</option>
-          <option value="patient">ผู้รับบริการศิริราช</option>
-        </select>
-      </div>
-      <p class="count" id="memberCount">สมาชิกตัวอย่าง 4 รายการ</p>
-    </section>
+  <script type="module">
+    import { supabase } from './supabase.js';
+    import { renderAdminSidebar } from './admin-layout.js';
 
-    <section class="panel">
-      <div class="table-wrap">
-        
-<div class="siomc-table-scroll">
-  <table>
-    <thead>
-      <tr>
-        <th>รหัสสมาชิก</th>
-        <th>ชื่อสมาชิก</th>
-        <th>ประเภท</th>
-        <th>สถานะ</th>
-        <th>ข้อมูล</th>
-      </tr>
-    </thead>
-    <tbody id="memberTable"></tbody>
-  </table>
-</div>
+    const $ = id => document.getElementById(id);
+    const PAGE_SIZE = 25;
+    // สิทธิ์ดูรายชื่อสอดคล้องกับ members RLS ที่มีอยู่
+    const ALLOWED_ROLES = new Set(['admin', 'system_admin', 'doctor', 'nurse', 'dietitian']);
+    const ROLE_VIEW = 'system_admin';
+    let source = null;
+    let page = 0;
+    let total = 0;
+    let requestNumber = 0;
+    let searchTimer = null;
 
-      </div>
-    </section>
-  </main>
+    const statusLabels = {
+      active: 'เปิดใช้งาน',
+      inactive: 'ปิดใช้งาน',
+      archived: 'เก็บถาวร'
+    };
 
-  <script>
-    // ข้อมูลสมมติสำหรับทดสอบหน้าจอเท่านั้น
-    const members = [
-      { id: 'SIOMC-00001', name: 'ตัวอย่าง สมาชิก 1', type: 'general', typeName: 'สมาชิกทั่วไป' },
-      { id: 'SIOMC-00002', name: 'ตัวอย่าง สมาชิก 2', type: 'general', typeName: 'สมาชิกทั่วไป' },
-      { id: 'SIOMC-00003', name: 'ตัวอย่าง สมาชิก 3', type: 'patient', typeName: 'ผู้รับบริการศิริราช' },
-      { id: 'SIOMC-00004', name: 'ตัวอย่าง สมาชิก 4', type: 'patient', typeName: 'ผู้รับบริการศิริราช' }
-    ];
-
-    const table = document.getElementById('memberTable');
-    const search = document.getElementById('searchInput');
-    const filter = document.getElementById('typeFilter');
-    const count = document.getElementById('memberCount');
-
-    function renderMembers() {
-      const keyword = search.value.trim().toLowerCase();
-      const type = filter.value;
-
-      const results = members.filter(member => {
-        const matchesSearch =
-          member.id.toLowerCase().includes(keyword) ||
-          member.name.toLowerCase().includes(keyword);
-        const matchesType = !type || member.type === type;
-        return matchesSearch && matchesType;
-      });
-
-      table.innerHTML = results.map(member => `
-        <tr>
-          <td>${member.id}</td>
-          <td>${member.name}</td>
-          <td>${member.typeName}</td>
-          <td><span class="status">ตัวอย่าง</span></td>
-          <td><button class="view-button" type="button"
-            onclick="alert('ข้อมูลนี้เป็นข้อมูลสมมติสำหรับทดสอบ')">
-            ดูข้อมูล
-          </button></td>
-        </tr>
-      `).join('');
-
-      if (results.length === 0) {
-        table.innerHTML = '<tr><td colspan="5">ไม่พบสมาชิก</td></tr>';
-      }
-
-      count.textContent = `พบสมาชิก ${results.length} รายการ (ข้อมูลสมมติ)`;
+    function formatThaiDate(iso) {
+      if (!iso) return '—';
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return '—';
+      return new Intl.DateTimeFormat('th-TH-u-nu-latn', {
+        day: 'numeric', month: 'short', year: 'numeric'
+      }).format(date);
     }
 
-    search.addEventListener('input', renderMembers);
-    filter.addEventListener('change', renderMembers);
-    renderMembers();
-  </script>
-  <script type="module">
-    import { renderAdminSidebar } from './admin-layout.js';
-  
-    console.log('SiOMC Members: Module loaded');
-  
-    renderAdminSidebar('members');
-  
-    console.log(
-      'SiOMC Members: Sidebar status',
-      document.querySelector('.siomc-shared-sidebar')
-    );
+    function addCell(row, text) {
+      const td = document.createElement('td');
+      td.textContent = String(text ?? '—');
+      row.appendChild(td);
+      return td;
+    }
+
+    function showTableMessage(message) {
+      const tbody = $('memberTable');
+      tbody.replaceChildren();
+      const row = document.createElement('tr');
+      const cell = addCell(row, message);
+      cell.colSpan = 5;
+      tbody.appendChild(row);
+    }
+
+    function showDetails(member) {
+      $('detailCode').textContent = member.member_code ?? '—';
+      $('detailName').textContent = member.display_name ?? '—';
+      $('detailStatus').textContent = statusLabels[member.status] || member.status || '—';
+      $('detailDate').textContent = formatThaiDate(member.created_at);
+      $('memberDialog').showModal();
+    }
+
+    function renderRows(rows) {
+      const tbody = $('memberTable');
+      tbody.replaceChildren();
+      if (!rows.length) {
+        showTableMessage('ไม่พบสมาชิกตามเงื่อนไขที่ค้นหา');
+        return;
+      }
+      for (const member of rows) {
+        const row = document.createElement('tr');
+        addCell(row, member.member_code);
+        addCell(row, member.display_name);
+
+        const statusCell = document.createElement('td');
+        const badge = document.createElement('span');
+        badge.className = 'status ' + (statusLabels[member.status] ? member.status : 'unknown');
+        badge.textContent = statusLabels[member.status] || member.status || 'ไม่ระบุ';
+        statusCell.appendChild(badge);
+        row.appendChild(statusCell);
+
+        addCell(row, formatThaiDate(member.created_at));
+        const actionCell = document.createElement('td');
+        const button = document.createElement('button');
+        button.className = 'view-button';
+        button.type = 'button';
+        button.textContent = 'ดูข้อมูล';
+        button.addEventListener('click', () => showDetails(member));
+        actionCell.appendChild(button);
+        row.appendChild(actionCell);
+        tbody.appendChild(row);
+      }
+    }
+
+    async function loadMembers() {
+      if (!source) return;
+      const thisRequest = ++requestNumber;
+      $('memberCount').textContent = 'กำลังโหลดข้อมูลสมาชิก...';
+      $('prevPage').disabled = true;
+      $('nextPage').disabled = true;
+      showTableMessage('กำลังโหลดข้อมูล...');
+
+      // จำกัดอักขระให้ปลอดภัยเมื่อใช้ PostgREST OR filter
+      const keyword = $('searchInput').value.trim()
+        .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, '')
+        .slice(0, 80).trim();
+      const status = $('statusFilter').value;
+
+      let query = supabase
+        .from(source)
+        .select('id, member_code, display_name, status, created_at', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
+
+      if (keyword) {
+        query = query.or(`member_code.ilike.%${keyword}%,display_name.ilike.%${keyword}%`);
+      }
+      if (status) query = query.eq('status', status);
+
+      const { data, error, count } = await query;
+      if (thisRequest !== requestNumber) return;
+
+      if (error) {
+        console.error('SiOMC members query failed:', error.code, error.message);
+        $('memberCount').textContent = 'โหลดข้อมูลสมาชิกไม่สำเร็จ กรุณาตรวจสอบสิทธิ์หรือการเชื่อมต่อ';
+        showTableMessage('ไม่สามารถแสดงข้อมูลสมาชิกได้');
+        $('pageInfo').textContent = '—';
+        return;
+      }
+
+      total = count ?? 0;
+      const pageTotal = Math.max(1, Math.ceil(total / PAGE_SIZE));
+      if (page >= pageTotal && page > 0) {
+        page = pageTotal - 1;
+        await loadMembers();
+        return;
+      }
+      renderRows(data || []);
+      $('memberCount').textContent = `พบสมาชิก ${total.toLocaleString('th-TH-u-nu-latn')} รายการ`;
+      $('pageInfo').textContent = `หน้า ${page + 1} จาก ${pageTotal}`;
+      $('prevPage').disabled = page === 0;
+      $('nextPage').disabled = page >= pageTotal - 1;
+    }
+
+    async function checkAccessAndInit() {
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          window.location.replace('./admin-login.html');
+          return;
+        }
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role, is_active')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (profileError) throw profileError;
+
+        if (!profile || !profile.is_active || !ALLOWED_ROLES.has(profile.role)) {
+          $('authState').classList.add('error-text');
+          $('authState').textContent = 'บัญชีนี้ไม่มีสิทธิ์ดูรายชื่อสมาชิก กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ที่ได้รับอนุญาต';
+          return;
+        }
+
+        // System Admin ใช้ View ที่ตรวจสิทธิ์ system_admin ภายในฐานข้อมูล
+        source = profile.role === ROLE_VIEW ? 'system_admin_member_directory' : 'members';
+        renderAdminSidebar('members');
+        $('authState').hidden = true;
+        $('protectedContent').hidden = false;
+        await loadMembers();
+      } catch (error) {
+        console.error('SiOMC members initialization failed:', error);
+        $('authState').classList.add('error-text');
+        $('authState').textContent = 'ไม่สามารถโหลดระบบจัดการสมาชิกได้ กรุณาลองใหม่หรือตรวจสอบสิทธิ์บัญชี';
+      }
+    }
+
+    $('searchInput').addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => { page = 0; loadMembers(); }, 350);
+    });
+    $('statusFilter').addEventListener('change', () => { page = 0; loadMembers(); });
+    $('prevPage').addEventListener('click', () => { if (page > 0) { page--; loadMembers(); } });
+    $('nextPage').addEventListener('click', () => { if ((page + 1) * PAGE_SIZE < total) { page++; loadMembers(); } });
+    $('refreshButton').addEventListener('click', () => loadMembers());
+    $('closeDialog').addEventListener('click', () => $('memberDialog').close());
+    checkAccessAndInit();
   </script>
 </body>
 </html>
