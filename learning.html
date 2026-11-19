@@ -45,6 +45,10 @@
       .siomc-admin .learning-buttons{align-items:stretch}
       .siomc-admin .learning-buttons .learning-button{flex:1}
     }
+  
+    /* SIOMC_LEARNING_UPLOADS_V1 */
+    .siomc-admin .learning-file-help{margin-top:7px;color:#587488;font-size:12px;overflow-wrap:anywhere}
+    .siomc-admin .learning-file-preview{margin:8px 0 0}
   </style>
 </head>
 <body class="siomc-admin">
@@ -98,6 +102,8 @@
                 <option value="บทความ">บทความ</option>
                 <option value="วิดีโอ">วิดีโอ</option>
                 <option value="บทเรียน">บทเรียนออนไลน์</option>
+                <option value="PDF">เอกสาร PDF</option>
+                <option value="JPEG">แผ่นพับรูปภาพ JPEG</option>
               </select>
             </div>
             <div class="learning-field full">
@@ -105,10 +111,17 @@
               <textarea id="contentBody" maxlength="50000" placeholder="พิมพ์ข้อความความรู้ที่ต้องการเผยแพร่..."></textarea>
               <p class="workspace-hint">ต้องมีเนื้อหาข้อความหรือ URL สื่ออย่างน้อยหนึ่งอย่าง โปรดหลีกเลี่ยงการใส่ข้อมูลระบุตัวผู้ป่วย</p>
             </div>
-            <div class="learning-field full">
+            <div class="learning-field full" id="mediaUrlField">
               <label for="mediaPath">URL สื่อประกอบ (ไม่บังคับ)</label>
               <input id="mediaPath" type="url" maxlength="2000" placeholder="https://example.org/video-or-document">
-              <p class="workspace-hint">รองรับลิงก์ HTTPS เท่านั้น เวอร์ชันนี้ยังไม่อัปโหลดไฟล์เข้า Storage โดยตรง</p>
+              <p class="workspace-hint">ใช้สำหรับบทความ วิดีโอ และบทเรียนออนไลน์ (HTTPS)</p>
+            </div>
+            <div class="learning-field full" id="learningUploadField" hidden>
+              <label for="learningFile">เลือกไฟล์ PDF หรือ JPEG (ไม่เกิน 10 MB) *</label>
+              <input id="learningFile" type="file" accept=".pdf,application/pdf,.jpg,.jpeg,image/jpeg">
+              <p class="workspace-hint">เก็บใน Supabase Storage แบบ Private ต้องให้ Admin ตรวจสอบก่อนเผยแพร่ ห้ามใส่ข้อมูลส่วนบุคคลของผู้ป่วย</p>
+              <p id="learningUploadInfo" class="learning-file-help" role="status"></p>
+              <button class="learning-button learning-file-preview" type="button" id="previewLearningFile" hidden>เปิดไฟล์ที่บันทึกไว้</button>
             </div>
           </div>
           <div class="learning-buttons" style="margin-top:18px">
@@ -159,8 +172,14 @@
     import { guardWorkspace, formatNumber, formatThaiDate, appendCell, emptyTable, setMessage } from './admin-workspace.js';
 
     const $ = id => document.getElementById(id);
-    const STAFF_ROLES = ['admin', 'doctor', 'nurse', 'dietitian'];
+    const STAFF_ROLES = ['admin', 'system_admin', 'doctor', 'nurse', 'dietitian'];
     const PAGE_SIZE = 25;
+    const MEDIA_BUCKET = 'siomc-learning-pdf';
+    const MAX_MEDIA_BYTES = 10 * 1024 * 1024;
+    const UPLOAD_TYPES = new Set(['PDF', 'JPEG']);
+    const UPLOAD_ROLES = new Set(['admin', 'system_admin']);
+    const isStoredMedia = path => typeof path === 'string' && /^(?:pdf\/[0-9a-f-]{36}\.pdf|jpeg\/[0-9a-f-]{36}\.jpg)$/i.test(path);
+    let currentRole = null;
     let currentUser = null;
     let records = [];
     let currentPage = 0;
@@ -185,7 +204,9 @@
       $('contentCategory').value = row?.category || '';
       $('contentType').value = row?.content_type || 'บทความ';
       $('contentBody').value = row?.content_body || '';
-      $('mediaPath').value = row?.media_path || '';
+      $('mediaPath').value = UPLOAD_TYPES.has(row?.content_type) ? '' : (row?.media_path || '');
+      $('learningFile').value = '';
+      syncMediaInputs();
       $('formHeading').textContent = mode === 'edit' ? 'แก้ไขเนื้อหาความรู้' : 'เพิ่มเนื้อหาความรู้';
       $('saveButton').textContent = mode === 'edit' ? 'บันทึกการแก้ไข' : 'บันทึกฉบับร่าง';
       $('cancelEditButton').textContent = mode === 'edit' ? 'ยกเลิกการแก้ไข' : 'ล้างฟอร์ม';
@@ -195,6 +216,22 @@
       if (mode === 'edit') $('editorPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function syncMediaInputs() {
+      const type = $('contentType').value;
+      const requiresUpload = UPLOAD_TYPES.has(type);
+      $('mediaUrlField').hidden = requiresUpload;
+      $('learningUploadField').hidden = !requiresUpload;
+      $('learningFile').accept = type === 'PDF' ? '.pdf,application/pdf' : '.jpg,.jpeg,image/jpeg';
+      const existing = editing && editing.content_type === type && isStoredMedia(editing.media_path);
+      $('previewLearningFile').hidden = !existing;
+      const selected = $('learningFile').files[0];
+      const allowed = UPLOAD_ROLES.has(currentRole);
+      $('learningFile').disabled = requiresUpload && !allowed;
+      $('learningUploadInfo').textContent = !requiresUpload ? '' : !allowed
+        ? 'การอัปโหลด PDF/JPEG ต้องใช้บัญชี Admin หรือ System Admin'
+        : selected ? 'ไฟล์ที่เลือก: ' + selected.name
+        : existing ? 'มีไฟล์เดิมอยู่แล้ว หากไม่เลือกไฟล์ใหม่จะใช้ไฟล์เดิม' : 'ยังไม่ได้เลือกไฟล์';
+    }
     function getPayload() {
       const title = $('contentTitle').value.trim();
       const category = $('contentCategory').value.trim();
@@ -202,6 +239,14 @@
       const content_body = $('contentBody').value.trim();
       const link = $('mediaPath').value.trim();
       if (!title || !category || !content_type) throw new Error('กรุณากรอกชื่อ หมวดหมู่ และประเภทเนื้อหา');
+      if (UPLOAD_TYPES.has(content_type)) {
+        const selected = $('learningFile').files[0];
+        const existing = editing?.content_type === content_type && isStoredMedia(editing.media_path)
+          ? editing.media_path : null;
+        if (!selected && !existing) throw new Error('กรุณาเลือกไฟล์ ' + content_type);
+        if (selected && !UPLOAD_ROLES.has(currentRole)) throw new Error('เฉพาะ Admin ที่อัปโหลดไฟล์ได้');
+        return { title, category, content_type, content_body: content_body || null, media_path: existing };
+      }
       if (!content_body && !link) throw new Error('กรุณากรอกเนื้อหาหรือ URL สื่ออย่างน้อยหนึ่งอย่าง');
       if (link) {
         let url;
@@ -210,7 +255,36 @@
       }
       return { title, category, content_type, content_body: content_body || null, media_path: link || null };
     }
-
+    async function validateMediaFile(file, type) {
+      if (!file || file.size <= 0 || file.size > MAX_MEDIA_BYTES)
+        throw new Error('ไฟล์ต้องมีขนาดไม่เกิน 10 MB');
+      const bytes = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+      if (type === 'PDF') {
+        if (!/\.pdf$/i.test(file.name) || String.fromCharCode(...bytes) !== '%PDF-')
+          throw new Error('กรุณาเลือกไฟล์ PDF ที่ถูกต้อง (.pdf)');
+      } else if (type === 'JPEG') {
+        if (!/\.jpe?g$/i.test(file.name) || bytes[0] !== 255 || bytes[1] !== 216 || bytes[2] !== 255)
+          throw new Error('กรุณาเลือกไฟล์ JPEG ที่ถูกต้อง (.jpg หรือ .jpeg)');
+      }
+    }
+    async function openStoredMedia(row) {
+      if (!isStoredMedia(row?.media_path)) return;
+      const tab = window.open('about:blank', '_blank');
+      if (!tab) {
+        setMessage('statusMessage', 'เบราว์เซอร์ปิดกั้นแท็บใหม่ กรุณาอนุญาต Pop-up', 'error');
+        return;
+      }
+      try {
+        tab.opener = null;
+        const { data, error } = await supabase.storage.from(MEDIA_BUCKET)
+          .createSignedUrl(row.media_path, 120);
+        if (error || !data?.signedUrl) throw error || Error('สร้างลิงก์ชั่วคราวไม่สำเร็จ');
+        tab.location.replace(data.signedUrl);
+      } catch (error) {
+        tab.close();
+        setMessage('statusMessage', 'เปิดไฟล์ไม่สำเร็จ: ' + (error?.message || 'ตรวจสอบสิทธิ์ Storage'), 'error');
+      }
+    }
     function refreshPager() {
       const from = totalMatches === 0 ? 0 : currentPage * PAGE_SIZE + 1;
       const to = Math.min(totalMatches, (currentPage + 1) * PAGE_SIZE);
@@ -235,7 +309,9 @@
       for (const row of records) {
         const tr = document.createElement('tr');
         const nameCell = appendCell(tr, row.title || '—');
-        if (row.media_path && /^https:\/\//i.test(row.media_path)) {
+        if (UPLOAD_TYPES.has(row.content_type) && isStoredMedia(row.media_path)) {
+          nameCell.append(document.createElement('br'), createAction('เปิดไฟล์', () => openStoredMedia(row)));
+        } else if (row.media_path && /^https:\/\//i.test(row.media_path)) {
           const link = document.createElement('a');
           link.href = row.media_path;
           link.target = '_blank';
@@ -326,33 +402,55 @@
       let values;
       try { values = getPayload(); }
       catch (error) { setMessage('formMessage', error.message, 'error'); return; }
+      const selectedType = $('contentType').value;
+      const file = UPLOAD_TYPES.has(selectedType) ? $('learningFile').files[0] : null;
+      let uploadedPath = null;
+      let databaseSaved = false;
       setBusy(true);
       try {
+        if (file) {
+          await validateMediaFile(file, selectedType);
+          const pdf = selectedType === 'PDF';
+          const objectPath = (pdf ? 'pdf/' : 'jpeg/') + crypto.randomUUID() + (pdf ? '.pdf' : '.jpg');
+          const { error: uploadError } = await supabase.storage.from(MEDIA_BUCKET)
+            .upload(objectPath, file, {
+              contentType: pdf ? 'application/pdf' : 'image/jpeg',
+              cacheControl: '3600', upsert: false
+            });
+          if (uploadError) throw uploadError;
+          uploadedPath = objectPath;
+          values.media_path = objectPath;
+        }
         if (editing) {
+          // เปลี่ยนไฟล์ในรายการที่เผยแพร่แล้วให้กลับเป็นฉบับร่างรอตรวจสอบ
+          if (file && editing.status === 'published') {
+            values.status = 'draft';
+            values.published_at = null;
+          }
           const { data, error } = await supabase.from('learning_contents')
             .update({ ...values, updated_at: new Date().toISOString() })
             .eq('id', editing.id).select('id').maybeSingle();
           if (error) throw error;
           if (!data) throw new Error('ไม่พบรายการที่แก้ไขได้ หรือสิทธิ์ RLS ไม่อนุญาต');
-          setEditor('new');
-          setMessage('formMessage', 'บันทึกการแก้ไขสำเร็จ', 'info');
         } else {
           const { data, error } = await supabase.from('learning_contents')
             .insert({ ...values, status: 'draft', created_by: currentUser.id })
             .select('id').maybeSingle();
           if (error) throw error;
           if (!data) throw new Error('ไม่สามารถยืนยันการบันทึกเนื้อหาได้');
-          setEditor('new');
-          setMessage('formMessage', 'เพิ่มเนื้อหาเป็นฉบับร่างสำเร็จ กด “เผยแพร่” เมื่อตรวจสอบความถูกต้องแล้ว', 'info');
         }
+        databaseSaved = true;
+        setEditor('new');
         currentPage = 0;
         await reload();
+        setMessage('formMessage', 'บันทึกสำเร็จ หากเปลี่ยนไฟล์ในรายการที่เคยเผยแพร่ ระบบจะกลับเป็นฉบับร่าง กรุณาตรวจสอบก่อนเผยแพร่ใหม่', 'info');
       } catch (error) {
         console.error('SiOMC learning save failed:', error);
-        setMessage('formMessage', `บันทึกไม่สำเร็จ: ${error.message}`, 'error');
+        const orphan = uploadedPath && !databaseSaved;
+        const extra = orphan ? ' ไฟล์ถูกอัปโหลดแล้วแต่ฐานข้อมูลไม่สำเร็จ โปรดให้ Admin ลบไฟล์ ' + uploadedPath + ' จาก Storage' : '';
+        setMessage('formMessage', (databaseSaved ? 'บันทึกแล้วแต่รีเฟรชรายการไม่สำเร็จ: ' : 'บันทึกไม่สำเร็จ: ') + (error?.message || '') + extra, 'error');
       } finally { setBusy(false); }
     }
-
     async function togglePublication(row) {
       if (busy) return;
       const publish = row.status !== 'published';
@@ -398,6 +496,10 @@
     }
 
     $('learningForm').addEventListener('submit', saveContent);
+    $('contentType').addEventListener('change', syncMediaInputs);
+    $('learningFile').addEventListener('change', syncMediaInputs);
+    $('previewLearningFile').addEventListener('click', () => { if (editing) openStoredMedia(editing); });
+    syncMediaInputs();
     $('newContentButton').addEventListener('click', () => { setEditor('new'); $('editorPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     $('cancelEditButton').addEventListener('click', () => setEditor('new'));
     $('search').addEventListener('input', () => {
@@ -411,6 +513,8 @@
     const access = await guardWorkspace('learning', STAFF_ROLES);
     if (access) {
       currentUser = access.user;
+      currentRole = access.profile.role;
+      syncMediaInputs();
       try { await reload(); }
       catch (error) {
         console.error('SiOMC learning stats failed:', error);

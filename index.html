@@ -208,6 +208,19 @@
   }
 </style>
 
+
+<style>
+  /* SiOMC published knowledge library (patient view) */
+  .patient-learning-list { display:grid; gap:12px; margin-top:14px; }
+  .patient-learning-entry { border:1px solid #dbe7ed; border-radius:13px; background:#fafdff; padding:14px; }
+  .patient-learning-entry h3 { font-size:15px; color:#123d5a; margin:0 0 6px; overflow-wrap:anywhere; }
+  .patient-learning-meta { color:#637f90; font-size:12px; margin:0 0 10px; }
+  .patient-learning-content { white-space:pre-wrap; overflow-wrap:anywhere; color:#385469; font-size:13px; line-height:1.75; margin:8px 0 12px; }
+  .patient-learning-entry details summary { cursor:pointer; color:#176d96; font-size:13px; font-weight:600; }
+  .patient-learning-open { background:#123d5a; color:#fff; border:0; padding:10px 14px; border-radius:10px; font:inherit; font-size:13px; cursor:pointer; }
+  .patient-learning-open:disabled { opacity:.6; cursor:wait; }
+  .patient-learning-status { color:#637f90; font-size:13px; line-height:1.6; margin-top:12px; }
+</style>
 </head>
 <body>
   
@@ -258,7 +271,7 @@
           <span class="feature-icon" aria-hidden="true">📚</span>
           <span>
             <span class="feature-title" style="display:block">คลังความรู้</span>
-            <span class="feature-description" style="display:block">อ่านหัวข้อความรู้เบื้องต้น</span>
+            <span class="feature-description" style="display:block">อ่านบทความ เปิด PDF และแผ่นพับ</span>
           </span>
         </button>
       </div>
@@ -284,9 +297,9 @@
 
     <section id="learnPanel" class="card learn" aria-label="คลังความรู้" hidden>
       <h2>คลังความรู้ SiOMC</h2>
-      <div class="learn-item"><strong>เตรียมตัวก่อนผ่าตัด</strong><p>อ่านแนวทางที่ทีมรักษาให้ไว้ และสอบถามเมื่อมีข้อสงสัย</p></div>
-      <div class="learn-item"><strong>โภชนาการและกิจกรรมทางกาย</strong><p>ทำตามแผนอาหารและการเคลื่อนไหวที่ทีมรักษาแนะนำเป็นรายบุคคล</p></div>
-      <div class="note">ส่วนนี้เป็นหัวข้อความรู้เบื้องต้น เนื้อหารายละเอียดจะเผยแพร่หลังทีมสหสาขาวิชาชีพตรวจสอบ</div>
+      <p class="muted">บทความ เอกสาร PDF และแผ่นพับที่ผ่านการเผยแพร่แล้ว</p>
+      <p id="publishedLearningStatus" class="patient-learning-status" role="status" aria-live="polite">เปิดคลังความรู้เพื่อโหลดรายการ...</p>
+      <div id="publishedLearningList" class="patient-learning-list"></div>
     </section>
 
     <details class="card upcoming">
@@ -531,12 +544,118 @@ if (
       if (typeof liff !== "undefined" && !liff.isLoggedIn()) liff.login();
     });
 
+
+    // Read only published knowledge records. Database and Storage RLS must enforce access.
+    async function loadPublishedLearning() {
+      const statusEl = el("publishedLearningStatus");
+      const listEl = el("publishedLearningList");
+      listEl.replaceChildren();
+      statusEl.textContent = "กำลังโหลดคลังความรู้...";
+
+      if (!document.documentElement.classList.contains("patient-authorized")) {
+        statusEl.textContent = "กรุณาเข้าสู่ระบบผู้ป่วยก่อนเปิดคลังความรู้";
+        return;
+      }
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData?.user) throw new Error("ไม่พบการเข้าสู่ระบบ");
+
+        const { data: items, error } = await supabase
+          .from("learning_contents")
+          .select("id,title,category,content_type,content_body,media_path,published_at")
+          .eq("status", "published")
+          .order("published_at", { ascending: false })
+          .limit(100);
+        if (error) throw error;
+
+        if (!items?.length) {
+          statusEl.textContent = "ยังไม่มีสื่อความรู้ที่เผยแพร่";
+          return;
+        }
+        statusEl.textContent = "รายการที่เผยแพร่แล้ว " + items.length + " รายการ";
+
+        for (const item of items) {
+          const card = document.createElement("article");
+          card.className = "patient-learning-entry";
+          const title = document.createElement("h3");
+          title.textContent = item.title || "สื่อความรู้";
+          card.appendChild(title);
+
+          const meta = document.createElement("p");
+          meta.className = "patient-learning-meta";
+          const labels = { article: "บทความ", video: "วิดีโอ", lesson: "บทเรียน", PDF: "เอกสาร PDF", JPEG: "แผ่นพับ JPEG" };
+          meta.textContent = [item.category, labels[item.content_type] || item.content_type].filter(Boolean).join(" • ");
+          card.appendChild(meta);
+
+          if (item.content_body) {
+            const details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "อ่านรายละเอียด";
+            const contents = document.createElement("p");
+            contents.className = "patient-learning-content";
+            contents.textContent = item.content_body;
+            details.append(summary, contents);
+            card.appendChild(details);
+          }
+
+          if (item.media_path) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "patient-learning-open";
+            button.textContent = item.content_type === "PDF" ? "เปิด PDF" :
+              item.content_type === "JPEG" ? "ดูแผ่นพับ" : "เปิดสื่อ";
+            button.addEventListener("click", async () => {
+              button.disabled = true;
+              const originalText = button.textContent;
+              button.textContent = "กำลังเปิด...";
+              try {
+                let url;
+                if (item.content_type === "PDF" || item.content_type === "JPEG") {
+                  const { data, error: signedError } = await supabase.storage
+                    .from("siomc-learning-pdf")
+                    .createSignedUrl(item.media_path, 60);
+                  if (signedError || !data?.signedUrl) throw signedError || new Error("ไม่พบลิงก์ไฟล์");
+                  url = data.signedUrl;
+                } else {
+                  url = item.media_path;
+                }
+                // Reject javascript: and other unsafe protocols from database values.
+                const targetUrl = new URL(url, location.origin);
+                if (targetUrl.protocol !== "https:" && targetUrl.protocol !== "http:") {
+                  throw new Error("รูปแบบลิงก์ไม่ถูกต้อง");
+                }
+                if (typeof liff !== "undefined" && liff.isInClient()) {
+                  liff.openWindow({ url: targetUrl.href, external: true });
+                } else {
+                  window.location.assign(targetUrl.href);
+                }
+              } catch (openError) {
+                console.error("SiOMC learning file:", openError?.message || openError);
+                alert("ยังไม่สามารถเปิดสื่อนี้ได้ กรุณาลองใหม่หรือแจ้งผู้ดูแลระบบ");
+              } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+              }
+            });
+            card.appendChild(button);
+          }
+          listEl.appendChild(card);
+        }
+      } catch (error) {
+        console.error("SiOMC knowledge loading:", error?.message || error);
+        statusEl.textContent = "ไม่สามารถโหลดคลังความรู้ได้ กรุณาลองใหม่หรือติดต่อเจ้าหน้าที่";
+      }
+    }
+
     el("learnToggle").addEventListener("click", () => {
       const panel = el("learnPanel");
       const willOpen = panel.hidden;
       panel.hidden = !willOpen;
       el("learnToggle").setAttribute("aria-expanded", willOpen ? "true" : "false");
-      if (willOpen) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (willOpen) {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        void loadPublishedLearning();
+      }
     });
 
     initLineApp();
