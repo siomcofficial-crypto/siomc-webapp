@@ -239,6 +239,53 @@ initLiffOnce().catch(error => {
   console.error("LIFF initialization:", error);
 });
 
+$("forgotStaffPassword").addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  const emailInput = $("staffEmail");
+  const email = emailInput.value.trim().toLowerCase();
+
+  if (!email || !emailInput.checkValidity()) {
+    showNotice(
+      "กรุณากรอกอีเมลเจ้าหน้าที่ให้ถูกต้องก่อน",
+      "error"
+    );
+    emailInput.focus();
+    return;
+  }
+
+  const link = $("forgotStaffPassword");
+  link.style.pointerEvents = "none";
+
+  showNotice("กำลังส่งอีเมลกู้คืนรหัสผ่าน...");
+
+  try {
+    const { error } =
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo:
+          "https://siomcofficial-crypto.github.io/siomc-webapp/set-password.html"
+      });
+
+    if (error) throw error;
+
+    showNotice(
+      "ส่งคำขอเรียบร้อยแล้ว หากอีเมลนี้มีบัญชีในระบบ กรุณาตรวจสอบอีเมลเพื่อตั้งรหัสผ่านใหม่",
+      "ok"
+    );
+
+  } catch (error) {
+    console.error("Password reset:", error.code || error.message);
+
+    showNotice(
+      "ไม่สามารถส่งอีเมลได้ กรุณาลองใหม่อีกครั้ง",
+      "error"
+    );
+
+  } finally {
+    link.style.pointerEvents = "auto";
+  }
+});
+
   </script>
 </body>
 </html>
