@@ -208,6 +208,11 @@
 
     $("lineLoginBtn").addEventListener("click", loginWithLine);
     $("staffForm").addEventListener("submit", loginStaff);
+
+initLiffOnce().catch(error => {
+  console.error("LIFF initialization:", error);
+});
+
   </script>
 </body>
 </html>
