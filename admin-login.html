@@ -277,13 +277,12 @@
       resetMessage.textContent = 'กำลังส่งอีเมล...';
 
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: window.location.origin +
-            window.location.pathname.replace(
-              'admin-login.html',
-              'set-password.html'
-            )
-        });
+        
+const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo:
+    'https://siomcofficial-crypto.github.io/siomc-webapp/set-password.html'
+});
+
 
         if (error) throw error;
 
