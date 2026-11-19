@@ -1,4 +1,22 @@
 
+// SVG icons are rendered consistently on iOS, Android and desktop.
+// No external icon fonts or JavaScript libraries are needed.
+const SIOMC_SIDEBAR_PATHS = {
+  admin: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  members: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  weight: '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/><path d="M3 21h18"/>',
+  nutrition: '<path d="M4 3v7a3 3 0 0 0 6 0V3M7 3v18"/><path d="M19 21V3c-4 2-5 7-5 11h5"/>',
+  assessment: '<rect x="5" y="4" width="14" height="18" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M12 10v7M8.5 13.5h7"/>',
+  learning: '<path d="M12 7v14M12 7c-2-2-5-3-9-3v14c4 0 7 1 9 3M12 7c2-2 5-3 9-3v14c-4 0-7 1-9 3"/>',
+  staff: '<circle cx="10" cy="7" r="4"/><path d="M3 21v-2a7 7 0 0 1 10-6.3"/><circle cx="18" cy="18" r="3"/><path d="M18 13v2M18 21v2M13 18h2M21 18h2"/>'
+};
+function siomcSidebarIcon(id) {
+  const path = SIOMC_SIDEBAR_PATHS[id] || SIOMC_SIDEBAR_PATHS.admin;
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + path + '</svg>';
+}
+const SIOMC_MENU_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+const SIOMC_CLOSE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
 export function renderAdminSidebar(activePage = "", role = "admin") {
   const menuItems = [
     { id: "admin", label: "ภาพรวม", icon: "▦", href: "admin.html" },
@@ -36,7 +54,7 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
       ${visibleItems.map(item => `
         <a href="${item.href}"
            class="siomc-menu-link ${activePage === item.id ? "active" : ""}">
-          <span class="siomc-menu-icon">${item.icon}</span>
+          <span class="siomc-menu-icon">${siomcSidebarIcon(item.id)}</span>
           <span>${item.label}</span>
         </a>
       `).join("")}
@@ -50,7 +68,7 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.className = "siomc-mobile-toggle";
-  toggle.innerHTML = "☰";
+  toggle.innerHTML = SIOMC_MENU_SVG;
   toggle.setAttribute("aria-label", "เปิดเมนู");
   toggle.setAttribute("aria-expanded", "false");
   toggle.setAttribute("aria-controls", "siomcSidebar");
@@ -212,14 +230,63 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
         visibility: visible;
       }
     }
-  `;
+  
+
+    /* Shared line icons — consistent visual size on every device */
+    .siomc-menu-icon {
+      width: 24px;
+      min-width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .siomc-menu-icon svg {
+      display: block;
+      width: 21px;
+      height: 21px;
+    }
+    .siomc-mobile-toggle svg {
+      display: block;
+      width: 22px;
+      height: 22px;
+    }
+    @media (max-width: 700px) {
+      .siomc-shared-sidebar .siomc-brand {
+        padding-right: 53px;
+        min-height: 110px;
+      }
+      .siomc-shared-sidebar .siomc-brand-name {
+        font-size: 25px;
+        line-height: 1.25;
+      }
+      .siomc-menu-link {
+        min-height: 48px;
+        border-radius: 11px;
+        gap: 13px;
+      }
+      .siomc-mobile-toggle {
+        transition: left .25s ease, background .2s ease;
+        touch-action: manipulation;
+      }
+      /* When open, move close button to top right INSIDE the drawer. */
+      .siomc-mobile-toggle[aria-expanded="true"] {
+        left: calc(min(270px, 85vw) - 56px);
+        top: 16px;
+        background: #315f7c;
+        box-shadow: none;
+      }
+    }
+`;
 
   function closeSidebar() {
     sidebar.classList.remove("open");
     overlay.classList.remove("open");
     toggle.setAttribute("aria-expanded", "false");
     toggle.setAttribute("aria-label", "เปิดเมนู");
-    toggle.innerHTML = "☰";
+    toggle.innerHTML = SIOMC_MENU_SVG;
   }
 
   function openSidebar() {
@@ -227,7 +294,7 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
     overlay.classList.add("open");
     toggle.setAttribute("aria-expanded", "true");
     toggle.setAttribute("aria-label", "ปิดเมนู");
-    toggle.innerHTML = "✕";
+    toggle.innerHTML = SIOMC_CLOSE_SVG;
   }
 
   toggle.addEventListener("click", () => {
