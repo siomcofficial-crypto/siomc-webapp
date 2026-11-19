@@ -79,28 +79,35 @@
           เพื่อไม่ให้ตัวเลขตัวอย่างถูกเข้าใจว่าเป็นข้อมูลผู้ป่วยจริง
         </div>
 
-        <section class="stats" aria-label="ภาพรวมการดำเนินงาน">
-          <div class="stat-card">
-            <p>สมาชิกทั้งหมด</p>
-            <h2>—</h2>
-            <small>รอเชื่อมข้อมูลจริง</small>
-          </div>
-          <div class="stat-card">
-            <p>สมาชิกใหม่เดือนนี้</p>
-            <h2>—</h2>
-            <small>รอเชื่อมข้อมูลจริง</small>
-          </div>
-          <div class="stat-card">
-            <p>สมาชิกที่ใช้งาน</p>
-            <h2>—</h2>
-            <small>รอเชื่อมข้อมูลจริง</small>
-          </div>
-          <div class="stat-card">
-            <p>รายการรอติดตาม</p>
-            <h2>—</h2>
-            <small>รอเชื่อมข้อมูลจริง</small>
-          </div>
-        </section>
+        
+<section class="stats" aria-label="ภาพรวมการดำเนินงาน">
+
+  <div class="stat-card">
+    <p>สมาชิกทั้งหมด</p>
+    <h2 id="totalMembers">—</h2>
+    <small>ข้อมูลจาก Supabase</small>
+  </div>
+
+  <div class="stat-card">
+    <p>สมาชิกใหม่เดือนนี้</p>
+    <h2 id="newMembers">—</h2>
+    <small>เดือนปัจจุบัน (เวลาไทย)</small>
+  </div>
+
+  <div class="stat-card">
+    <p>สมาชิกที่เปิดใช้งาน</p>
+    <h2 id="activeMembers">—</h2>
+    <small>สถานะบัญชีสมาชิก Active</small>
+  </div>
+
+  <div class="stat-card">
+    <p>รายการรอติดตาม</p>
+    <h2>—</h2>
+    <small>ยังไม่เชื่อมระบบติดตามจริง</small>
+  </div>
+
+</section>
+
 
         <section class="panel">
           <h3>เมนูการทำงาน</h3>
@@ -149,6 +156,71 @@
 
     const allowedRoles = Object.keys(roleLabels);
 
+    async function loadMemberStats(role) {
+  const totalEl = document.getElementById('totalMembers');
+  const newEl = document.getElementById('newMembers');
+  const activeEl = document.getElementById('activeMembers');
+
+  if (!totalEl || !newEl || !activeEl) return;
+
+  // System Admin ใช้ View ที่จำกัดสิทธิ์ไว้แล้ว
+  const source = role === 'system_admin'
+    ? 'system_admin_member_directory'
+    : 'members';
+
+  // คำนวณขอบเขตเดือนตามเวลาประเทศไทย
+  const thaiNow = new Date(Date.now() + 7 * 60 * 60 * 1000);
+
+  const year = thaiNow.getUTCFullYear();
+  const month = thaiNow.getUTCMonth();
+
+  const start = new Date(
+    Date.UTC(year, month, 1) - 7 * 60 * 60 * 1000
+  ).toISOString();
+
+  const end = new Date(
+    Date.UTC(year, month + 1, 1) - 7 * 60 * 60 * 1000
+  ).toISOString();
+
+  try {
+    const [total, recent, active] = await Promise.all([
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true }),
+
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true })
+        .gte('created_at', start)
+        .lt('created_at', end),
+
+      supabase
+        .from(source)
+        .select('member_code', { count: 'exact', head: true })
+        .eq('status', 'active')
+    ]);
+
+    if (total.error) throw total.error;
+    if (recent.error) throw recent.error;
+    if (active.error) throw active.error;
+
+    const formatNumber = value =>
+      new Intl.NumberFormat('th-TH-u-nu-latn')
+        .format(value ?? 0);
+
+    totalEl.textContent = formatNumber(total.count);
+    newEl.textContent = formatNumber(recent.count);
+    activeEl.textContent = formatNumber(active.count);
+
+  } catch (error) {
+    console.error('SiOMC member stats error:', error);
+
+    totalEl.textContent = '—';
+    newEl.textContent = '—';
+    activeEl.textContent = '—';
+  }
+}
+
     async function checkAccess() {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -175,6 +247,7 @@
           `${displayName} · ${roleLabels[profile.role]}`;
 
         renderAdminSidebar('admin');
+        await loadMemberStats(profile.role);
         document.getElementById('adminLoading').hidden = true;
         document.getElementById('adminContent').hidden = false;
       } catch (error) {
