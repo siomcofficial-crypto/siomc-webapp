@@ -31,11 +31,23 @@ export function renderAdminSidebar(activePage = "", role = "admin") {
   ];
 
   // Navigation is convenience only; each page and database RLS verify access.
+
   const visibleItems = menuItems.filter(item => {
-    if (role === 'system_admin') return ['admin', 'members', 'staff', 'careTeam'].includes(item.id);
-    if (['doctor', 'nurse', 'dietitian'].includes(role)) return !['staff', 'careTeam'].includes(item.id);
-    return true;
-  });
+
+
+  // พักเมนูจัดการทีมรักษาไว้ก่อน
+  if (item.id === 'careTeam') return false;
+
+  if (role === 'system_admin')
+    return ['admin', 'members', 'staff', 'careTeam'].includes(item.id);
+
+  if (['doctor', 'nurse', 'dietitian'].includes(role))
+    return !['staff', 'careTeam'].includes(item.id);
+
+  return true;
+});
+
+
 
   // Avoid duplicate sidebar when an initialization is retried.
   if (document.getElementById('siomcSidebar')) return;
