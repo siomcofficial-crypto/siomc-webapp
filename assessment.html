@@ -32,9 +32,58 @@
     }
     .siomc-admin .assessment-save:disabled { opacity: .55; cursor: not-allowed; }
     .siomc-admin .assessment-form-hint { font-size: 12px; color: #688195; line-height: 1.75; }
-    .siomc-admin .assessment-summary { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 380px; }
-    .siomc-admin .assessment-plan { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 380px; }
-    @media (max-width:700px) { .siomc-admin .assessment-form-grid { grid-template-columns: 1fr; } }
+    .siomc-admin .assessment-summary, .siomc-admin .assessment-plan {
+      white-space: pre-wrap; overflow-wrap: anywhere; min-width: 200px; max-width: 380px;
+    }
+    /* Desktop: do not squeeze the assessment type column. The table can scroll horizontally. */
+    .siomc-admin .assessment-history { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .siomc-admin .assessment-history table { min-width: 1060px; table-layout: auto; }
+    .siomc-admin .assessment-history th:nth-child(2),
+    .siomc-admin .assessment-history td.assessment-type {
+      min-width: 155px; white-space: nowrap; overflow-wrap: normal; word-break: keep-all;
+    }
+    .siomc-admin .assessment-history th:last-child { min-width: 140px; }
+    .siomc-admin .assessment-record-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .siomc-admin .assessment-action {
+      border: 1px solid #b4ccdb; border-radius: 8px; padding: 7px 10px;
+      background: #edf6fb; color: #123d5a; font: inherit; font-size: 13px;
+      cursor: pointer; white-space: nowrap;
+    }
+    .siomc-admin .assessment-action.danger { background: #fff4f4; border-color: #ebc3c3; color: #a32e2e; }
+    .siomc-admin .assessment-action:disabled { opacity: .5; cursor: not-allowed; }
+    .siomc-admin .assessment-action:focus-visible, .siomc-admin .assessment-save:focus-visible {
+      outline: 3px solid #39a2c9; outline-offset: 2px;
+    }
+    @media (max-width: 700px) {
+      .siomc-admin .assessment-form-grid { grid-template-columns: 1fr; }
+      /* Mobile: turn each history record into a readable card, no sideways scrolling. */
+      .siomc-admin .assessment-history { overflow: visible; }
+      .siomc-admin .assessment-history table,
+      .siomc-admin .assessment-history tbody,
+      .siomc-admin .assessment-history tr { display: block; width: 100%; min-width: 0; }
+      .siomc-admin .assessment-history thead { display: none; }
+      .siomc-admin .assessment-history tr {
+        background: #fff; border: 1px solid #dce8ef; border-radius: 12px;
+        padding: 8px 12px; margin-bottom: 12px;
+        box-shadow: 0 2px 10px rgba(18,61,90,.035);
+      }
+      .siomc-admin .assessment-history td {
+        display: grid; grid-template-columns: 91px minmax(0,1fr); gap: 10px;
+        align-items: start; width: 100%; min-width: 0; padding: 10px 2px;
+        font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere;
+      }
+      .siomc-admin .assessment-history td::before {
+        content: attr(data-label); color: #5b7284; font-weight: 700; white-space: normal;
+      }
+      .siomc-admin .assessment-history td.assessment-type {
+        min-width: 0; white-space: nowrap; overflow-wrap: normal;
+      }
+      .siomc-admin .assessment-history td.assessment-summary,
+      .siomc-admin .assessment-history td.assessment-plan { max-width: none; min-width: 0; }
+      .siomc-admin .assessment-history td.workspace-empty { display: block; text-align: center; }
+      .siomc-admin .assessment-history td.workspace-empty::before { content: none; }
+      .siomc-admin .assessment-record-actions { min-width: 0; }
+    }
   </style>
 </head>
 <body class="siomc-admin">
@@ -64,10 +113,9 @@
         <p class="workspace-hint">ค้นหาสมาชิกที่เปิดใช้งาน (แสดงสูงสุด 50 คนต่อคำค้นหา) · โปรดตรวจสอบชื่อและรหัสสมาชิกก่อนบันทึก</p>
         <div id="statusMessage" class="workspace-message" role="status" aria-live="polite">กรุณาเลือกสมาชิกเพื่อดูประวัติการประเมิน</div>
       </section>
-
       <section class="workspace-panel" id="assessmentEntry" hidden>
-        <h2>2. เพิ่มผลประเมินทางคลินิก</h2>
-        <p class="workspace-hint">บันทึกใหม่ทุกครั้ง ไม่แก้ไขผลประเมินเดิม · ผู้บันทึกและเวลาบันทึกจะถูกเก็บใน Supabase</p>
+        <h2 id="assessmentEntryTitle">2. เพิ่มผลประเมินทางคลินิก</h2>
+        <p class="workspace-hint" id="assessmentEntryHint">บันทึกใหม่พร้อมข้อมูลผู้บันทึกและเวลาที่บันทึก · การแก้ไขจะเก็บหลักฐานย้อนหลังในฐานข้อมูล</p>
         <div id="chosenMember" class="workspace-message" role="status"></div>
         <form id="assessmentForm" autocomplete="off">
           <div class="assessment-form-grid">
@@ -105,15 +153,15 @@
           </div>
           <div class="assessment-actions">
             <button class="assessment-save" type="submit" id="saveAssessment" disabled>บันทึกผลประเมิน</button>
-            <span class="assessment-form-hint">ตรวจทานข้อมูลก่อนกดบันทึก ไม่รองรับการลบหรือแก้ไขผลเดิมในหน้านี้</span>
+            <button class="assessment-action" type="button" id="cancelEdit" hidden>ยกเลิกการแก้ไข</button>
+            <span class="assessment-form-hint">ปุ่มแก้ไขและลบใช้ได้เฉพาะเจ้าหน้าที่ผู้บันทึก และต้องผ่านสิทธิ์ของ Supabase</span>
           </div>
           <div id="saveMessage" class="workspace-message" role="status" aria-live="polite" hidden></div>
         </form>
       </section>
-
       <section class="workspace-panel" id="memberResults" hidden>
         <h2>3. ประวัติการประเมิน</h2>
-        <div class="workspace-table">
+        <div class="workspace-table assessment-history">
           <table>
             <thead>
               <tr>
@@ -124,6 +172,7 @@
                 <th>สถานะ</th>
                 <th>นัดติดตาม</th>
                 <th>ผู้บันทึก</th>
+                <th>จัดการ</th>
               </tr>
             </thead>
             <tbody id="assessmentRows"></tbody>
@@ -133,7 +182,6 @@
       </section>
     </main>
   </div>
-
   <script type="module">
     import { supabase } from './supabase.js';
     import { guardWorkspace, fillActiveMemberSelect, formatThaiDate, appendCell, emptyTable, setMessage } from './admin-workspace.js';
@@ -154,10 +202,24 @@
     let searchRequest = 0;
     let dataRequest = 0;
     let saving = false;
+    let editingId = null;
+    let assessmentRows = [];
+
+    function updateFormMode() {
+      $('assessmentEntryTitle').textContent = editingId
+        ? '2. แก้ไขผลประเมินทางคลินิก' : '2. เพิ่มผลประเมินทางคลินิก';
+      $('assessmentEntryHint').textContent = editingId
+        ? 'กำลังแก้ไขรายการที่คุณบันทึกไว้เดิม · ระบบจะเก็บข้อมูลก่อนแก้ไขในประวัติการเปลี่ยนแปลง'
+        : 'บันทึกใหม่พร้อมข้อมูลผู้บันทึกและเวลาที่บันทึก · การแก้ไขจะเก็บหลักฐานย้อนหลังในฐานข้อมูล';
+      saveButton.textContent = editingId ? 'บันทึกการแก้ไข' : 'บันทึกผลประเมิน';
+      $('cancelEdit').hidden = !editingId;
+    }
 
     function resetEntry() {
+      editingId = null;
       form.reset();
-      saveButton.disabled = true;
+      updateFormMode();
+      saveButton.disabled = saving || !memberSelect.value;
       $('assessmentEntry').hidden = !memberSelect.value;
       $('chosenMember').textContent = memberSelect.value
         ? `ผู้ป่วยที่เลือก: ${memberSelect.options[memberSelect.selectedIndex].textContent}`
@@ -176,6 +238,7 @@
         if (memberSelect.value) loadAssessments();
         else {
           dataRequest++;
+          assessmentRows = [];
           $('memberResults').hidden = true;
           setMessage('statusMessage', rows.length
             ? 'กรุณาเลือกสมาชิกเพื่อดูประวัติและบันทึกผลประเมิน'
@@ -184,6 +247,53 @@
       } catch (error) {
         console.error('SiOMC assessment member lookup failed:', error.code, error.message);
         setMessage('statusMessage', 'ไม่สามารถโหลดสมาชิกได้ กรุณาตรวจสอบสิทธิ์', 'error');
+      }
+    }
+
+    function addCell(tr, value, label, className = '') {
+      const cell = appendCell(tr, value);
+      cell.dataset.label = label;
+      if (className) cell.className = className;
+      return cell;
+    }
+
+    function beginEdit(row) {
+      if (saving || row.member_id !== memberSelect.value || row.assessor_id !== access?.user.id) return;
+      editingId = row.id;
+      $('assessmentType').value = row.assessment_type ?? '';
+      $('assessmentStatus').value = row.status ?? 'completed';
+      $('assessmentSummary').value = row.summary ?? '';
+      $('carePlan').value = row.care_plan ?? '';
+      $('followUpDate').value = row.follow_up_date ?? '';
+      updateFormMode();
+      setMessage('saveMessage', 'กำลังแก้ไขรายการเดิม โปรดตรวจทานก่อนบันทึก');
+      $('assessmentEntry').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('assessmentSummary').focus({ preventScroll: true });
+    }
+
+    async function voidAssessment(row) {
+      if (saving || row.member_id !== memberSelect.value || row.assessor_id !== access?.user.id) return;
+      const patientName = memberSelect.options[memberSelect.selectedIndex].textContent;
+      if (!window.confirm(`ต้องการนำผลประเมินวันที่ ${formatThaiDate(row.assessed_at, true)} ออกจากประวัติของ ${patientName} ใช่หรือไม่?\n\nรายการจะถูกซ่อนจากประวัติทั่วไป แต่เก็บข้อมูลเดิมไว้สำหรับการตรวจสอบ ไม่ใช่การลบถาวร`)) return;
+      saving = true;
+      saveButton.disabled = true;
+      memberSelect.disabled = true;
+      $('memberSearch').disabled = true;
+      setMessage('statusMessage', 'กำลังลบรายการออกจากประวัติ...');
+      try {
+        const { error } = await supabase.rpc('void_clinical_assessment', { p_assessment_id: row.id });
+        if (error) throw error;
+        if (editingId === row.id) resetEntry();
+        await loadAssessments();
+        setMessage('statusMessage', 'ลบออกจากรายการที่แสดงแล้ว และเก็บประวัติการลบไว้ในระบบ');
+      } catch (error) {
+        console.error('SiOMC assessment void failed:', error.code, error.message);
+        setMessage('statusMessage', `ลบไม่สำเร็จ: ${error.message || 'กรุณาตรวจสอบสิทธิ์ Supabase'}`, 'error');
+      } finally {
+        saving = false;
+        memberSelect.disabled = false;
+        $('memberSearch').disabled = false;
+        saveButton.disabled = !memberSelect.value;
       }
     }
 
@@ -201,37 +311,58 @@
         const { data, error } = await supabase.from('clinical_assessments')
           .select('id, member_id, assessed_at, assessor_id, assessment_type, summary, care_plan, follow_up_date, status')
           .eq('member_id', memberId)
+          .is('deleted_at', null)
           .order('assessed_at', { ascending: false })
           .limit(100);
         if (seq !== dataRequest || memberId !== memberSelect.value) return;
         if (error) throw error;
-
-        const rows = data || [];
+        assessmentRows = data || [];
         const tbody = $('assessmentRows');
         tbody.replaceChildren();
-        for (const row of rows) {
+        for (const row of assessmentRows) {
           const tr = document.createElement('tr');
-          appendCell(tr, formatThaiDate(row.assessed_at, true));
-          appendCell(tr, typeLabels[row.assessment_type] || row.assessment_type || '—');
-          const summaryCell = appendCell(tr, row.summary || '—');
-          summaryCell.className = 'assessment-summary';
-          const planCell = appendCell(tr, row.care_plan || '—');
-          planCell.className = 'assessment-plan';
-          appendCell(tr, statusLabels[row.status] || row.status || '—');
-          appendCell(tr, formatThaiDate(row.follow_up_date));
-          appendCell(tr, !row.assessor_id ? 'ไม่มีข้อมูลผู้บันทึก'
+          addCell(tr, formatThaiDate(row.assessed_at, true), 'วันที่ประเมิน');
+          addCell(tr, typeLabels[row.assessment_type] || row.assessment_type || '—', 'ประเภท', 'assessment-type');
+          addCell(tr, row.summary || '—', 'สรุปผล', 'assessment-summary');
+          addCell(tr, row.care_plan || '—', 'แผนการดูแล', 'assessment-plan');
+          addCell(tr, statusLabels[row.status] || row.status || '—', 'สถานะ');
+          addCell(tr, formatThaiDate(row.follow_up_date), 'นัดติดตาม');
+          addCell(tr, !row.assessor_id ? 'ไม่มีข้อมูลผู้บันทึก'
             : row.assessor_id === access.user.id ? 'บัญชีของคุณ'
-            : `รหัส ${row.assessor_id.slice(0, 8)}…`);
+            : `รหัส ${row.assessor_id.slice(0, 8)}…`, 'ผู้บันทึก');
+          const actionCell = document.createElement('td');
+          actionCell.dataset.label = 'จัดการ';
+          if (row.assessor_id === access.user.id && ['doctor', 'nurse', 'dietitian'].includes(access.profile.role)) {
+            const group = document.createElement('div');
+            group.className = 'assessment-record-actions';
+            const edit = document.createElement('button');
+            edit.type = 'button';
+            edit.className = 'assessment-action';
+            edit.textContent = 'แก้ไข';
+            edit.setAttribute('aria-label', `แก้ไขผลประเมินวันที่ ${formatThaiDate(row.assessed_at, true)}`);
+            edit.addEventListener('click', () => beginEdit(row));
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.className = 'assessment-action danger';
+            del.textContent = 'ลบ';
+            del.setAttribute('aria-label', `ลบผลประเมินวันที่ ${formatThaiDate(row.assessed_at, true)}`);
+            del.addEventListener('click', () => voidAssessment(row));
+            group.append(edit, del);
+            actionCell.appendChild(group);
+          } else {
+            actionCell.textContent = '—';
+          }
+          tr.appendChild(actionCell);
           tbody.appendChild(tr);
         }
-        if (!rows.length) emptyTable(tbody, 7, 'ยังไม่มีประวัติการประเมินของสมาชิกนี้');
-        $('assessmentNote').textContent = `แสดง ${rows.length} รายการล่าสุด (สูงสุด 100) · ชื่อผู้บันทึกต่างบัญชีจะเพิ่มในขั้นตอนถัดไป`;
+        if (!assessmentRows.length) emptyTable(tbody, 8, 'ยังไม่มีประวัติการประเมินของสมาชิกนี้');
+        $('assessmentNote').textContent = `แสดง ${assessmentRows.length} รายการล่าสุด (สูงสุด 100) · ผู้บันทึกสามารถแก้ไขหรือซ่อนรายการของตนเองได้`;
         $('memberResults').hidden = false;
         saveButton.disabled = saving;
         setMessage('statusMessage', '');
       } catch (error) {
         console.error('SiOMC clinical assessments query failed:', error.code, error.message);
-        setMessage('statusMessage', 'ไม่สามารถอ่านข้อมูลประเมินได้ กรุณาตรวจสอบสิทธิ์ก่อนบันทึก', 'error');
+        setMessage('statusMessage', 'ไม่สามารถอ่านข้อมูลประเมินได้ กรุณาตรวจสอบโครงสร้างตารางและสิทธิ์ Supabase', 'error');
       }
     }
 
@@ -245,6 +376,7 @@
       const carePlan = $('carePlan').value.trim();
       const followUpDate = $('followUpDate').value || null;
       const status = $('assessmentStatus').value;
+      const currentEditId = editingId;
       if (!['medical', 'nursing', 'nutrition', 'multidisciplinary', 'follow_up'].includes(assessmentType)) {
         setMessage('saveMessage', 'กรุณาเลือกประเภทการประเมิน', 'error');
         return;
@@ -253,28 +385,51 @@
         setMessage('saveMessage', 'กรุณากรอกสรุปผลการประเมินและเลือกสถานะ', 'error');
         return;
       }
-      if (!window.confirm(`ยืนยันบันทึกผลประเมินใหม่สำหรับ ${memberName} ใช่หรือไม่?\nโปรดตรวจทานข้อมูลทางคลินิกก่อนยืนยัน`)) return;
+      if (currentEditId && !assessmentRows.some(row => row.id === currentEditId && row.member_id === memberId && row.assessor_id === access.user.id)) {
+        setMessage('saveMessage', 'ไม่พบรายการที่คุณมีสิทธิ์แก้ไข กรุณาโหลดข้อมูลอีกครั้ง', 'error');
+        return;
+      }
+      const confirmText = currentEditId
+        ? `ยืนยันแก้ไขผลประเมินของ ${memberName} ใช่หรือไม่?\nข้อมูลก่อนแก้ไขจะถูกเก็บในประวัติการเปลี่ยนแปลง`
+        : `ยืนยันบันทึกผลประเมินใหม่สำหรับ ${memberName} ใช่หรือไม่?\nโปรดตรวจทานข้อมูลทางคลินิกก่อนยืนยัน`;
+      if (!window.confirm(confirmText)) return;
       saving = true;
       saveButton.disabled = true;
       memberSelect.disabled = true;
       $('memberSearch').disabled = true;
-      setMessage('saveMessage', 'กำลังบันทึกผลประเมิน...');
+      setMessage('saveMessage', currentEditId ? 'กำลังบันทึกการแก้ไข...' : 'กำลังบันทึกผลประเมิน...');
       try {
-        const { error } = await supabase.from('clinical_assessments').insert({
-          member_id: memberId,
-          assessor_id: access.user.id,
-          assessment_type: assessmentType,
-          summary,
-          care_plan: carePlan || null,
-          follow_up_date: followUpDate,
-          status
-        });
-        if (error) throw error;
+        let result;
+        if (currentEditId) {
+          result = await supabase.rpc('revise_clinical_assessment', {
+            p_assessment_id: currentEditId,
+            p_assessment_type: assessmentType,
+            p_summary: summary,
+            p_care_plan: carePlan || null,
+            p_follow_up_date: followUpDate,
+            p_status: status
+          });
+        } else {
+          result = await supabase.from('clinical_assessments').insert({
+            member_id: memberId,
+            assessor_id: access.user.id,
+            assessment_type: assessmentType,
+            summary,
+            care_plan: carePlan || null,
+            follow_up_date: followUpDate,
+            status
+          });
+        }
+        if (result.error) throw result.error;
+        editingId = null;
         form.reset();
-        setMessage('saveMessage', 'บันทึกผลประเมินลง Supabase สำเร็จแล้ว');
+        updateFormMode();
         await loadAssessments();
+        setMessage('saveMessage', currentEditId
+          ? 'แก้ไขสำเร็จ และเก็บประวัติข้อมูลเดิมไว้แล้ว'
+          : 'บันทึกผลประเมินลง Supabase สำเร็จแล้ว');
       } catch (error) {
-        console.error('SiOMC assessment insert failed:', error.code, error.message);
+        console.error('SiOMC assessment save failed:', error.code, error.message);
         setMessage('saveMessage', `บันทึกไม่สำเร็จ: ${error.message || 'โปรดลองใหม่หรือแจ้งผู้ดูแลระบบ'}`, 'error');
       } finally {
         saving = false;
@@ -289,6 +444,7 @@
       clearTimeout(searchTimer);
       searchTimer = setTimeout(refreshMembers, 300);
     });
+    $('cancelEdit').addEventListener('click', resetEntry);
     form.addEventListener('submit', submitAssessment);
     access = await guardWorkspace('assessment');
     if (access) refreshMembers();
