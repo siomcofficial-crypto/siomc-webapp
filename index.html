@@ -262,6 +262,11 @@
           <span class="feature-title">บันทึกน้ำหนัก</span>
           <span class="feature-description">บันทึก ดูกราฟ และแก้ไขประวัติ</span>
         </a>
+        <a id="measurementsLink" class="feature" href="./patient-measurements.html" aria-disabled="true" tabindex="-1">
+          <span class="feature-icon" aria-hidden="true">🫀</span>
+          <span class="feature-title">ข้อมูลสุขภาพของฉัน</span>
+          <span class="feature-description">ส่วนสูง รอบเอว ความดัน และ BMI</span>
+        </a>
         <a id="foodLink" class="feature" href="./patient-food.html?v=3" aria-disabled="true" tabindex="-1">
           <span class="feature-icon" aria-hidden="true">🍽️</span>
           <span class="feature-title">บันทึกอาหาร</span>
@@ -332,7 +337,10 @@ if (isPublished) {
     "./patient-food.html?v=3&siomc_env=published";
 }
 
-    const el = id => document.getElementById(id);
+    if (isPublished) {
+       document.getElementById('measurementsLink').href = './patient-measurements.html?siomc_env=published';
+     }
+     const el = id => document.getElementById(id);
 
 function formatThaiDate(isoDate) {
   if (!isoDate) return "—";
@@ -368,7 +376,7 @@ function formatThaiDate(isoDate) {
     }
 
     function setFeaturesEnabled(enabled) {
-      for (const id of ["weightLink", "foodLink"]) {
+      for (const id of ["weightLink", "measurementsLink", "foodLink"]) {
         const link = el(id);
         link.setAttribute("aria-disabled", enabled ? "false" : "true");
         if (enabled) link.removeAttribute("tabindex");

@@ -16,6 +16,7 @@ export default defineConfig({
         weight: resolve(__dirname, 'weight.html'),
         patientWeight: resolve(__dirname, 'patient-weight.html'),patientFood: resolve(__dirname, 'patient-food.html'),
         nutrition: resolve(__dirname, 'nutrition.html'),
+        patientMeasurements: resolve(__dirname, 'patient-measurements.html'),
         assessment: resolve(__dirname, 'assessment.html'),
         learning: resolve(__dirname, 'learning.html'),
         staff: resolve(__dirname, 'staff.html'),

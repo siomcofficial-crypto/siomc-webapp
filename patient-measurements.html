@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | ข้อมูลสุขภาพของฉัน</title>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font:15px/1.65 system-ui,'Tahoma',sans-serif;background:#f3f7fa;color:#173b52}
+    header{background:#123d5a;color:#fff;padding:20px 16px}
+    header>div,main{max-width:800px;margin:auto}
+    header h1{margin:0;font-size:22px;color:#fff}
+    header p{margin:4px 0 0;color:#deebf4;font-size:13px}
+    main{padding:18px 14px 40px}
+    .back{display:inline-block;margin-bottom:14px;color:#165e85;text-decoration:none;font-weight:600}
+    .card{background:white;border:1px solid #dce8ef;border-radius:16px;padding:18px;margin-bottom:15px}
+    h2{font-size:19px;color:#123d5a;margin:0 0 9px}
+    .muted{color:#5c7586;font-size:13px;margin:4px 0 12px}
+    .info{font-size:13px;background:#edf6fb;border-radius:10px;padding:11px 13px;color:#27536a;margin:12px 0}
+    .status{padding:12px 14px;border-radius:10px;background:#e8f2f8;margin:10px 0}
+    .status.success{background:#e6f6ec;color:#166534}
+    .status.error{background:#fff0ef;color:#99312c}
+    .form-grid,.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    label{display:block;font-size:14px;font-weight:600;margin:0 0 5px}
+    input,textarea{display:block;width:100%;min-width:0;padding:11px;border:1px solid #c6d8e3;border-radius:9px;font:inherit;background:white;color:#173b52}
+    textarea{resize:vertical;min-height:70px}
+    .wide{grid-column:1/-1}
+    .stat{background:#f5fafc;border:1px solid #e6eef4;border-radius:12px;padding:13px;min-width:0}
+    .stat small{display:block;color:#627e8d;font-size:12px}
+    .stat strong{display:block;color:#123d5a;font-size:22px;overflow-wrap:anywhere}
+    .stat em{display:block;font-size:11px;color:#607b8d;font-style:normal}
+    button{display:block;width:100%;border:0;background:#123d5a;color:white;border-radius:10px;padding:13px;font:inherit;font-weight:700;margin-top:15px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}
+    .item{border-top:1px solid #edf1f4;padding:12px 0}
+    .item:first-child{border:0}
+    .item strong{color:#123d5a}
+    .item p{margin:3px 0;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+    .source{font-size:11px;color:#5e7180;background:#eaf2f6;padding:3px 7px;border-radius:999px}
+    a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #2e97ba;outline-offset:2px}
+    [hidden]{display:none!important}
+    @media(max-width:540px){.card{padding:15px}.form-grid,.stats{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header><div><h1>SiOMC</h1><p>ข้อมูลสุขภาพของฉัน | บันทึกด้วยตนเอง</p></div></header>
+  <main>
+    <a class="back" id="backLink" href="./index.html">← กลับหน้าหลัก</a>
+    <div id="status" class="status" role="status" aria-live="polite">กำลังตรวจสอบบัญชี LINE ของคุณ...</div>
+    <div id="content" hidden>
+      <section class="card">
+        <h2>บันทึกข้อมูลร่างกาย</h2>
+        <p class="muted">กรอกเฉพาะค่าที่วัดได้จริง หากไม่ได้วัดสามารถเว้นว่างได้ ความดันโลหิตต้องกรอกตัวบนและตัวล่างคู่กัน</p>
+        <form id="measurementForm" autocomplete="off">
+          <div class="form-grid">
+            <div><label for="heightCm">ส่วนสูง (ซม.)</label><input id="heightCm" type="number" min="50" max="250" step="0.1" inputmode="decimal" placeholder="เช่น 165.0"></div>
+            <div><label for="waistCm">รอบเอว (ซม.)</label><input id="waistCm" type="number" min="30" max="300" step="0.1" inputmode="decimal" placeholder="เช่น 92.0"></div>
+            <div><label for="systolicBp">ความดันตัวบน (mmHg)</label><input id="systolicBp" type="number" min="40" max="300" step="1" inputmode="numeric" placeholder="เช่น 120"></div>
+            <div><label for="diastolicBp">ความดันตัวล่าง (mmHg)</label><input id="diastolicBp" type="number" min="20" max="200" step="1" inputmode="numeric" placeholder="เช่น 80"></div>
+            <div class="wide"><label for="note">หมายเหตุ (ถ้ามี)</label><textarea id="note" maxlength="500" placeholder="เช่น วัดที่บ้านด้วยเครื่องวัดความดันอัตโนมัติ"></textarea></div>
+          </div>
+          <p class="info">ระบบจะบันทึกวันและเวลาที่ส่งข้อมูลจาก Supabase โดยอัตโนมัติ รายการนี้จะระบุว่า “ผู้ป่วยรายงานเอง” และยังไม่เปิดให้แก้ไขหรือลบย้อนหลัง</p>
+          <button id="saveButton" type="submit" disabled>บันทึกข้อมูลสุขภาพ</button>
+        </form>
+      </section>
+      <section class="card">
+        <h2>ข้อมูลล่าสุดและ BMI</h2>
+        <div class="stats">
+          <div class="stat"><small>น้ำหนักล่าสุด</small><strong id="latestWeight">—</strong><em id="weightDate">ยังไม่มีข้อมูล</em></div>
+          <div class="stat"><small>ส่วนสูงล่าสุด</small><strong id="latestHeight">—</strong><em id="heightDate">ยังไม่มีข้อมูล</em></div>
+          <div class="stat"><small>BMI (kg/m²)</small><strong id="bmiValue">—</strong><em id="bmiNote">ต้องมีน้ำหนักและส่วนสูง</em></div>
+          <div class="stat"><small>รอบเอวล่าสุด</small><strong id="latestWaist">—</strong><em id="waistDate">ยังไม่มีข้อมูล</em></div>
+          <div class="stat wide"><small>ความดันโลหิตล่าสุด</small><strong id="latestBp">—</strong><em id="bpDate">ยังไม่มีข้อมูล</em></div>
+        </div>
+        <p class="info">BMI เป็นค่าคำนวณจากน้ำหนักและส่วนสูงล่าสุด ซึ่งอาจวัดคนละวัน จึงควรพิจารณาวันที่ของข้อมูลประกอบ ไม่ใช่การวินิจฉัยโรค</p>
+      </section>
+      <section class="card">
+        <h2>ประวัติการตรวจวัด</h2>
+        <p class="muted">แสดงข้อมูลล่าสุดสูงสุด 30 รายการ โดยแยกข้อมูลที่รายงานเองกับข้อมูลที่บุคลากรบันทึก</p>
+        <div id="history" aria-live="polite"><p class="muted">กำลังโหลดข้อมูล...</p></div>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { supabase } from './supabase.js';
+
+    const $ = (id) => document.getElementById(id);
+    const isPublished = new URLSearchParams(location.search).get('siomc_env') === 'published';
+    const LIFF_ID = isPublished ? '2012571123-L7rxvVsg' : '2012571121-sJssLsyF';
+    if (isPublished) $('backLink').href = './index.html?siomc_env=published';
+
+    let memberId = null;
+    let userId = null;
+    let saving = false;
+
+    function showStatus(text, type = '') {
+      $('status').textContent = text;
+      $('status').className = 'status' + (type ? ' ' + type : '');
+      $('status').hidden = false;
+    }
+    function bkkDateTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? '—' : new Intl.DateTimeFormat('th-TH', {
+        timeZone:'Asia/Bangkok', day:'numeric', month:'short', year:'numeric',
+        hour:'2-digit', minute:'2-digit'
+      }).format(d);
+    }
+    function dateOnly(value) {
+      if (!value) return '—';
+      const parts = String(value).split('-').map(Number);
+      if (parts.length !== 3 || parts.some(x=>!Number.isFinite(x))) return '—';
+      return new Intl.DateTimeFormat('th-TH', {
+        day:'numeric',month:'short',year:'numeric',timeZone:'UTC'
+      }).format(new Date(Date.UTC(parts[0],parts[1]-1,parts[2])));
+    }
+    function numericInput(id) {
+      const element = $(id);
+      if (element.value.trim() === '') return null;
+      const n = Number(element.value);
+      if (!Number.isFinite(n) || !element.checkValidity()) throw new Error('กรุณาตรวจสอบค่าที่กรอกให้ถูกต้อง');
+      return n;
+    }
+    function findLatest(rows, key) {
+      return rows.find(r => r[key] !== null && r[key] !== undefined);
+    }
+    function addHistoryLine(container, text) {
+      const p = document.createElement('p');
+      p.textContent = text;
+      container.append(p);
+    }
+    function renderHistory(rows) {
+      const container = $('history');
+      container.replaceChildren();
+      if (!rows.length) {
+        addHistoryLine(container, 'ยังไม่มีประวัติการตรวจวัด');
+        return;
+      }
+      for (const r of rows) {
+        const box = document.createElement('article');
+        box.className = 'item';
+        const header = document.createElement('strong');
+        header.textContent = bkkDateTime(r.measured_at);
+        const source = document.createElement('span');
+        source.className = 'source';
+        source.textContent = r.measurement_source === 'patient_reported' ? 'ผู้ป่วยรายงานเอง' : 'บุคลากรบันทึก';
+        box.append(header, document.createTextNode('  '), source);
+        const details = [];
+        if (r.height_cm != null) details.push(`ส่วนสูง ${Number(r.height_cm)} ซม.`);
+        if (r.waist_cm != null) details.push(`รอบเอว ${Number(r.waist_cm)} ซม.`);
+        if (r.systolic_bp != null && r.diastolic_bp != null) details.push(`ความดัน ${r.systolic_bp}/${r.diastolic_bp} mmHg`);
+        if (details.length) addHistoryLine(box, details.join(' • '));
+        if (r.note) addHistoryLine(box, `หมายเหตุ: ${r.note}`);
+        container.append(box);
+      }
+    }
+    function renderLatest(measurements, weights) {
+      const w = weights[0];
+      const h = findLatest(measurements,'height_cm');
+      const waist = findLatest(measurements,'waist_cm');
+      const bp = measurements.find(r=>r.systolic_bp!=null && r.diastolic_bp!=null);
+      $('latestWeight').textContent = w ? `${Number(w.weight_kg)} กก.` : '—';
+      $('weightDate').textContent = w ? `ชั่ง ${dateOnly(w.recorded_at)}` : 'ยังไม่มีข้อมูลน้ำหนัก';
+      $('latestHeight').textContent = h ? `${Number(h.height_cm)} ซม.` : '—';
+      $('heightDate').textContent = h ? `บันทึก ${bkkDateTime(h.measured_at)}` : 'ยังไม่มีข้อมูลส่วนสูง';
+      $('latestWaist').textContent = waist ? `${Number(waist.waist_cm)} ซม.` : '—';
+      $('waistDate').textContent = waist ? `บันทึก ${bkkDateTime(waist.measured_at)}` : 'ยังไม่มีข้อมูลรอบเอว';
+      $('latestBp').textContent = bp ? `${bp.systolic_bp}/${bp.diastolic_bp} mmHg` : '—';
+      $('bpDate').textContent = bp ? `บันทึก ${bkkDateTime(bp.measured_at)}` : 'ยังไม่มีข้อมูลความดัน';
+      if (w && h && Number(w.weight_kg)>0 && Number(h.height_cm)>0) {
+        const bmi = Number(w.weight_kg) / Math.pow(Number(h.height_cm)/100,2);
+        $('bmiValue').textContent = bmi.toFixed(1);
+        $('bmiNote').textContent = `น้ำหนัก ${dateOnly(w.recorded_at)} • ส่วนสูง ${bkkDateTime(h.measured_at)}`;
+      } else {
+        $('bmiValue').textContent = '—';
+        $('bmiNote').textContent = 'ต้องมีข้อมูลน้ำหนักและส่วนสูงก่อน';
+      }
+    }
+    async function loadHealth() {
+      const [m, w] = await Promise.all([
+        supabase.from('clinical_measurements')
+          .select('id, measured_at, height_cm, waist_cm, systolic_bp, diastolic_bp, note, measurement_source')
+          .eq('member_id', memberId).order('measured_at',{ascending:false}).limit(100),
+        supabase.from('weight_records')
+          .select('weight_kg, recorded_at, created_at').eq('member_id',memberId)
+          .order('recorded_at',{ascending:false}).order('created_at',{ascending:false}).limit(1)
+      ]);
+      if (m.error) throw m.error;
+      if (w.error) throw w.error;
+      const rows = m.data || [];
+      renderHistory(rows.slice(0,30));
+      renderLatest(rows,w.data || []);
+    }
+    async function initialize() {
+      try {
+        if (typeof liff === 'undefined') throw new Error('ไม่สามารถโหลด LINE LIFF ได้');
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isInClient() || !liff.isLoggedIn()) throw new Error('กรุณาเปิดหน้านี้ผ่าน LINE Mini App');
+        const token = liff.getIDToken();
+        if (!token) throw new Error('ไม่พบ LINE ID Token');
+        const {data: auth,error: authError}=await supabase.auth.signInWithIdToken({
+          provider:'custom:line-siomc', token, access_token:liff.getAccessToken() || undefined
+        });
+        if (authError) throw authError;
+        userId = auth?.user?.id;
+        if (!userId) throw new Error('ไม่สามารถตรวจสอบบัญชีผู้ใช้งาน');
+        const {data: registration,error: regError}=await supabase.rpc('register_line_member');
+        if (regError || registration?.success !== true) throw regError || new Error('บัญชีสมาชิกยังไม่พร้อมใช้งาน');
+        const {data: member,error: memberError}=await supabase.from('members')
+          .select('id,status').eq('auth_user_id',userId).single();
+        if (memberError || !member || member.status !== 'active') throw memberError || new Error('ไม่พบบัญชีสมาชิกที่เปิดใช้งาน');
+        memberId = member.id;
+        await loadHealth();
+        $('content').hidden = false;
+        $('saveButton').disabled = false;
+        $('status').hidden = true;
+      } catch (error) {
+        console.error('SiOMC patient health initialization failed:',error?.code||error?.message||'Unknown');
+        showStatus('ไม่สามารถเปิดข้อมูลสุขภาพได้ กรุณาเข้าใช้งานจาก SiOMC ใน LINE อีกครั้ง','error');
+      }
+    }
+    $('measurementForm').addEventListener('submit',async(event)=>{
+      event.preventDefault();
+      if (!memberId || !userId || saving) return;
+      let height, waist, systolic, diastolic;
+      try {
+        height = numericInput('heightCm');
+        waist = numericInput('waistCm');
+        systolic = numericInput('systolicBp');
+        diastolic = numericInput('diastolicBp');
+      } catch (error) {
+        showStatus(error.message,'error');
+        return;
+      }
+      if (height==null && waist==null && systolic==null && diastolic==null) {
+        showStatus('กรุณากรอกข้อมูลตรวจวัดอย่างน้อยหนึ่งรายการ','error'); return;
+      }
+      if ((systolic == null) !== (diastolic == null) || (systolic!=null && systolic<diastolic)) {
+        showStatus('กรุณากรอกความดันตัวบนและตัวล่างคู่กัน และตรวจสอบว่าตัวบนไม่ต่ำกว่าตัวล่าง','error'); return;
+      }
+      if (!window.confirm('ยืนยันบันทึกข้อมูลสุขภาพที่คุณวัดได้จริงใช่หรือไม่?')) return;
+      saving = true;
+      $('saveButton').disabled = true;
+      showStatus('กำลังบันทึกข้อมูลสุขภาพ...');
+      try {
+        const {error}=await supabase.from('clinical_measurements').insert({
+          member_id:memberId, recorded_by:userId, measurement_source:'patient_reported',
+          height_cm:height, waist_cm:waist, systolic_bp:systolic, diastolic_bp:diastolic,
+          note:$('note').value.trim() || null
+        });
+        if (error) throw error;
+        $('measurementForm').reset();
+        showStatus('บันทึกข้อมูลสุขภาพสำเร็จแล้ว','success');
+        try { await loadHealth(); }
+        catch(err) { console.error('Health refresh failed:',err?.code||err?.message);showStatus('บันทึกสำเร็จแล้ว แต่โหลดข้อมูลล่าสุดไม่สำเร็จ กรุณาเปิดหน้าอีกครั้ง','success'); }
+      } catch(error) {
+        console.error('SiOMC patient measurement save failed:',error?.code||error?.message||'Unknown');
+        showStatus('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่หรือติดต่อเจ้าหน้าที่','error');
+      } finally {
+        saving=false;
+        $('saveButton').disabled=false;
+      }
+    });
+    initialize();
+  </script>
+</body>
+</html>
