@@ -332,7 +332,9 @@
             : `รหัส ${row.assessor_id.slice(0, 8)}…`, 'ผู้บันทึก');
           const actionCell = document.createElement('td');
           actionCell.dataset.label = 'จัดการ';
-          if (row.assessor_id === access.user.id && ['doctor', 'nurse', 'dietitian'].includes(access.profile.role)) {
+          
+if (row.assessor_id === access.user.id && ['admin', 'doctor', 'nurse', 'dietitian'].includes(access.profile.role)) {
+
             const group = document.createElement('div');
             group.className = 'assessment-record-actions';
             const edit = document.createElement('button');
