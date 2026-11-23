@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | ผลประเมินของฉัน</title>
+  <link rel="stylesheet" href="./siomc-design.css">
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f3f7fa; color: #173b52; font: 15px/1.7 system-ui, Tahoma, sans-serif; }
+    header { background: #123d5a; color: #fff; padding: 20px 16px; }
+    header > div, main { max-width: 800px; margin: 0 auto; }
+    header h1 { margin: 0; font-size: 23px; color: #fff; }
+    header p { color: #deebf4; margin: 3px 0 0; font-size: 13px; }
+    main { padding: 18px 14px 40px; }
+    .back { display: inline-block; color: #165e85; text-decoration: none; font-weight: 700; margin-bottom: 15px; }
+    .intro, .record, .empty { background: #fff; border: 1px solid #dce8ef; border-radius: 16px; padding: 18px; margin-bottom: 15px; }
+    .intro h2 { margin: 0 0 8px; font-size: 19px; color: #123d5a; }
+    .intro p { margin: 4px 0; }
+    .hint { color: #587488; font-size: 13px; }
+    .status { background: #e8f2f8; border-radius: 10px; padding: 12px 14px; margin: 12px 0; }
+    .status.error { background: #fff0ef; color: #99312c; }
+    .record { overflow-wrap: anywhere; }
+    .record-head { display: flex; gap: 8px 12px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; }
+    .record h3 { font-size: 18px; color: #123d5a; margin: 0; }
+    .tag { display: inline-block; border-radius: 999px; background: #e7f4eb; color: #166534; font-size: 12px; padding: 3px 10px; white-space: nowrap; }
+    .meta { margin: 6px 0 13px; font-size: 13px; color: #597487; }
+    .field { border-top: 1px solid #e4edf2; padding: 13px 0; }
+    .field:last-child { padding-bottom: 0; }
+    .field h4 { color: #234b63; font-size: 14px; margin: 0 0 5px; }
+    .field p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .field p.no-value { color: #708596; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+    .toolbar h2 { color: #123d5a; font-size: 19px; margin: 0; }
+    button { background: #123d5a; border: 0; border-radius: 10px; color: #fff; font: inherit; font-weight: 700; padding: 9px 15px; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .empty { text-align: center; color: #587488; }
+    .notice { border: 1px solid #dce8ef; background: #edf6fb; border-radius: 10px; padding: 13px 15px; font-size: 13px; margin: 14px 0; }
+    a:focus-visible, button:focus-visible { outline: 3px solid #2e97ba; outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    @media (max-width: 540px) { .intro, .record, .empty { padding: 15px; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SiOMC</h1>
+      <p>ผลประเมินของฉัน | ดูผลจากทีมรักษา</p>
+    </div>
+  </header>
+  <main>
+    <a class="back" id="backLink" href="./index.html">← กลับหน้าหลัก</a>
+    <div id="status" class="status" role="status" aria-live="polite">กำลังตรวจสอบบัญชี LINE ของคุณ...</div>
+    <div id="content" hidden>
+      <section class="intro" aria-label="คำอธิบาย">
+        <h2>ผลประเมินทางคลินิกของฉัน</h2>
+        <p>อ่านสรุปผลการประเมิน แผนการดูแล และคำแนะนำที่ทีมรักษาอนุมัติให้เผยแพร่แล้ว</p>
+        <p class="hint">ข้อความแสดงตามที่เจ้าหน้าที่บันทึกและอนุมัติไว้ ผู้ป่วยไม่สามารถแก้ไขข้อมูลในหน้านี้ได้</p>
+        <div class="notice">หากมีข้อสงสัยเกี่ยวกับผลการประเมินหรือคำแนะนำ โปรดติดต่อทีมรักษาของคุณ ข้อมูลในหน้านี้ไม่ใช่บริการช่วยเหลือฉุกเฉิน</div>
+      </section>
+      <section aria-labelledby="resultsTitle">
+        <div class="toolbar">
+          <h2 id="resultsTitle">ประวัติผลประเมิน</h2>
+          <button id="refreshButton" type="button">โหลดข้อมูลใหม่</button>
+        </div>
+        <p id="resultsCount" class="hint" aria-live="polite"></p>
+        <div id="results" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module">
+    import { supabase } from './supabase.js';
+
+    const $ = (id) => document.getElementById(id);
+    const isPublished = new URLSearchParams(location.search).get('siomc_env') === 'published';
+    // Keep the same LIFF IDs and Supabase LINE provider as the existing patient-measurements page.
+    const LIFF_ID = isPublished ? '2012571123-L7rxvVsg' : '2012571121-sJssLsyF';
+    if (isPublished) $('backLink').href = './index.html?siomc_env=published';
+
+    const typeLabels = {
+      medical: 'ประเมินโดยแพทย์',
+      nursing: 'ประเมินทางการพยาบาล',
+      nutrition: 'ประเมินโภชนาการ',
+      multidisciplinary: 'ประเมินร่วมสหสาขาวิชาชีพ',
+      follow_up: 'ประเมินติดตามผล'
+    };
+
+    let ready = false;
+    let loading = false;
+    let requestNumber = 0;
+
+    function showStatus(message, error = false) {
+      $('status').textContent = message;
+      $('status').className = 'status' + (error ? ' error' : '');
+      $('status').hidden = false;
+    }
+
+    function displayDateTime(value) {
+      if (!value) return '—';
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'Asia/Bangkok', day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      }).format(d);
+    }
+
+    function displayDate(value) {
+      if (!value) return '—';
+      const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+      if (!match) return '—';
+      const d = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      if (Number.isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('th-TH', {
+        timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric'
+      }).format(d);
+    }
+
+    function textNode(tag, text, className) {
+      const node = document.createElement(tag);
+      node.textContent = text;
+      if (className) node.className = className;
+      return node;
+    }
+
+    function appendField(container, heading, content, optional = false) {
+      if (optional && (content === null || content === undefined || String(content).trim() === '')) return;
+      const field = document.createElement('div');
+      field.className = 'field';
+      field.appendChild(textNode('h4', heading));
+      field.appendChild(textNode('p', content == null || String(content).trim() === '' ? '—' : String(content)));
+      container.appendChild(field);
+    }
+
+    function renderAssessments(rows) {
+      const results = $('results');
+      results.replaceChildren();
+      $('resultsCount').textContent = rows.length
+        ? `แสดงผลประเมินที่ได้รับอนุมัติ ${rows.length} รายการ (สูงสุด 100 รายการล่าสุด)`
+        : 'ยังไม่มีผลประเมินที่ทีมรักษาเผยแพร่ให้คุณอ่าน';
+      if (!rows.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.appendChild(textNode('p', 'เมื่อทีมรักษาเผยแพร่ผลประเมินแล้ว รายการจะปรากฏที่นี่'));
+        results.appendChild(empty);
+        return;
+      }
+
+      for (const row of rows) {
+        const article = document.createElement('article');
+        article.className = 'record';
+        const heading = document.createElement('div');
+        heading.className = 'record-head';
+        heading.appendChild(textNode('h3', typeLabels[row.assessment_type] || 'ผลประเมินทางคลินิก'));
+        heading.appendChild(textNode('span', 'เผยแพร่แล้ว', 'tag'));
+        article.appendChild(heading);
+        const meta = textNode('p', `วันที่ประเมิน: ${displayDateTime(row.assessed_at)} · เผยแพร่เมื่อ: ${displayDateTime(row.patient_published_at)}`, 'meta');
+        article.appendChild(meta);
+        // Only render columns returned by the restricted RPC; never fetch clinical_assessments directly.
+        appendField(article, 'สรุปผลการประเมินทางคลินิก', row.patient_summary);
+        appendField(article, 'แผนการดูแล / คำแนะนำ', row.patient_care_advice, true);
+        appendField(article, 'วันนัดติดตาม', displayDate(row.follow_up_date), !row.follow_up_date);
+        results.appendChild(article);
+      }
+    }
+
+    async function loadAssessments() {
+      if (!ready || loading) return;
+      loading = true;
+      const request = ++requestNumber;
+      $('refreshButton').disabled = true;
+      $('resultsCount').textContent = 'กำลังโหลดผลประเมิน...';
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData?.user) throw new Error('กรุณาเข้าสู่ระบบใหม่');
+        const { data, error } = await supabase.rpc('get_my_published_assessments');
+        if (error) throw error;
+        if (!Array.isArray(data)) throw new Error('ข้อมูลผลประเมินไม่ถูกต้อง');
+        if (request !== requestNumber) return;
+        renderAssessments(data);
+        $('status').hidden = true;
+      } catch (error) {
+        console.error('SiOMC published assessments load failed:', error?.code || error?.message || 'Unknown');
+        showStatus('ไม่สามารถโหลดผลประเมินได้ กรุณาลองอีกครั้งหรือติดต่อเจ้าหน้าที่', true);
+        $('resultsCount').textContent = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+        $('results').replaceChildren();
+      } finally {
+        loading = false;
+        $('refreshButton').disabled = false;
+      }
+    }
+
+    async function initialize() {
+      try {
+        if (typeof liff === 'undefined') throw new Error('ไม่สามารถโหลด LINE LIFF ได้');
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isInClient() || !liff.isLoggedIn()) {
+          throw new Error('กรุณาเปิดจาก LINE Mini App');
+        }
+        const idToken = liff.getIDToken();
+        if (!idToken) throw new Error('ไม่พบ LINE ID Token');
+        const { data: auth, error: authError } = await supabase.auth.signInWithIdToken({
+          provider: 'custom:line-siomc',
+          token: idToken,
+          access_token: liff.getAccessToken() || undefined
+        });
+        if (authError || !auth?.user?.id) throw authError || new Error('ไม่สามารถตรวจสอบผู้ใช้งาน');
+
+        // Existing SiOMC patient pages use this RPC before reading their own member record.
+        const { data: registration, error: registrationError } = await supabase.rpc('register_line_member');
+        if (registrationError || registration?.success !== true) {
+          throw registrationError || new Error('บัญชีสมาชิกยังไม่พร้อมใช้งาน');
+        }
+        const { data: member, error: memberError } = await supabase.from('members')
+          .select('id,status').eq('auth_user_id', auth.user.id).single();
+        if (memberError || member?.status !== 'active') {
+          throw memberError || new Error('ไม่พบบัญชีสมาชิกที่เปิดใช้งาน');
+        }
+        ready = true;
+        $('content').hidden = false;
+        await loadAssessments();
+      } catch (error) {
+        console.error('SiOMC published assessments initialization failed:', error?.code || error?.message || 'Unknown');
+        $('content').hidden = true;
+        showStatus('ไม่สามารถเปิดผลประเมินได้ กรุณาเข้าใช้งานจาก SiOMC ใน LINE อีกครั้ง', true);
+      }
+    }
+
+    $('refreshButton').addEventListener('click', () => { void loadAssessments(); });
+    initialize();
+  </script>
+</body>
+</html>

@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#123d5a">
+  <title>SiOMC | Patient Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+
+
+  <style>
+    :root {
+      --navy:#123d5a; --ink:#183447; --muted:#637f90;
+      --line:#dbe7ed; --bg:#f3f7fa; --green:#18774c;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font-family:Prompt,system-ui,sans-serif; }
+    button { font:inherit; }
+    button:focus-visible, a:focus-visible, summary:focus-visible { outline:3px solid #2391bd; outline-offset:3px; }
+    .top { background:var(--navy); color:white; padding:16px max(18px,calc((100% - 880px)/2)); }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .brand-mark { width:42px; height:42px; flex:0 0 auto; display:grid; place-items:center; background:white; color:var(--navy); border-radius:13px; font-size:24px; }
+    .brand strong { display:block; font-size:21px; letter-spacing:.2px; }
+    .brand small { color:#d9e7ef; font-size:11px; }
+    .wrap { max-width:880px; padding:0 16px 30px; margin:20px auto; }
+    .card { background:white; border:1px solid var(--line); border-radius:18px; padding:20px; margin-bottom:16px; box-shadow:0 5px 20px rgba(18,61,90,.045); }
+    .eyebrow { margin:0; color:#176d96; font-size:12px; font-weight:600; }
+    h1 { margin:3px 0 7px; color:var(--navy); font-size:clamp(22px,4vw,29px); }
+    h2 { margin:0 0 6px; color:var(--navy); font-size:19px; }
+    .muted { color:var(--muted); font-size:13px; line-height:1.65; margin:0; }
+    .profile { display:flex; align-items:center; gap:14px; }
+    .avatar { width:58px; height:58px; border-radius:50%; flex:0 0 auto; object-fit:cover; background:#e8f3f8; }
+    .profile-copy { min-width:0; }
+    .profile-name { font-size:16px; font-weight:600; color:var(--navy); overflow-wrap:anywhere; }
+    .status { font-size:12px; color:var(--muted); margin-top:4px; }
+    .status.ok { color:var(--green); }
+    .status.error { color:#a43d36; }
+    .login-button { background:#e7f3f8; border:0; border-radius:10px; padding:9px 14px; margin-top:9px; color:var(--navy); font-size:13px; cursor:pointer; }
+    .hidden { display:none !important; }
+    .feature-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:17px; }
+    .feature { display:flex; flex-direction:column; justify-content:center; gap:7px; min-width:0; min-height:155px; padding:18px;
+      background:#fafdff; border:1px solid var(--line); border-radius:16px; color:var(--ink);
+      text-decoration:none; text-align:left; transition:background .15s, border-color .15s; cursor:pointer; font:inherit; }
+    .feature:hover { background:#eef7fb; border-color:#a5cddd; }
+    .feature:disabled, .feature[aria-disabled="true"] { opacity:.6; cursor:not-allowed; pointer-events:none; }
+    .feature-icon { font-size:27px; line-height:1.3; }
+    .feature-title { font-size:16px; font-weight:600; color:var(--navy); }
+    .feature-description { font-size:12px; color:var(--muted); line-height:1.5; }
+    .feature.wide { grid-column:span 2; min-height:96px; flex-direction:row; justify-content:flex-start; align-items:center; }
+    .feature.wide .feature-icon { flex:0 0 auto; }
+    .summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .summary-item { background:#f6fafc; border:1px solid #e5eef3; border-radius:13px; padding:15px; min-width:0; }
+    .summary-label { display:block; font-size:12px; color:var(--muted); margin-bottom:7px; }
+    .summary-value { display:block; color:var(--navy); font-size:24px; font-weight:700; line-height:1.3; overflow-wrap:anywhere; }
+    .summary-value small { font-size:12px; font-weight:400; }
+    .summary-foot { margin-top:12px; font-size:11px; color:var(--muted); }
+    .upcoming summary { color:var(--navy); cursor:pointer; font-weight:600; font-size:15px; list-style-position:inside; }
+    .upcoming-list { display:grid; gap:9px; margin-top:15px; }
+    .upcoming-item { display:flex; justify-content:space-between; gap:10px; align-items:center; padding:11px 12px; border-radius:11px; background:#f4f7f9; color:#8295a1; font-size:13px; }
+    .upcoming-label { flex:0 0 auto; font-size:11px; color:#758c9b; background:#e5ecf0; border-radius:999px; padding:4px 9px; }
+    .learn[hidden] { display:none; }
+    .learn-item { padding:11px 0; border-top:1px solid #edf1f4; }
+    .learn-item strong { display:block; font-size:14px; margin-bottom:4px; }
+    .learn-item p { margin:0; color:var(--muted); font-size:12px; line-height:1.6; }
+    .note { background:#fff8e9; color:#785a21; padding:12px; border-radius:11px; font-size:12px; line-height:1.6; }
+    .error-box { display:none; background:#fff0ef; color:#9e302e; border:1px solid #efc7c3; padding:13px 15px; border-radius:13px; font-size:13px; margin-bottom:16px; }
+    .footer { margin:18px 0 0; text-align:center; color:#8a9eab; font-size:11px; }
+    @media(max-width:430px) {
+      .wrap { padding:0 13px 26px; }
+      .card { padding:16px; }
+      .feature { padding:14px; min-height:140px; }
+      .feature-title { font-size:15px; }
+      .feature-description { font-size:11px; }
+      .summary-value { font-size:22px; }
+    }
+  
+    /* SiOMC official uploaded logo in patient Dashboard header */
+    .brand-mark { width:114px; height:98px; overflow:hidden; padding:4px; border-radius:13px; }
+    .brand-mark img { width:100%; height:100%; display:block; object-fit:contain; }
+    @media(max-width:430px) { .brand-mark { width:100px; height:87px; } }
+
+/* SiOMC Responsive Header */
+
+.top {
+  background: #123d5a;
+  color: white;
+  padding: 15px max(16px, calc((100% - 848px)/2));
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+}
+
+.brand-mark {
+  --mark-size: 70px;
+  display: block;
+  position: relative;
+  width: var(--mark-size);
+  height: var(--mark-size);
+  flex: 0 0 var(--mark-size);
+  overflow: hidden;
+  background: white;
+  border-radius: 14px;
+}
+
+/* แสดงเฉพาะสัญลักษณ์คนเดินจากภาพต้นฉบับ */
+.brand-mark img {
+  position: absolute;
+  width: calc(var(--mark-size) * 2.45);
+  max-width: none;
+  height: auto;
+  left: calc(var(--mark-size) * -0.69);
+  top: calc(var(--mark-size) * -0.12);
+}
+
+.brand-info {
+  display: block;
+  min-width: 0;
+}
+
+.brand-info strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: white;
+}
+
+.brand-info small {
+  display: block;
+  margin-top: 4px;
+  color: #d9e7ef;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .brand-mark {
+    --mark-size: 62px;
+  }
+
+  .brand-info strong {
+    font-size: 22px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .top {
+    padding: 12px 16px;
+  }
+
+  .brand {
+    gap: 11px;
+  }
+
+  .brand-mark {
+    --mark-size: 54px;
+    border-radius: 11px;
+  }
+
+  .brand-info strong {
+    font-size: 20px;
+  }
+
+  .brand-info small {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+}
+
+/* SiOMC Responsive Feature Cards */
+
+.feature {
+  min-height: 136px;
+  padding: 16px;
+  gap: 6px;
+}
+
+.feature.wide {
+  min-height: 84px;
+}
+
+@media (max-width: 430px) {
+  .feature {
+    min-height: 120px;
+    padding: 13px;
+    gap: 5px;
+  }
+
+  .feature.wide {
+    min-height: 80px;
+  }
+}
+
+  </style>
+
+<style>
+  html:not(.patient-authorized) body {
+    visibility: hidden;
+  }
+</style>
+
+
+<style>
+  /* SiOMC published knowledge library (patient view) */
+  .patient-learning-list { display:grid; gap:12px; margin-top:14px; }
+  .patient-learning-entry { border:1px solid #dbe7ed; border-radius:13px; background:#fafdff; padding:14px; }
+  .patient-learning-entry h3 { font-size:15px; color:#123d5a; margin:0 0 6px; overflow-wrap:anywhere; }
+  .patient-learning-meta { color:#637f90; font-size:12px; margin:0 0 10px; }
+  .patient-learning-content { white-space:pre-wrap; overflow-wrap:anywhere; color:#385469; font-size:13px; line-height:1.75; margin:8px 0 12px; }
+  .patient-learning-entry details summary { cursor:pointer; color:#176d96; font-size:13px; font-weight:600; }
+  .patient-learning-open { background:#123d5a; color:#fff; border:0; padding:10px 14px; border-radius:10px; font:inherit; font-size:13px; cursor:pointer; }
+  .patient-learning-open:disabled { opacity:.6; cursor:wait; }
+  .patient-learning-status { color:#637f90; font-size:13px; line-height:1.6; margin-top:12px; }
+</style>
+</head>
+<body>
+  
+<header class="top">
+  <div class="brand">
+
+    <span class="brand-mark" aria-hidden="true">
+      <img src="./siomc-logo.jpg" alt="">
+    </span>
+
+    <span class="brand-info">
+      <strong>SiOMC</strong>
+      <small>Siriraj Obesity and Metabolic Center</small>
+    </span>
+
+  </div>
+</header>
+
+
+  <main class="wrap">
+    <div id="errorBox" class="error-box" role="alert"></div>
+
+    <section class="card profile" aria-label="บัญชี LINE ของฉัน">
+      <img id="linePicture" class="avatar hidden" alt="รูปโปรไฟล์ LINE">
+      <div class="profile-copy">
+        <div id="lineDisplayName" class="profile-name">กำลังเชื่อมต่อ LINE...</div>
+        <div id="lineProfileStatus" class="status" role="status">กรุณารอสักครู่</div>
+        <button id="lineLoginButton" type="button" class="login-button hidden">เข้าสู่ระบบ LINE</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="portalHeading">
+      <p class="eyebrow">PATIENT PORTAL</p>
+      <h1 id="portalHeading">ดูแลสุขภาพของฉัน</h1>
+      <p class="muted">เลือกบริการที่ต้องการใช้งาน</p>
+      <div class="feature-grid">
+        <a id="weightLink" class="feature" href="./patient-weight.html?v=2" aria-disabled="true" tabindex="-1">
+          <span class="feature-icon" aria-hidden="true">⚖️</span>
+          <span class="feature-title">บันทึกน้ำหนัก</span>
+          <span class="feature-description">บันทึก ดูกราฟ และแก้ไขประวัติ</span>
+        </a>
+        <a id="foodLink" class="feature" href="./patient-food.html?v=3" aria-disabled="true" tabindex="-1">
+          <span class="feature-icon" aria-hidden="true">🍽️</span>
+          <span class="feature-title">บันทึกอาหาร</span>
+          <span class="feature-description">บันทึกแคลอรีและดูกราฟรายวัน</span>
+        </a>
+        <button id="learnToggle" class="feature wide" type="button" aria-expanded="false" aria-controls="learnPanel">
+          <span class="feature-icon" aria-hidden="true">📚</span>
+          <span>
+            <span class="feature-title" style="display:block">คลังความรู้</span>
+            <span class="feature-description" style="display:block">อ่านบทความ เปิด PDF และแผ่นพับ</span>
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="summaryHeading">
+      <h2 id="summaryHeading">สรุปสุขภาพของฉัน</h2>
+      <p class="muted">ข้อมูลล่าสุดจากบันทึกของคุณใน SiOMC</p>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">น้ำหนักล่าสุด</span>
+          <span id="latestWeight" class="summary-value">—</span>
+          <div id="latestWeightDate" class="summary-foot">กำลังโหลดข้อมูล</div>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">พลังงานที่บันทึกวันนี้</span>
+          <span id="todayCalories" class="summary-value">—</span>
+          <div id="todayFoodCount" class="summary-foot">กำลังโหลดข้อมูล</div>
+        </div>
+      </div>
+      <p class="summary-foot">ตัวเลขพลังงานมาจากที่บันทึกเอง ไม่ใช่การประเมินโดย AI</p>
+    </section>
+
+    <section id="learnPanel" class="card learn" aria-label="คลังความรู้" hidden>
+      <h2>คลังความรู้ SiOMC</h2>
+      <p class="muted">บทความ เอกสาร PDF และแผ่นพับที่ผ่านการเผยแพร่แล้ว</p>
+      <p id="publishedLearningStatus" class="patient-learning-status" role="status" aria-live="polite">เปิดคลังความรู้เพื่อโหลดรายการ...</p>
+      <div id="publishedLearningList" class="patient-learning-list"></div>
+    </section>
+
+    <details class="card upcoming">
+      <summary>บริการที่กำลังพัฒนา (3 รายการ)</summary>
+      <div class="upcoming-list">
+        <div class="upcoming-item"><span>🗓️ นัดหมาย</span><span class="upcoming-label">ยังไม่เปิด</span></div>
+        <div class="upcoming-item"><span>🩺 ติดตามหลังผ่าตัด</span><span class="upcoming-label">ยังไม่เปิด</span></div>
+        <div class="upcoming-item"><span>⭐ ประเมินบริการ</span><span class="upcoming-label">ยังไม่เปิด</span></div>
+      </div>
+    </details>
+    <p class="footer">SiOMC • Lose weight, Change lives</p>
+  </main>
+
+  <script type="module">
+    import { supabase } from "./supabase.js";
+
+    const isPublished =
+  new URLSearchParams(window.location.search)
+    .get("siomc_env") === "published";
+
+const LIFF_ID = isPublished
+  ? "2012571123-L7rxvVsg"
+  : "2012571121-sJssLsyF";
+
+if (isPublished) {
+  document.getElementById("weightLink").href =
+    "./patient-weight.html?v=2&siomc_env=published";
+
+  document.getElementById("foodLink").href =
+    "./patient-food.html?v=3&siomc_env=published";
+}
+
+    const el = id => document.getElementById(id);
+
+function formatThaiDate(isoDate) {
+  if (!isoDate) return "—";
+
+  const [year, month, day] = isoDate
+    .split("-")
+    .map(Number);
+
+  const date = new Date(
+    Date.UTC(year, month - 1, day)
+  );
+
+  return new Intl.DateTimeFormat("th-TH-u-nu-latn", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC"
+  }).format(date);
+}
+
+    let loginPromise = null;
+
+    function setStatus(message, state = "normal") {
+      const status = el("lineProfileStatus");
+      status.textContent = message;
+      status.className = "status" + (state === "ok" ? " ok" : state === "error" ? " error" : "");
+    }
+
+    function showError(message) {
+      el("errorBox").textContent = message;
+      el("errorBox").style.display = "block";
+      setStatus("ยังไม่พร้อมใช้งาน", "error");
+    }
+
+    function setFeaturesEnabled(enabled) {
+      for (const id of ["weightLink", "foodLink"]) {
+        const link = el(id);
+        link.setAttribute("aria-disabled", enabled ? "false" : "true");
+        if (enabled) link.removeAttribute("tabindex");
+        else link.setAttribute("tabindex", "-1");
+      }
+    }
+
+    function bangkokDate() {
+      // วันในประเทศไทย ไม่ใช่วันตาม UTC
+      return new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Bangkok", year: "numeric", month: "2-digit", day: "2-digit"
+      }).format(new Date());
+    }
+
+    async function loadMemberSummary(userId) {
+      const { data: member, error: memberError } = await supabase
+        .from("members").select("id,status")
+        .eq("auth_user_id", userId).maybeSingle();
+      if (memberError || !member || member.status !== "active") {
+        throw new Error("ไม่พบข้อมูลสมาชิกที่พร้อมใช้งาน");
+      }
+
+      const [weights, foods] = await Promise.all([
+        supabase.from("weight_records")
+          .select("weight_kg,recorded_at")
+          .eq("member_id", member.id)
+          .order("recorded_at", { ascending: false })
+          .limit(1),
+        supabase.from("nutrition_logs")
+          .select("estimated_calories")
+          .eq("member_id", member.id)
+          .eq("log_date", bangkokDate())
+      ]);
+
+      if (weights.error) {
+        el("latestWeightDate").textContent = "ยังไม่สามารถโหลดข้อมูลน้ำหนักได้";
+      } else if (weights.data?.length) {
+        const entry = weights.data[0];
+        el("latestWeight").textContent = `${Number(entry.weight_kg).toLocaleString("th-TH", { maximumFractionDigits: 2 })} กก.`;
+        el("latestWeightDate").textContent = `วันที่บันทึก ${formatThaiDate(entry.recorded_at)}`;
+      } else {
+        el("latestWeightDate").textContent = "ยังไม่มีรายการบันทึก";
+      }
+
+      if (foods.error) {
+        el("todayFoodCount").textContent = "ยังไม่สามารถโหลดรายการอาหารได้";
+      } else if (foods.data?.length) {
+        const calories = foods.data.reduce((total, item) => total + (Number(item.estimated_calories) || 0), 0);
+        el("todayCalories").textContent = `${calories.toLocaleString("th-TH", { maximumFractionDigits: 0 })} kcal`;
+        el("todayFoodCount").textContent = `${foods.data.length} รายการที่บันทึกวันนี้`;
+      } else {
+        el("todayFoodCount").textContent = "ยังไม่มีรายการบันทึกวันนี้";
+      }
+    }
+
+    async function loginPatientWithLine() {
+      if (loginPromise) return loginPromise;
+      loginPromise = (async () => {
+        const token = liff.getIDToken();
+        if (!token) throw new Error("ไม่พบ LINE ID Token");
+
+        const { data, error } = await supabase.auth.signInWithIdToken({
+          provider: "custom:line-siomc",
+          token,
+          access_token: liff.getAccessToken() || undefined
+        });
+        if (error) throw error;
+        if (!data?.session?.user?.id) throw new Error("ไม่พบ Supabase Session");
+
+        const { data: member, error: memberError } = await supabase.rpc("register_line_member");
+        if (memberError) throw memberError;
+        if (member?.success !== true) throw new Error("ไม่สามารถตรวจสอบสมาชิกได้");
+
+        // ไม่แสดงรหัสสมาชิกหรือกล่อง Debug บน Dashboard
+        setFeaturesEnabled(true);
+        setStatus("บัญชีสมาชิกพร้อมใช้งาน", "ok");
+        try {
+          await loadMemberSummary(data.session.user.id);
+        } catch (summaryError) {
+          // ถ้าข้อมูลสรุปโหลดไม่ได้ ไม่ให้เกิดข้อความว่าเข้าสู่ระบบไม่สำเร็จ
+          console.warn("SiOMC summary unavailable", summaryError?.message || "Unknown error");
+          el("latestWeightDate").textContent = "ยังไม่สามารถโหลดข้อมูลได้";
+          el("todayFoodCount").textContent = "ยังไม่สามารถโหลดข้อมูลได้";
+        }
+      })();
+      try { await loginPromise; }
+      finally { loginPromise = null; }
+    }
+
+    async function initLineApp() {
+      setFeaturesEnabled(false);
+      try {
+        if (typeof liff === "undefined") throw new Error("ไม่พบ LINE LIFF SDK");
+        await liff.init({ liffId: LIFF_ID });
+
+const loginUrl = "./login.html" +
+  (isPublished ? "?siomc_env=published" : "");
+
+const {
+  data: { user },
+  error: authError
+} = await supabase.auth.getUser();
+
+if (authError || !user) {
+  window.location.replace(loginUrl);
+  return;
+}
+
+const {
+  data: member,
+  error: memberError
+} = await supabase
+  .from("members")
+  .select("id, status")
+  .eq("auth_user_id", user.id)
+  .maybeSingle();
+
+if (
+  memberError ||
+  !member ||
+  member.status !== "active"
+) {
+  window.location.replace(loginUrl);
+  return;
+}
+
+document.documentElement.classList.add(
+  "patient-authorized"
+);
+
+
+        if (!liff.isLoggedIn()) {
+          setStatus("กรุณาเข้าสู่ระบบ LINE");
+          el("lineDisplayName").textContent = "ยังไม่ได้เข้าสู่ระบบ LINE";
+          el("lineLoginButton").classList.remove("hidden");
+          return;
+        }
+
+        // ชื่อและรูปจาก LINE ใช้สำหรับแสดงผลเท่านั้น ไม่ใช้แทนการยืนยันตัวตน
+        try {
+          const profile = await liff.getProfile();
+          el("lineDisplayName").textContent = profile.displayName || "สมาชิก SiOMC";
+          if (profile.pictureUrl) {
+            el("linePicture").src = profile.pictureUrl;
+            el("linePicture").classList.remove("hidden");
+          }
+        } catch (_) {
+          el("lineDisplayName").textContent = "สมาชิก SiOMC";
+        }
+        setStatus("กำลังตรวจสอบบัญชีสมาชิก...");
+        await loginPatientWithLine();
+
+if (
+  !document.documentElement.classList.contains(
+    "patient-authorized"
+  )
+) {
+  window.location.replace(
+    "./login.html" +
+    (isPublished ? "?siomc_env=published" : "")
+  );
+  return;
+}
+
+      } catch (err) {
+        // ไม่แสดงข้อมูลทางเทคนิค, ID Token หรือข้อมูลอ่อนไหวบนหน้าจอ
+        console.error("SiOMC LINE authentication failed", err?.message || "Unknown error");
+        showError("ไม่สามารถเข้าสู่ระบบ SiOMC ได้ กรุณาปิดแล้วเปิดผ่าน LINE Mini App อีกครั้ง");
+      }
+    }
+
+    el("lineLoginButton").addEventListener("click", () => {
+      if (typeof liff !== "undefined" && !liff.isLoggedIn()) liff.login();
+    });
+
+
+    // Read only published knowledge records. Database and Storage RLS must enforce access.
+    async function loadPublishedLearning() {
+      const statusEl = el("publishedLearningStatus");
+      const listEl = el("publishedLearningList");
+      listEl.replaceChildren();
+      statusEl.textContent = "กำลังโหลดคลังความรู้...";
+
+      if (!document.documentElement.classList.contains("patient-authorized")) {
+        statusEl.textContent = "กรุณาเข้าสู่ระบบผู้ป่วยก่อนเปิดคลังความรู้";
+        return;
+      }
+      try {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        if (authError || !authData?.user) throw new Error("ไม่พบการเข้าสู่ระบบ");
+
+        const { data: items, error } = await supabase
+          .from("learning_contents")
+          .select("id,title,category,content_type,content_body,media_path,published_at")
+          .eq("status", "published")
+          .order("published_at", { ascending: false })
+          .limit(100);
+        if (error) throw error;
+
+        if (!items?.length) {
+          statusEl.textContent = "ยังไม่มีสื่อความรู้ที่เผยแพร่";
+          return;
+        }
+        statusEl.textContent = "รายการที่เผยแพร่แล้ว " + items.length + " รายการ";
+
+        for (const item of items) {
+          const card = document.createElement("article");
+          card.className = "patient-learning-entry";
+          const title = document.createElement("h3");
+          title.textContent = item.title || "สื่อความรู้";
+          card.appendChild(title);
+
+          const meta = document.createElement("p");
+          meta.className = "patient-learning-meta";
+          const labels = { article: "บทความ", video: "วิดีโอ", lesson: "บทเรียน", PDF: "เอกสาร PDF", JPEG: "แผ่นพับ JPEG" };
+          meta.textContent = [item.category, labels[item.content_type] || item.content_type].filter(Boolean).join(" • ");
+          card.appendChild(meta);
+
+          if (item.content_body) {
+            const details = document.createElement("details");
+            const summary = document.createElement("summary");
+            summary.textContent = "อ่านรายละเอียด";
+            const contents = document.createElement("p");
+            contents.className = "patient-learning-content";
+            contents.textContent = item.content_body;
+            details.append(summary, contents);
+            card.appendChild(details);
+          }
+
+          if (item.media_path) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "patient-learning-open";
+            button.textContent = item.content_type === "PDF" ? "เปิด PDF" :
+              item.content_type === "JPEG" ? "ดูแผ่นพับ" : "เปิดสื่อ";
+            button.addEventListener("click", async () => {
+              button.disabled = true;
+              const originalText = button.textContent;
+              button.textContent = "กำลังเปิด...";
+              try {
+                let url;
+                if (item.content_type === "PDF" || item.content_type === "JPEG") {
+                  const { data, error: signedError } = await supabase.storage
+                    .from("siomc-learning-pdf")
+                    .createSignedUrl(item.media_path, 60);
+                  if (signedError || !data?.signedUrl) throw signedError || new Error("ไม่พบลิงก์ไฟล์");
+                  url = data.signedUrl;
+                } else {
+                  url = item.media_path;
+                }
+                // Reject javascript: and other unsafe protocols from database values.
+                const targetUrl = new URL(url, location.origin);
+                if (targetUrl.protocol !== "https:" && targetUrl.protocol !== "http:") {
+                  throw new Error("รูปแบบลิงก์ไม่ถูกต้อง");
+                }
+                if (typeof liff !== "undefined" && liff.isInClient()) {
+                  liff.openWindow({ url: targetUrl.href, external: true });
+                } else {
+                  window.location.assign(targetUrl.href);
+                }
+              } catch (openError) {
+                console.error("SiOMC learning file:", openError?.message || openError);
+                alert("ยังไม่สามารถเปิดสื่อนี้ได้ กรุณาลองใหม่หรือแจ้งผู้ดูแลระบบ");
+              } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+              }
+            });
+            card.appendChild(button);
+          }
+          listEl.appendChild(card);
+        }
+      } catch (error) {
+        console.error("SiOMC knowledge loading:", error?.message || error);
+        statusEl.textContent = "ไม่สามารถโหลดคลังความรู้ได้ กรุณาลองใหม่หรือติดต่อเจ้าหน้าที่";
+      }
+    }
+
+    el("learnToggle").addEventListener("click", () => {
+      const panel = el("learnPanel");
+      const willOpen = panel.hidden;
+      panel.hidden = !willOpen;
+      el("learnToggle").setAttribute("aria-expanded", willOpen ? "true" : "false");
+      if (willOpen) {
+        panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        void loadPublishedLearning();
+      }
+    });
+
+    initLineApp();
+  </script>
+</body>
+</html>
