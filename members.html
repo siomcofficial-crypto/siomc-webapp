@@ -38,24 +38,25 @@
     }
     .count { margin: 14px 0 0; font-size: 13px; color: #647d91; }
     .table-wrap { overflow-x: auto; max-width: 100%; }
-    table { width: 100%; min-width: 600px; border-collapse: collapse; }
+    table { width: 100%; min-width: 660px; border-collapse: collapse; }
     th, td {
       text-align: left; border-bottom: 1px solid #edf1f4;
       padding: 13px 10px; font-size: 13px; vertical-align: middle;
     }
     th { color: #47677d; font-weight: 600; }
-    .status {
-      display: inline-block; padding: 5px 10px;
-      border-radius: 30px; font-size: 12px; font-weight: 400;
-    }
+    .status { display: inline-block; padding: 5px 10px; border-radius: 30px; font-size: 12px; font-weight: 400; }
     .status.active { background: #e9f5ee; color: #276b4c; }
     .status.inactive, .status.archived { background: #f0f2f5; color: #5e6b75; }
     .status.unknown { background: #fff3df; color: #865c19; }
-    .view-button, .page-button, .refresh-button {
+    .view-button, .page-button, .refresh-button, .archive-button, .confirm-archive-button {
       border: 1px solid #cddfea; background: #e8f1f7; color: #123d5a;
-      border-radius: 9px; padding: 8px 12px; cursor: pointer;
-      font-size: 13px;
+      border-radius: 9px; padding: 8px 12px; cursor: pointer; font-size: 13px;
     }
+    .archive-button, .confirm-archive-button { background: #fff1f0; border-color: #e6a9a4; color: #a32d29; }
+    .archive-button:hover, .confirm-archive-button:hover { background: #ffe4e2; }
+    .row-actions, .dialog-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .row-actions { min-width: max-content; }
+    .dialog-actions { justify-content: flex-end; margin-top: 16px; }
     button:disabled { opacity: .45; cursor: not-allowed; }
     .pager { display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
     .pager span { font-size: 13px; color: #647d91; }
@@ -65,6 +66,9 @@
       background: white; text-align: center; color: #123d5a;
     }
     .error-text { color: #ab3333; }
+    .success-text { color: #276b4c; }
+    .action-feedback { margin: 0 0 12px; font-size: 14px; }
+    .action-feedback:empty { display: none; }
     dialog {
       width: min(92vw, 460px); max-width: 460px;
       border: 1px solid #dce8ee; border-radius: 16px;
@@ -75,6 +79,13 @@
     .detail-grid { display: grid; gap: 10px; margin-bottom: 18px; }
     .detail-row { display: grid; grid-template-columns: 125px minmax(0,1fr); gap: 12px; }
     .detail-row .label { color: #718596; }
+    .archive-note { font-size: 13px; line-height: 1.65; color: #526c7c; }
+    .archive-form-label { display: block; margin: 12px 0 5px; font-size: 13px; }
+    .archive-input {
+      display: block; width: 100%; min-width: 0; border-radius: 9px;
+      border: 1px solid #cadbe5; padding: 10px 12px; font: inherit; font-size: 14px;
+    }
+    .archive-input:focus { outline: 2px solid #3588b7; outline-offset: 1px; }
     @media (max-width: 700px) {
       .page-head { padding: 16px 18px 16px 72px !important; min-height: 78px; }
       .page-head h2 { font-size: 20px; }
@@ -92,19 +103,17 @@
   <div class="auth-state" id="authState" role="status" aria-live="polite">
     กำลังตรวจสอบสิทธิ์เจ้าหน้าที่...
   </div>
-
   <div id="protectedContent" hidden>
     <header class="page-head">
       <h2>SiOMC Admin Portal</h2>
       <p>Member Management</p>
     </header>
-
     <main>
       <div class="topline">
         <h1>จัดการสมาชิก</h1>
         <a class="back" href="./admin.html">← กลับ Dashboard</a>
       </div>
-
+      <p id="actionFeedback" class="action-feedback" role="status" aria-live="polite"></p>
       <section class="panel" aria-label="ค้นหาและกรองสมาชิก">
         <div class="filters">
           <div>
@@ -124,7 +133,6 @@
         </div>
         <p class="count" id="memberCount" role="status" aria-live="polite">กำลังโหลดข้อมูลสมาชิก...</p>
       </section>
-
       <section class="panel" aria-label="รายชื่อสมาชิก">
         <div class="table-wrap">
           <table>
@@ -134,7 +142,7 @@
                 <th scope="col">ชื่อสมาชิก</th>
                 <th scope="col">สถานะ</th>
                 <th scope="col">วันที่สมัคร</th>
-                <th scope="col">รายละเอียด</th>
+                <th scope="col">จัดการ</th>
               </tr>
             </thead>
             <tbody id="memberTable">
@@ -151,7 +159,6 @@
       </section>
     </main>
   </div>
-
   <dialog id="memberDialog" aria-labelledby="dialogTitle">
     <h2 id="dialogTitle">รายละเอียดสมาชิก</h2>
     <div class="detail-grid">
@@ -163,21 +170,44 @@
     <button id="closeDialog" class="view-button" type="button">ปิด</button>
   </dialog>
 
+  <dialog id="archiveDialog" aria-labelledby="archiveDialogTitle">
+    <h2 id="archiveDialogTitle">ยืนยันการลบบัญชีสมาชิก</h2>
+    <p class="archive-note">การลบนี้เป็นการเก็บถาวร (Soft Delete) ไม่ใช่การลบข้อมูลสุขภาพถาวร ระบบจะปิดสิทธิ์การใช้งานของบัญชีที่เชื่อมโยงด้วย</p>
+    <div class="detail-grid">
+      <div class="detail-row"><span class="label">รหัสสมาชิก</span><strong id="archiveMemberCode"></strong></div>
+      <div class="detail-row"><span class="label">ชื่อสมาชิก</span><span id="archiveMemberName"></span></div>
+    </div>
+    <form id="archiveForm">
+      <label class="archive-form-label" for="archiveReason">เหตุผลในการลบบัญชี (3–500 ตัวอักษร)</label>
+      <textarea id="archiveReason" class="archive-input" required minlength="3" maxlength="500" rows="3"
+        placeholder="ระบุเหตุผลเพื่อเก็บเป็นประวัติ"></textarea>
+      <label class="archive-form-label" for="archiveConfirmCode">พิมพ์รหัสสมาชิกด้านบนอีกครั้งเพื่อยืนยัน</label>
+      <input id="archiveConfirmCode" class="archive-input" required autocomplete="off" spellcheck="false">
+      <p id="archiveError" class="error-text" role="alert" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button id="cancelArchive" class="view-button" type="button">ยกเลิก</button>
+        <button id="confirmArchive" class="confirm-archive-button" type="submit">ยืนยันลบบัญชี</button>
+      </div>
+    </form>
+  </dialog>
+
   <script type="module">
     import { supabase } from './supabase.js';
     import { renderAdminSidebar } from './admin-layout.js';
 
     const $ = id => document.getElementById(id);
     const PAGE_SIZE = 25;
-    // สิทธิ์ดูรายชื่อสอดคล้องกับ members RLS ที่มีอยู่
+    // การมองเห็นรายการ: สอดคล้องกับระบบเดิม
     const ALLOWED_ROLES = new Set(['admin', 'system_admin', 'doctor', 'nurse', 'dietitian']);
     const ROLE_VIEW = 'system_admin';
     let source = null;
+    let canArchive = false;
+    let selectedMember = null;
+    let archivePending = false;
     let page = 0;
     let total = 0;
     let requestNumber = 0;
     let searchTimer = null;
-
     const statusLabels = {
       active: 'เปิดใช้งาน',
       inactive: 'ปิดใช้งาน',
@@ -192,14 +222,12 @@
         day: 'numeric', month: 'short', year: 'numeric'
       }).format(date);
     }
-
     function addCell(row, text) {
       const td = document.createElement('td');
       td.textContent = String(text ?? '—');
       row.appendChild(td);
       return td;
     }
-
     function showTableMessage(message) {
       const tbody = $('memberTable');
       tbody.replaceChildren();
@@ -208,7 +236,6 @@
       cell.colSpan = 5;
       tbody.appendChild(row);
     }
-
     function showDetails(member) {
       $('detailCode').textContent = member.member_code ?? '—';
       $('detailName').textContent = member.display_name ?? '—';
@@ -216,7 +243,16 @@
       $('detailDate').textContent = formatThaiDate(member.created_at);
       $('memberDialog').showModal();
     }
-
+    function openArchiveDialog(member) {
+      if (!canArchive || !member?.id || member.status === 'archived' || archivePending) return;
+      selectedMember = { id: member.id, member_code: member.member_code, display_name: member.display_name };
+      $('archiveForm').reset();
+      $('archiveError').textContent = '';
+      $('archiveMemberCode').textContent = member.member_code;
+      $('archiveMemberName').textContent = member.display_name;
+      $('archiveDialog').showModal();
+      $('archiveReason').focus();
+    }
     function renderRows(rows) {
       const tbody = $('memberTable');
       tbody.replaceChildren();
@@ -228,27 +264,37 @@
         const row = document.createElement('tr');
         addCell(row, member.member_code);
         addCell(row, member.display_name);
-
         const statusCell = document.createElement('td');
         const badge = document.createElement('span');
         badge.className = 'status ' + (statusLabels[member.status] ? member.status : 'unknown');
         badge.textContent = statusLabels[member.status] || member.status || 'ไม่ระบุ';
         statusCell.appendChild(badge);
         row.appendChild(statusCell);
-
         addCell(row, formatThaiDate(member.created_at));
         const actionCell = document.createElement('td');
+        const actions = document.createElement('div');
+        actions.className = 'row-actions';
         const button = document.createElement('button');
         button.className = 'view-button';
         button.type = 'button';
         button.textContent = 'ดูข้อมูล';
         button.addEventListener('click', () => showDetails(member));
-        actionCell.appendChild(button);
+        actions.appendChild(button);
+        // ปุ่มแสดงเฉพาะ Admin; การอนุญาตจริงตรวจใน Supabase RPC ซ้ำ
+        if (canArchive && member.id && member.status !== 'archived') {
+          const archive = document.createElement('button');
+          archive.className = 'archive-button';
+          archive.type = 'button';
+          archive.textContent = 'ลบบัญชี';
+          archive.setAttribute('aria-label', `ลบบัญชีสมาชิก ${member.member_code}`);
+          archive.addEventListener('click', () => openArchiveDialog(member));
+          actions.appendChild(archive);
+        }
+        actionCell.appendChild(actions);
         row.appendChild(actionCell);
         tbody.appendChild(row);
       }
     }
-
     async function loadMembers() {
       if (!source) return;
       const thisRequest = ++requestNumber;
@@ -256,8 +302,6 @@
       $('prevPage').disabled = true;
       $('nextPage').disabled = true;
       showTableMessage('กำลังโหลดข้อมูล...');
-
-      // จำกัดอักขระให้ปลอดภัยเมื่อใช้ PostgREST OR filter
       const keyword = $('searchInput').value.trim()
         .replace(/[^\p{L}\p{M}\p{N}\s-]/gu, '')
         .slice(0, 80).trim();
@@ -268,15 +312,11 @@
         .select('id, member_code, display_name, status, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
-
-      if (keyword) {
-        query = query.or(`member_code.ilike.%${keyword}%,display_name.ilike.%${keyword}%`);
-      }
+      if (keyword) query = query.or(`member_code.ilike.%${keyword}%,display_name.ilike.%${keyword}%`);
       if (status) query = query.eq('status', status);
 
       const { data, error, count } = await query;
       if (thisRequest !== requestNumber) return;
-
       if (error) {
         console.error('SiOMC members query failed:', error.code, error.message);
         $('memberCount').textContent = 'โหลดข้อมูลสมาชิกไม่สำเร็จ กรุณาตรวจสอบสิทธิ์หรือการเชื่อมต่อ';
@@ -284,7 +324,6 @@
         $('pageInfo').textContent = '—';
         return;
       }
-
       total = count ?? 0;
       const pageTotal = Math.max(1, Math.ceil(total / PAGE_SIZE));
       if (page >= pageTotal && page > 0) {
@@ -298,7 +337,49 @@
       $('prevPage').disabled = page === 0;
       $('nextPage').disabled = page >= pageTotal - 1;
     }
-
+    async function confirmArchive(event) {
+      event.preventDefault();
+      if (archivePending || !selectedMember || !canArchive) return;
+      const reason = $('archiveReason').value.trim();
+      const code = $('archiveConfirmCode').value.trim();
+      if (reason.length < 3 || reason.length > 500) {
+        $('archiveError').textContent = 'กรุณาระบุเหตุผล 3–500 ตัวอักษร';
+        return;
+      }
+      if (code !== selectedMember.member_code) {
+        $('archiveError').textContent = 'รหัสสมาชิกที่พิมพ์ไม่ตรง กรุณาตรวจสอบอีกครั้ง';
+        return;
+      }
+      archivePending = true;
+      $('confirmArchive').disabled = true;
+      $('cancelArchive').disabled = true;
+      $('confirmArchive').textContent = 'กำลังดำเนินการ...';
+      $('archiveError').textContent = '';
+      const memberCode = selectedMember.member_code;
+      try {
+        const { data, error } = await supabase.rpc('archive_siomc_member', {
+          p_member_id: selectedMember.id,
+          p_reason: reason
+        });
+        if (error) throw error;
+        if (!data || data.success !== true || data.status !== 'archived') {
+          throw new Error('ระบบไม่ได้ยืนยันการเก็บถาวรบัญชี');
+        }
+        $('archiveDialog').close();
+        selectedMember = null;
+        $('actionFeedback').className = 'action-feedback success-text';
+        $('actionFeedback').textContent = `เก็บถาวรบัญชี ${memberCode} เรียบร้อยแล้ว`;
+        await loadMembers();
+      } catch (error) {
+        console.error('SiOMC member archive failed:', error);
+        $('archiveError').textContent = `ไม่สามารถลบบัญชีได้: ${error.message || 'กรุณาลองใหม่'}`;
+      } finally {
+        archivePending = false;
+        $('confirmArchive').disabled = false;
+        $('cancelArchive').disabled = false;
+        $('confirmArchive').textContent = 'ยืนยันลบบัญชี';
+      }
+    }
     async function checkAccessAndInit() {
       try {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -312,14 +393,13 @@
           .eq('id', user.id)
           .maybeSingle();
         if (profileError) throw profileError;
-
         if (!profile || !profile.is_active || !ALLOWED_ROLES.has(profile.role)) {
           $('authState').classList.add('error-text');
           $('authState').textContent = 'บัญชีนี้ไม่มีสิทธิ์ดูรายชื่อสมาชิก กรุณาเข้าสู่ระบบด้วยบัญชีเจ้าหน้าที่ที่ได้รับอนุญาต';
           return;
         }
-
-        // System Admin ใช้ View ที่ตรวจสิทธิ์ system_admin ภายในฐานข้อมูล
+        // ขณะนี้ RPC archive_siomc_member อนุญาตเฉพาะ admin ไม่รวม system_admin
+        canArchive = profile.role === 'admin';
         source = profile.role === ROLE_VIEW ? 'system_admin_member_directory' : 'members';
         renderAdminSidebar('members', profile.role);
         $('authState').hidden = true;
@@ -331,7 +411,6 @@
         $('authState').textContent = 'ไม่สามารถโหลดระบบจัดการสมาชิกได้ กรุณาลองใหม่หรือตรวจสอบสิทธิ์บัญชี';
       }
     }
-
     $('searchInput').addEventListener('input', () => {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(() => { page = 0; loadMembers(); }, 350);
@@ -341,6 +420,10 @@
     $('nextPage').addEventListener('click', () => { if ((page + 1) * PAGE_SIZE < total) { page++; loadMembers(); } });
     $('refreshButton').addEventListener('click', () => loadMembers());
     $('closeDialog').addEventListener('click', () => $('memberDialog').close());
+    $('cancelArchive').addEventListener('click', () => { if (!archivePending) $('archiveDialog').close(); });
+    $('archiveForm').addEventListener('submit', confirmArchive);
+    $('archiveDialog').addEventListener('cancel', event => { if (archivePending) event.preventDefault(); });
+    $('archiveDialog').addEventListener('close', () => { if (!archivePending) selectedMember = null; });
     checkAccessAndInit();
   </script>
 </body>
